@@ -10,6 +10,8 @@ from github import Github
 
 from . import github_client
 
+BYPASS_ALLOWANCES_KEY = "bypass_pull_request_allowances"
+
 
 class Result(str, Enum):
     """The result of a check.
@@ -51,3 +53,36 @@ def target_branch_protection(
         Whether the branch has appropriate protections.
 
     """
+    repository = github_client.get_repo(repository_name)
+    branch = repository.get_branch(branch_name)
+
+    if not branch.protected:
+        return Report(
+            result=Result.FAIL, reason=f"branch protection not enabled, {branch_name=!r}"
+        )
+
+    protection = branch.get_protection()
+
+    pull_request_reviews = protection.required_pull_request_reviews
+    if not pull_request_reviews.require_code_owner_reviews:
+        return Report(
+            result=Result.FAIL,
+            reason=f"codeowner pull request reviews are not required, {branch_name=!r}",
+        )
+    if not pull_request_reviews.dismiss_stale_reviews:
+        return Report(
+            result=Result.FAIL,
+            reason=f"stale reviews are not dismissed, {branch_name=!r}",
+        )
+    # Check for bypass allowances
+    if BYPASS_ALLOWANCES_KEY in pull_request_reviews.raw_data:
+        bypass_allowances = pull_request_reviews.raw_data[BYPASS_ALLOWANCES_KEY]
+        if any(bypass_allowances[key] for key in ("users", "teams", "apps")):
+            return Report(
+                result=Result.FAIL,
+                reason=f"pull request reviews can be bypassed, {branch_name=!r}",
+            )
+
+    import pytest
+
+    pytest.set_trace()

@@ -18,8 +18,8 @@ def pytest_addoption(parser):
     parser.addoption(REPOSITORY_ARGUMENT_NAME, action="store")
 
 
-@pytest.fixture(scope="session", name="repository_name")
-def fixture_repository_name(pytestconfig: pytest.Config) -> str:
+@pytest.fixture(scope="session", name="github_repository_name")
+def fixture_github_repository_name(pytestconfig: pytest.Config) -> str:
     """The name of the repository to work with."""
     return pytestconfig.getoption(
         REPOSITORY_ARGUMENT_NAME, default="canonical/repo-policy-compliance"
@@ -33,10 +33,10 @@ def fixture_github_client(github_client: Github) -> Github:
 
 
 @pytest.fixture(scope="session", name="github_repository")
-def fixture_github_repository(repository_name: str) -> Repository:
+def fixture_github_repository(github_repository_name: str) -> Repository:
     """Returns client to the Github repository."""
     github_client = inject_github_client(lambda client: client)()
-    return github_client.get_repo(repository_name)
+    return github_client.get_repo(github_repository_name)
 
 
 @pytest.fixture(name="git_branch_name")
@@ -46,13 +46,15 @@ def fixture_git_branch_name() -> str:
 
 
 @pytest.fixture()
-def git_branch(github_repository: Repository, git_branch_name: str) -> GitRef:
+def github_branch(github_repository: Repository, git_branch_name: str) -> GitRef:
     """Create a new branch for testing."""
     main_branch = github_repository.get_branch(github_repository.default_branch)
-    branch = github_repository.create_git_ref(
+    branch_ref = github_repository.create_git_ref(
         ref=f"refs/heads/{git_branch_name}", sha=main_branch.commit.sha
     )
+    branch = github_repository.get_branch(git_branch_name)
 
     yield branch
 
-    branch.delete()
+    branch.remove_protection()
+    branch_ref.delete()
