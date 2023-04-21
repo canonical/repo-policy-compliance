@@ -1,0 +1,14 @@
+name: Integration tests
+
+on:
+  pull_request:
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-22.04
+    if: ${{ !failure() }}
+    steps:
+      - name: Run integration tests
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          tox -e test
