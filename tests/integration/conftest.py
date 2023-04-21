@@ -4,7 +4,7 @@
 """Fixtures for integration tests."""
 
 import pytest
-from github import Github, GitRef, Repository
+from github import Consts, Github, GitRef, Repository
 
 from repo_policy_compliance.github_client import inject as inject_github_client
 

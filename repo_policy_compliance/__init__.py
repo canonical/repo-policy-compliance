@@ -53,6 +53,7 @@ def target_branch_protection(
         Whether the branch has appropriate protections.
 
     """
+
     repository = github_client.get_repo(repository_name)
     branch = repository.get_branch(branch_name)
 
