@@ -1,3 +1,6 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
 [tool.poetry]
 name = "repo-policy-compliance"
 version = "0.1.0"

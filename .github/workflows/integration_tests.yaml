@@ -13,6 +13,6 @@ jobs:
         run: python3 -m pip install tox
       - name: Run integration tests
         env:
-          GITHUB_TOKEN: ${{ secret.PERSONAL_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
         run: |
           tox -e test

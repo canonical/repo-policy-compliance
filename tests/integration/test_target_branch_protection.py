@@ -1,4 +1,4 @@
-# Copyright 2022 Canonical Ltd.
+# Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
 """Tests for the target_branch_protection function."""
@@ -107,7 +107,7 @@ def edit_branch_protection(
     bypass_pull_request_allowance_enabled: bool,
 ) -> None:
     if bypass_pull_request_allowance_enabled:
-        #pytest.set_trace()
+        # pytest.set_trace()
         post_parameters = {
             "required_status_checks": None,
             "enforce_admins": None,
