@@ -83,6 +83,4 @@ def target_branch_protection(
                 reason=f"pull request reviews can be bypassed, {branch_name=!r}",
             )
 
-    import pytest
-
-    pytest.set_trace()
+    return Report(result=Result.PASS, reason="")
