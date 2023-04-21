@@ -12,6 +12,8 @@ jobs:
       - name: Install tox
         run: python3 -m pip install tox
       - name: Run integration tests
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         working-directory: ${{ inputs.working-directory }}
         run: |
           tox -e test
