@@ -5,17 +5,16 @@
 
 
 import pytest
-from github import Branch, Repository
+from github import Branch, Consts
 
 from repo_policy_compliance import Result, target_branch_protection
 
 
-@pytest.mark.usefixtures("git_branch")
+@pytest.mark.usefixtures("github_branch")
 def test_fail(
     github_branch: Branch,
     github_repository_name: str,
     git_branch_name: str,
-    github_repository: Repository,
 ):
     """
     arrange: given a branch that is not compliant
@@ -46,8 +45,7 @@ def test_fail(
     assert git_branch_name in report.reason
 
     # 3. stale reviews not dismissed
-    github_branch = github_repository.get_branch(git_branch_name)
-    github_branch.edit_protection(require_code_owner_reviews=True)
+    github_branch.edit_protection(dismiss_stale_reviews=False, require_code_owner_reviews=True)
 
     report = target_branch_protection(
         repository_name=github_repository_name, branch_name=git_branch_name
@@ -60,7 +58,28 @@ def test_fail(
     assert git_branch_name in report.reason
 
     # 4. pull requests allowances not empty
-    github_branch.edit_protection(dismiss_stale_reviews=True)
+    # The "bypass_pull_request_allowances" parameter is not available through the Github library
+    post_parameters = {
+        "required_status_checks": None,
+        "enforce_admins": None,
+        "required_pull_request_reviews": {
+            "dismiss_stale_reviews": True,
+            "require_code_owner_reviews": True,
+        },
+        "restrictions": None,
+        "bypass_pull_request_allowances": {
+            "users": ["gregory-schiano"],
+            "teams": [],
+            "apps": [],
+        },
+    }
+
+    github_branch._requester.requestJsonAndCheck(
+        "PUT",
+        github_branch.protection_url,
+        headers={"Accept": Consts.mediaTypeRequireMultipleApprovingReviews},
+        input=post_parameters,
+    )
 
     report = target_branch_protection(
         repository_name=github_repository_name, branch_name=git_branch_name
@@ -71,3 +90,25 @@ def test_fail(
     assert "reviews" in report.reason
     assert "can be bypassed" in report.reason
     assert git_branch_name in report.reason
+
+
+@pytest.mark.usefixtures("github_branch")
+def test_pass(
+    github_branch: Branch,
+    github_repository_name: str,
+    git_branch_name: str,
+):
+    """
+    arrange: given a branch that is compliant
+    act: when target_branch_protection is called with the name of the branch
+    assert: then a pass report is returned.
+    """
+
+    github_branch.edit_protection(dismiss_stale_reviews=True, require_code_owner_reviews=True)
+
+    report = target_branch_protection(
+        repository_name=github_repository_name, branch_name=git_branch_name
+    )
+
+    assert report.result == Result.PASS
+    assert report.reason == ""
