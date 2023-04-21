@@ -3,8 +3,6 @@
 
 """Fixtures for integration tests."""
 
-from uuid import uuid4
-
 import pytest
 from github import Github, GitRef, Repository
 
@@ -39,22 +37,15 @@ def fixture_github_repository(github_repository_name: str) -> Repository:
     return github_client.get_repo(github_repository_name)
 
 
-@pytest.fixture(name="git_branch_name")
-def fixture_git_branch_name() -> str:
-    """Create a name of a branch for testing."""
-    return f"testing/{uuid4()}"
-
-
 @pytest.fixture()
-def github_branch(github_repository: Repository, git_branch_name: str) -> GitRef:
+def github_branch(github_repository: Repository, request: pytest.FixtureRequest) -> GitRef:
     """Create a new branch for testing."""
     main_branch = github_repository.get_branch(github_repository.default_branch)
     branch_ref = github_repository.create_git_ref(
-        ref=f"refs/heads/{git_branch_name}", sha=main_branch.commit.sha
+        ref=f"refs/heads/{request.param}", sha=main_branch.commit.sha
     )
-    branch = github_repository.get_branch(git_branch_name)
+    branch = github_repository.get_branch(request.param)
 
     yield branch
 
-    branch.remove_protection()
     branch_ref.delete()
