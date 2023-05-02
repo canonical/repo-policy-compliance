@@ -76,16 +76,15 @@ def target_branch_protection(
             reason=f"stale reviews are not dismissed, {branch_name=!r}",
         )
     # Check for bypass allowances
-    if BYPASS_ALLOWANCES_KEY in pull_request_reviews.raw_data:
-        bypass_allowances = pull_request_reviews.raw_data[BYPASS_ALLOWANCES_KEY]
-        if any(bypass_allowances[key] for key in ("users", "teams", "apps")):
-            return Report(
-                result=Result.FAIL,
-                reason=f"pull request reviews can be bypassed, {branch_name=!r}",
-            )
+    bypass_allowances = pull_request_reviews.raw_data.get(BYPASS_ALLOWANCES_KEY, {})
+    if any(bypass_allowances.get(key, []) for key in ("users", "teams", "apps")):
+        return Report(
+            result=Result.FAIL,
+            reason=f"pull request reviews can be bypassed, {branch_name=!r}",
+        )
 
     # Check for signatures required
     if not branch.get_required_signatures():
         return Report(result=Result.FAIL, reason=f"signed commits not required, {branch_name=!r}")
 
-    return Report(result=Result.PASS, reason="")
+    return Report(result=Result.PASS, reason=None)

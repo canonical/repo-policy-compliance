@@ -11,6 +11,8 @@ import pytest
 from github import Branch, Consts
 
 from repo_policy_compliance import Result, target_branch_protection
+from repo_policy_compliance.exceptions import InputError
+from repo_policy_compliance.github_client import GITHUB_TOKEN_ENV_NAME
 
 
 def assert_substrings_in_string(substrings: typing.Iterable[str], string: str) -> None:
@@ -152,8 +154,15 @@ def test_pass(
     )
     github_branch.remove_protection()
 
-    assert report.reason == ""
+    assert report.reason is None
     assert report.result == Result.PASS
+
+
+def test_no_github_token(github_repository_name: str, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv(GITHUB_TOKEN_ENV_NAME)
+    with pytest.raises(InputError) as exc:
+        target_branch_protection(repository_name=github_repository_name, branch_name="arbitrary")
+        assert_substrings_in_string([GITHUB_TOKEN_ENV_NAME, "was not provided"], exc)
 
 
 def edit_branch_protection(
@@ -169,7 +178,7 @@ def edit_branch_protection(
                 "bypass_pull_request_allowances": {
                     "users": ["gregory-schiano", "jdkanderson"],
                     "teams": ["is-charms"],
-                    "apps": [],
+                    "apps": ["test"],
                 },
             },
             "restrictions": None,
