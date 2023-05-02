@@ -42,7 +42,8 @@ class Report(NamedTuple):
 def target_branch_protection(
     github_client: Github, repository_name: str, branch_name: str
 ) -> Report:
-    """Check that the target branch has appropriate protections.
+    """
+    Check that the target branch has appropriate protections.
 
     Args:
         github_client: The client to be used for GitHub API interactions.

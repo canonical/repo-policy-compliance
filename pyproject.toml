@@ -56,3 +56,9 @@ disallow_untyped_defs = false
 [tool.pylint.messages_control]
 enable = ["useless-suppression"]
 disable = ["wrong-import-position"]
+
+[tool.bandit]
+exclude_dirs = ["/venv/"]
+
+[tool.bandit.assert_used]
+skips = ["*/*test.py", "*/test_*.py", "*/*_patch.py"]

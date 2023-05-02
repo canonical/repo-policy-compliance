@@ -30,7 +30,7 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
 
     @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-        """Replacement function.
+        """Replace function.
 
         Raises:
             InputError: If the GitHub token environment variable is not provided or empty.
