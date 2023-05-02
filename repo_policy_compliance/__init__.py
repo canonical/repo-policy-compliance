@@ -6,7 +6,7 @@
 from enum import Enum
 from typing import NamedTuple
 
-from github import Github
+from github import Consts, Github
 
 from . import github_client
 
@@ -83,5 +83,9 @@ def target_branch_protection(
                 result=Result.FAIL,
                 reason=f"pull request reviews can be bypassed, {branch_name=!r}",
             )
+
+    # Check for signatures required
+    if not branch.get_required_signatures():
+        return Report(result=Result.FAIL, reason=f"signed commits not required, {branch_name=!r}")
 
     return Report(result=Result.PASS, reason="")
