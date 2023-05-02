@@ -21,7 +21,8 @@ class Result(str, Enum):
         FAIL: The check failed.
     """
 
-    PASS = "pass"
+    # Bandit thinks pass is for password
+    PASS = "pass"  # nosec
     FAIL = "fail"
 
 
@@ -52,7 +53,6 @@ def target_branch_protection(
 
     Returns:
         Whether the branch has appropriate protections.
-
     """
 
     repository = github_client.get_repo(repository_name)
