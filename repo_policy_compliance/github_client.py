@@ -14,8 +14,8 @@ from .exceptions import InputError
 P = ParamSpec("P")
 R = TypeVar("R")
 
-
-GITHUB_TOKEN_ENV_NAME = "GITHUB_TOKEN"
+# Bandit thinks this constant is the real Github token
+GITHUB_TOKEN_ENV_NAME = "GITHUB_TOKEN"  # nosec
 
 
 def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:

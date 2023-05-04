@@ -6,7 +6,7 @@
 from enum import Enum
 from typing import NamedTuple
 
-from github import Consts, Github
+from github import Github
 
 from . import github_client
 
@@ -54,7 +54,6 @@ def target_branch_protection(
     Returns:
         Whether the branch has appropriate protections.
     """
-
     repository = github_client.get_repo(repository_name)
     branch = repository.get_branch(branch_name)
 
