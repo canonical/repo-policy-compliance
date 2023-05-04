@@ -32,10 +32,15 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         """Replace function.
 
+        Args:
+            args: The positional arguments passed to the method, github_client is prepended when
+            calling the wrapped method
+            kwargs: The keywords arguments passed to the method
+
         Raises:
             InputError: If the GitHub token environment variable is not provided or empty.
 
-        Returns;
+        Returns:
             The return value after calling the wrapped function with the injected GitHub client.
 
         """

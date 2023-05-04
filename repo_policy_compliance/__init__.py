@@ -8,7 +8,7 @@ from typing import NamedTuple
 
 from github import Github
 
-from . import github_client
+from .github_client import inject as inject_github_client
 
 BYPASS_ALLOWANCES_KEY = "bypass_pull_request_allowances"
 
@@ -27,8 +27,7 @@ class Result(str, Enum):
 
 
 class Report(NamedTuple):
-    """
-    Reports the result of a check.
+    """Reports the result of a check.
 
     Attrs:
         result: The check result.
@@ -39,12 +38,11 @@ class Report(NamedTuple):
     reason: str | None
 
 
-@github_client.inject
+@inject_github_client
 def target_branch_protection(
     github_client: Github, repository_name: str, branch_name: str
 ) -> Report:
-    """
-    Check that the target branch has appropriate protections.
+    """Check that the target branch has appropriate protections.
 
     Args:
         github_client: The client to be used for GitHub API interactions.

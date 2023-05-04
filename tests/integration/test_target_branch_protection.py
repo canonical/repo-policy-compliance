@@ -8,7 +8,8 @@ from collections import namedtuple
 from uuid import uuid4
 
 import pytest
-from github import Branch, Consts
+from github import Consts
+from github.Branch import Branch
 
 from repo_policy_compliance import Result, target_branch_protection
 from repo_policy_compliance.exceptions import InputError
@@ -17,6 +18,7 @@ from repo_policy_compliance.github_client import GITHUB_TOKEN_ENV_NAME
 
 def assert_substrings_in_string(substrings: typing.Iterable[str], string: str) -> None:
     """Assert that a string contains substrings.
+
     Args:
         string: The string to check.
         substrings: The sub strings that must be contained in the string.
@@ -86,7 +88,7 @@ BranchProtectionParameters = namedtuple(
                 bypass_pull_request_allowance_disabled=False,
                 required_signatures_enabled=False,
             ),
-            id="pull-request-allowance not emtpy",
+            id="pull-request-allowance not empty",
         ),
         pytest.param(
             f"requires-signature/{uuid4()}",
@@ -110,23 +112,23 @@ def test_fail(
     github_repository_name: str,
 ):
     """
-    arrange: given a branch that is not compliant
-    act: when target_branch_protection is called with the name of the branch
+    arrange: given a branch that is not compliant.
+    act: when target_branch_protection is called with the name of the branch.
     assert: then a fail report is returned.
     """
-
     if branch_protection_parameters.branch_protection_enabled:
         edit_branch_protection(github_branch, branch_protection_parameters)
 
-    report = target_branch_protection(
+    # The github_client is injected
+    report = target_branch_protection(  # pylint: disable=no-value-for-parameter
         repository_name=github_repository_name, branch_name=github_branch.name
     )
 
     if branch_protection_parameters.branch_protection_enabled:
         github_branch.remove_protection()
 
-    assert_substrings_in_string(reason_string_array, report.reason)
-    assert github_branch.name in report.reason
+    assert_substrings_in_string(reason_string_array, str(report.reason))
+    assert github_branch.name in str(report.reason)
     assert report.result == Result.FAIL
 
 
@@ -136,11 +138,10 @@ def test_pass(
     github_repository_name: str,
 ):
     """
-    arrange: given a branch that is compliant
-    act: when target_branch_protection is called with the name of the branch
+    arrange: given a branch that is compliant.
+    act: when target_branch_protection is called with the name of the branch.
     assert: then a pass report is returned.
     """
-
     branch_protection_parameters = BranchProtectionParameters(
         branch_protection_enabled=True,
         require_code_owner_reviews=True,
@@ -149,7 +150,9 @@ def test_pass(
         required_signatures_enabled=True,
     )
     edit_branch_protection(github_branch, branch_protection_parameters)
-    report = target_branch_protection(
+
+    # The github_client is injected
+    report = target_branch_protection(  # pylint: disable=no-value-for-parameter
         repository_name=github_repository_name, branch_name=github_branch.name
     )
     github_branch.remove_protection()
@@ -159,22 +162,39 @@ def test_pass(
 
 
 def test_no_github_token(github_repository_name: str, monkeypatch: pytest.MonkeyPatch):
+    """
+    arrange: A github repository name and a missing github token.
+    act: when the github client is injected to target_branch_protection.
+    assert: An InputError is raised with a specific error message.
+    """
     monkeypatch.delenv(GITHUB_TOKEN_ENV_NAME)
     with pytest.raises(InputError) as exc:
-        target_branch_protection(repository_name=github_repository_name, branch_name="arbitrary")
-        assert_substrings_in_string([GITHUB_TOKEN_ENV_NAME, "was not provided"], exc)
+        # The github_client is injected
+        target_branch_protection(  # pylint: disable=no-value-for-parameter
+            repository_name=github_repository_name, branch_name="arbitrary"
+        )
+        assert_substrings_in_string([GITHUB_TOKEN_ENV_NAME, "was not provided"], str(exc))
 
 
 def edit_branch_protection(
     github_branch: Branch, branch_protection_parameters: BranchProtectionParameters
 ) -> None:
+    """Enable or disable the branch protection parameters on the given branch.
+
+    Args:
+        github_branch: The branch to modify.
+        branch_protection_parameters: The named tuple giving the list of parameters
+        to enable or disable.
+    """
+    require_code_owner_reviews = branch_protection_parameters.require_code_owner_reviews
+
     if not branch_protection_parameters.bypass_pull_request_allowance_disabled:
         post_parameters = {
             "required_status_checks": None,
             "enforce_admins": None,
             "required_pull_request_reviews": {
                 "dismiss_stale_reviews": branch_protection_parameters.dismiss_stale_reviews_enabled,
-                "require_code_owner_reviews": branch_protection_parameters.require_code_owner_reviews,
+                "require_code_owner_reviews": require_code_owner_reviews,
                 "bypass_pull_request_allowances": {
                     "users": ["gregory-schiano", "jdkanderson"],
                     "teams": ["is-charms"],
@@ -184,12 +204,15 @@ def edit_branch_protection(
             "restrictions": None,
         }
 
-        github_branch._requester.requestJsonAndCheck(
+        # This API endpoint is not supported by the library, we call it ourselves
+        # pylint: disable=protected-access
+        github_branch._requester.requestJsonAndCheck(  # type: ignore
             "PUT",
             github_branch.protection_url,
             headers={"Accept": Consts.mediaTypeRequireMultipleApprovingReviews},
             input=post_parameters,
         )
+        # pyling: enable=protected-access
 
         return
 
@@ -199,8 +222,11 @@ def edit_branch_protection(
     )
 
     if branch_protection_parameters.required_signatures_enabled:
-        github_branch._requester.requestJsonAndCheck(
+        # This API endpoint is not supported by the library, we call it ourselves
+        # pylint: disable=protected-access
+        github_branch._requester.requestJsonAndCheck(  # type: ignore
             "POST",
             url=f"{github_branch.protection_url}/required_signatures",
             headers={"Accept": Consts.signaturesProtectedBranchesPreview},
         )
+        # pylint: enable=protected-access
