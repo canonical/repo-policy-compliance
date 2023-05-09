@@ -5,7 +5,7 @@
 
 import functools
 import os
-from typing import Callable, Concatenate, ParamSpec, TypeVar
+from typing import Callable, Concatenate, ParamSpec, TypeVar, cast
 
 from github import BadCredentialsException, Github, GithubException, RateLimitExceededException
 
@@ -49,14 +49,20 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
             github_token = os.getenv(GITHUB_TOKEN_ENV_NAME)
             if not github_token:
                 raise InputError(
-                    f"The {GITHUB_TOKEN_ENV_NAME} environment variable was not provided or empty, it "
-                    f"is needed for interactions with GitHub, got: {GITHUB_TOKEN_ENV_NAME!r}"
+                    f"The {GITHUB_TOKEN_ENV_NAME} environment variable was not provided or empty, "
+                    f"it is needed for interactions with GitHub, got: {GITHUB_TOKEN_ENV_NAME!r}"
                 )
-            github_client = Github(login_or_token=github_token)
-            args = (github_client,) + args
+            github_client: Github = Github(login_or_token=github_token)
+        elif len(args) == 3:
+            github_client = cast(Github, args[0])
+            # We need to remove the first arg as we will pass it explicitly to func
+            args = args[1:]  # type: ignore[assignment]
+        else:
+            github_client = cast(Github, kwargs["github_client"])
+            kwargs.pop("github_client", None)
 
         try:
-            return func(*args, **kwargs)
+            return func(github_client, *args, **kwargs)
         except BadCredentialsException as exc:
             raise GithubClientError(
                 f"The github client returned a Bad Credential error, "

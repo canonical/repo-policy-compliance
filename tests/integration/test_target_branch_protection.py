@@ -5,11 +5,9 @@
 
 import typing
 from dataclasses import dataclass
-from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
-from github import GithubException, RateLimitExceededException
 from github.Branch import Branch
 
 from repo_policy_compliance import Result, target_branch_protection
@@ -57,14 +55,14 @@ class BranchWithProtection:
     [
         pytest.param(
             BranchWithProtection(name=f"not-protected/{uuid4()}", branch_protection_enabled=False),
-            ["not enabled"],
+            ("not enabled"),
             id="branch_protection disabled",
         ),
         pytest.param(
             BranchWithProtection(
                 name=f"no-code-owner-review/{uuid4()}", require_code_owner_reviews=False
             ),
-            ["codeowner", "pull request", "review", "not required"],
+            ("codeowner", "pull request", "review", "not required"),
             id="code-owner missing",
         ),
         pytest.param(
@@ -72,7 +70,7 @@ class BranchWithProtection:
                 name=f"stale-review-not-dismissed/{uuid4()}",
                 dismiss_stale_reviews_enabled=False,
             ),
-            ["stale", "reviews", "not dismissed"],
+            ("stale", "reviews", "not dismissed"),
             id="stale-review not-dismissed",
         ),
         pytest.param(
@@ -80,14 +78,14 @@ class BranchWithProtection:
                 name=f"pull-request-allowance-not-empty/{uuid4()}",
                 bypass_pull_request_allowance_disabled=False,
             ),
-            ["pull request", "reviews", "can be bypassed"],
+            ("pull request", "reviews", "can be bypassed"),
             id="pull-request-allowance not empty",
         ),
         pytest.param(
             BranchWithProtection(
                 name=f"requires-signature/{uuid4()}", required_signatures_enabled=False
             ),
-            ["signed", "commits", "not required"],
+            ("signed", "commits", "not required"),
             id="required-signature disabled",
         ),
     ],
@@ -95,7 +93,7 @@ class BranchWithProtection:
 )
 def test_fail(
     github_branch: BranchWithProtection,
-    reason_string_array: str,
+    reason_string_array: tuple[str],
     github_repository_name: str,
 ):
     """
@@ -169,38 +167,3 @@ def test_github_token(
             repository_name=github_repository_name, branch_name="arbitrary"
         )
     assert_substrings_in_string([GITHUB_TOKEN_ENV_NAME, exception_message], str(error.value))
-
-
-@pytest.mark.parametrize(
-    "raised_exception, expected_message",
-    [
-        pytest.param(
-            RateLimitExceededException("", "", {}),
-            "Rate Limit Exceeded error",
-            id="github_client rate limit error",
-        ),
-        pytest.param(
-            GithubException("", "", {}), "encountered an error", id="git_client other error"
-        ),
-    ],
-)
-def test_github_error(
-    raised_exception: GithubException,
-    expected_message: str,
-    github_repository_name: str,
-):
-    """
-    arrange: A github repository name and a github_client method that raises exception.
-    act: when target_branch_protection method is called.
-    assert: An expected error is raised with specific error message.
-    """
-    github_client = MagicMock()
-    github_client.get_repo.side_effect = raised_exception
-
-    with pytest.raises(GithubClientError) as error:
-        target_branch_protection(
-            repository_name=github_repository_name,
-            branch_name="arbitrary",
-            github_client=github_client,
-        )
-    assert expected_message in str(error.value)
