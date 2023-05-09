@@ -10,3 +10,7 @@ class BaseError(Exception):
 
 class InputError(BaseError):
     """Input is missing or unexpected."""
+
+
+class GithubClientError(BaseError):
+    """Error occurred on Github API."""

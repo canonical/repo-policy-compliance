@@ -7,9 +7,9 @@ import functools
 import os
 from typing import Callable, Concatenate, ParamSpec, TypeVar
 
-from github import Github
+from github import BadCredentialsException, Github, GithubException, RateLimitExceededException
 
-from .exceptions import InputError
+from .exceptions import GithubClientError, InputError
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -34,24 +34,40 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
 
         Args:
             args: The positional arguments passed to the method, github_client is prepended when
-            calling the wrapped method
+                calling the wrapped method
             kwargs: The keywords arguments passed to the method
 
         Raises:
             InputError: If the GitHub token environment variable is not provided or empty.
+            GithubClientError: If the Github client encountered an error.
 
         Returns:
             The return value after calling the wrapped function with the injected GitHub client.
 
         """
-        github_token = os.getenv(GITHUB_TOKEN_ENV_NAME)
-        if not github_token:
-            raise InputError(
-                f"The {GITHUB_TOKEN_ENV_NAME} environment variable was not provided or empty, it "
-                f"is needed for interactions with GitHub, got: {GITHUB_TOKEN_ENV_NAME!r}"
-            )
-        github_client = Github(login_or_token=github_token)
+        if len(args) < 3 and "github_client" not in kwargs:
+            github_token = os.getenv(GITHUB_TOKEN_ENV_NAME)
+            if not github_token:
+                raise InputError(
+                    f"The {GITHUB_TOKEN_ENV_NAME} environment variable was not provided or empty, it "
+                    f"is needed for interactions with GitHub, got: {GITHUB_TOKEN_ENV_NAME!r}"
+                )
+            github_client = Github(login_or_token=github_token)
+            args = (github_client,) + args
 
-        return func(github_client, *args, **kwargs)
+        try:
+            return func(*args, **kwargs)
+        except BadCredentialsException as exc:
+            raise GithubClientError(
+                f"The github client returned a Bad Credential error, "
+                f"please ensure {GITHUB_TOKEN_ENV_NAME} is set with a valid value."
+            ) from exc
+        except RateLimitExceededException as exc:
+            raise GithubClientError(
+                "The github client is returning an Rate Limit Exceeded error, "
+                "please wait before retrying."
+            ) from exc
+        except GithubException as exc:
+            raise GithubClientError("The github client encountered an error.") from exc
 
     return wrapper
