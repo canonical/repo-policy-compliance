@@ -196,7 +196,7 @@ def test_github_error(
     """
     github_client = MagicMock()
     github_client.get_repo.side_effect = raised_exception
-    
+
     with pytest.raises(GithubClientError) as error:
         target_branch_protection(
             repository_name=github_repository_name,
