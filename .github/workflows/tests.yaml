@@ -239,7 +239,6 @@ jobs:
     needs:
       - inclusive-naming-check
       - code-lint
-      - metadata-lint
       - shellcheck-lint
       - license-headers-check
     if: always()
