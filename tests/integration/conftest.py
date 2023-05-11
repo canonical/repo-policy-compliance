@@ -100,7 +100,7 @@ def edit_branch_protection(branch: Branch, branch_with_protection: BranchWithPro
             headers={"Accept": Consts.mediaTypeRequireMultipleApprovingReviews},
             input=post_parameters,
         )
-        # pyling: enable=protected-access
+        # pylint: enable=protected-access
 
         return
 

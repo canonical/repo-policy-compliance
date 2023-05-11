@@ -3,6 +3,7 @@
 
 """Tests for the target_branch_protection function."""
 
+import itertools
 import typing
 from dataclasses import dataclass
 from uuid import uuid4
@@ -106,8 +107,9 @@ def test_fail(
         repository_name=github_repository_name, branch_name=github_branch.name
     )
 
-    assert_substrings_in_string(reason_string_array, str(report.reason))
-    assert github_branch.name in str(report.reason)
+    assert_substrings_in_string(
+        itertools.chain(reason_string_array, github_branch.name), str(report.reason)
+    )
     assert report.result == Result.FAIL
 
 
