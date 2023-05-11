@@ -223,7 +223,7 @@ jobs:
               );
             }
             reports.push(
-              Static code analysis report\n
+              `Static code analysis report\n
               \`\`\`\n${no_color(static_output).trim()}\n\`\`\``
             );
             let json = JSON.stringify(reports);
