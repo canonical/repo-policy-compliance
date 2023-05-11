@@ -33,22 +33,22 @@ jobs:
             const fs = require('fs');
             const result = JSON.parse(fs.readFileSync('./test-result.json')).testenvs;
 
-            let unit_result = result.test.test;
-            let unit_success = unit_result[0].retcode == 0;
-            let unit_output = unit_result[0].output;
+            let int_result = result.test.test;
+            let int_success = int_result[0].retcode == 0;
+            let int_output = int_result[0].output;
             let coverage_result = result["coverage-report"].test;
             let coverage_output = coverage_result[0].output;
 
             let reports = [];
-            if (!unit_success) {
+            if (!int_success) {
               reports.push(
-                `Unit tests failed for ${sha}\n
-                \`\`\`\n${no_color(unit_output).trim()}\n\`\`\``
+                `Integration tests failed for ${sha}\n
+                \`\`\`\n${no_color(int_output).trim()}\n\`\`\``
               );
             }
             reports.push(
               `Test coverage for ${sha}\n
-              \`\`\`\n${no_color(coverage_output).trim()}\n\`\`\```
+              \`\`\`\n${no_color(coverage_output).trim()}\n\`\`\``
             );
             let json = JSON.stringify(reports);
             fs.writeFileSync('report_int.json', json);
