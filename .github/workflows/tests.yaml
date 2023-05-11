@@ -45,9 +45,6 @@ jobs:
           filter-mode: nofilter
           workdir: "./"
           woke-version: latest
-  get-runner-image:
-    name: Get runner image
-    uses: ./.github/workflows/get_runner_image.yaml
   shellcheck-lint:
     name: Shell scripts lint
     runs-on: ubuntu-22.04
@@ -132,8 +129,7 @@ jobs:
         run: echo "outcome=${{ steps.run-lint.conclusion }}" >> $GITHUB_OUTPUT
   code-lint:
     name: Code lint
-    runs-on: ${{ needs.get-runner-image.outputs.runs-on }}
-    needs: get-runner-image
+    runs-on: ubuntu-22.04
     outputs:
       outcome: ${{ steps.report.outputs.outcome }}
     steps:
@@ -260,7 +256,7 @@ jobs:
           config: .licenserc.yaml
   required_status_checks:
     name: Required Test Status Checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs:
       - inclusive-naming-check
       - code-lint

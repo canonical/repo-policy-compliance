@@ -19,7 +19,7 @@ jobs:
           # Ensure that stdout appears as normal and redirect to file and exit depends on exit code of first command
           STDOUT_LOG=$(mktemp --suffix=stdout.log)
           echo STDOUT_LOG=$STDOUT_LOG >> $GITHUB_ENV
-          tox -e test --result-json=test-result.json | tee $STDOUT_LOG ; test ${PIPESTATUS[0]} -eq 0
+          tox -e test,coverage-report --result-json=test-result.json | tee $STDOUT_LOG ; test ${PIPESTATUS[0]} -eq 0
       - name: Export test report
         if: always()
         uses: actions/github-script@v6
@@ -57,7 +57,7 @@ jobs:
         if: always() && github.event_name == 'pull_request'
         with:
           name: report
-          path: report.json
+          path: report_int.json
       - name: Report
         if: always()
         id: report
