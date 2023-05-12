@@ -12,7 +12,7 @@ from github.Repository import Repository
 
 from repo_policy_compliance.github_client import inject as inject_github_client
 
-from .test_target_branch_protection import BranchWithProtection
+from .types_ import BranchWithProtection
 
 REPOSITORY_ARGUMENT_NAME = "--repository"
 

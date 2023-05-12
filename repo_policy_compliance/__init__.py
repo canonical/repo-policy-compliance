@@ -86,3 +86,32 @@ def target_branch_protection(
         return Report(result=Result.FAIL, reason=f"signed commits not required, {branch_name=!r}")
 
     return Report(result=Result.PASS, reason=None)
+
+
+@inject_github_client
+def source_branch_protection(
+    github_client: Github, repository_name: str, branch_name: str
+) -> Report:
+    """Check that the source branch has appropriate protections.
+
+    Args:
+        github_client: The client to be used for GitHub API interactions.
+        repository_name: The name of the repository to run the check on.
+        branch_name: The name of the branch to check.
+
+    Returns:
+        Whether the branch has appropriate protections.
+    """
+    repository = github_client.get_repo(repository_name)
+    branch = repository.get_branch(branch_name)
+
+    if not branch.protected:
+        return Report(
+            result=Result.FAIL, reason=f"branch protection not enabled, {branch_name=!r}"
+        )
+
+    # Check for signatures required
+    if not branch.get_required_signatures():
+        return Report(result=Result.FAIL, reason=f"signed commits not required, {branch_name=!r}")
+
+    return Report(result=Result.PASS, reason=None)
