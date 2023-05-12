@@ -7,6 +7,7 @@ from enum import Enum
 from typing import NamedTuple
 
 from github import Github
+from github.Branch import Branch
 
 from .github_client import inject as inject_github_client
 
@@ -38,6 +39,37 @@ class Report(NamedTuple):
     reason: str | None
 
 
+def _get_branch(github_client: Github, repository_name: str, branch_name: str) -> Branch:
+    """Get the branch for the check.
+
+    Args:
+        github_client: The client to be used for GitHub API interactions.
+        repository_name: The name of the repository to run the check on.
+        branch_name: The name of the branch to check.
+
+    Returns:
+        The requested branch.
+    """
+    repository = github_client.get_repo(repository_name)
+    return repository.get_branch(branch_name)
+
+
+def _check_branch_protected(branch: Branch) -> Report:
+    """Check that the target branch has protections enabled.
+
+    Args:
+        branch: The branch to check.
+
+    Returns:
+        Whether the branch has protections enabled.
+    """
+    if not branch.protected:
+        return Report(
+            result=Result.FAIL, reason=f"branch protection not enabled, {branch.name=!r}"
+        )
+    return Report(result=Result.PASS, reason=None)
+
+
 @inject_github_client
 def target_branch_protection(
     github_client: Github, repository_name: str, branch_name: str
@@ -52,13 +84,12 @@ def target_branch_protection(
     Returns:
         Whether the branch has appropriate protections.
     """
-    repository = github_client.get_repo(repository_name)
-    branch = repository.get_branch(branch_name)
+    branch = _get_branch(
+        github_client=github_client, repository_name=repository_name, branch_name=branch_name
+    )
 
-    if not branch.protected:
-        return Report(
-            result=Result.FAIL, reason=f"branch protection not enabled, {branch_name=!r}"
-        )
+    if (protected_report := _check_branch_protected(branch=branch)).result == Result.FAIL:
+        return protected_report
 
     protection = branch.get_protection()
 
@@ -102,13 +133,12 @@ def source_branch_protection(
     Returns:
         Whether the branch has appropriate protections.
     """
-    repository = github_client.get_repo(repository_name)
-    branch = repository.get_branch(branch_name)
+    branch = _get_branch(
+        github_client=github_client, repository_name=repository_name, branch_name=branch_name
+    )
 
-    if not branch.protected:
-        return Report(
-            result=Result.FAIL, reason=f"branch protection not enabled, {branch_name=!r}"
-        )
+    if (protected_report := _check_branch_protected(branch=branch)).result == Result.FAIL:
+        return protected_report
 
     # Check for signatures required
     if not branch.get_required_signatures():
