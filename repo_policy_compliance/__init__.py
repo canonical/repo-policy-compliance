@@ -55,7 +55,7 @@ def _get_branch(github_client: Github, repository_name: str, branch_name: str) -
 
 
 def _check_branch_protected(branch: Branch) -> Report:
-    """Check that the target branch has protections enabled.
+    """Check that the branch has protections enabled.
 
     Args:
         branch: The branch to check.
@@ -67,6 +67,20 @@ def _check_branch_protected(branch: Branch) -> Report:
         return Report(
             result=Result.FAIL, reason=f"branch protection not enabled, {branch.name=!r}"
         )
+    return Report(result=Result.PASS, reason=None)
+
+
+def _check_signed_commits_required(branch: Branch) -> Report:
+    """Check that the branch requires signed commits.
+
+    Args:
+        branch: The branch to check.
+
+    Returns:
+        Whether the branch requires signed commits.
+    """
+    if not branch.get_required_signatures():
+        return Report(result=Result.FAIL, reason=f"signed commits not required, {branch.name=!r}")
     return Report(result=Result.PASS, reason=None)
 
 
@@ -112,9 +126,10 @@ def target_branch_protection(
             reason=f"pull request reviews can be bypassed, {branch_name=!r}",
         )
 
-    # Check for signatures required
-    if not branch.get_required_signatures():
-        return Report(result=Result.FAIL, reason=f"signed commits not required, {branch_name=!r}")
+    if (
+        signed_commits_report := _check_signed_commits_required(branch=branch)
+    ).result == Result.FAIL:
+        return signed_commits_report
 
     return Report(result=Result.PASS, reason=None)
 
@@ -140,8 +155,9 @@ def source_branch_protection(
     if (protected_report := _check_branch_protected(branch=branch)).result == Result.FAIL:
         return protected_report
 
-    # Check for signatures required
-    if not branch.get_required_signatures():
-        return Report(result=Result.FAIL, reason=f"signed commits not required, {branch_name=!r}")
+    if (
+        signed_commits_report := _check_signed_commits_required(branch=branch)
+    ).result == Result.FAIL:
+        return signed_commits_report
 
     return Report(result=Result.PASS, reason=None)
