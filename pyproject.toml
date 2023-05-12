@@ -1,0 +1,82 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+[tool.poetry]
+name = "repo-policy-compliance"
+version = "0.1.0"
+description = "Checks GitHub repository settings for compliance with policy"
+authors = ["Canonical IS DevOps <launchpad.net/~canonical-is-devops>"]
+license = "Apache 2.0"
+readme = "README.md"
+packages = [{include = "repo_policy_compliance"}]
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.10",
+]
+
+[tool.poetry.dependencies]
+python = "^3.10.0"
+pygithub = "^1.58"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.3.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 99
+target-version = ["py310"]
+
+[tool.isort]
+line_length = 99
+profile = "black"
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+fail_under = 100
+show_missing = true
+
+[tool.mypy]
+ignore_missing_imports = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+[tool.pylint.messages_control]
+enable = ["useless-suppression"]
+disable = ["wrong-import-position"]
+
+[tool.bandit]
+exclude_dirs = ["/venv/"]
+
+[tool.bandit.assert_used]
+skips = ["*/*test.py", "*/test_*.py", "*/*_patch.py"]
+
+# Linting tools configuration
+[tool.flake8]
+max-line-length = 99
+max-doc-length = 99
+max-complexity = 10
+exclude = [".git", "__pycache__", ".tox", "build", "dist", "*.egg_info", "venv"]
+select = ["E", "W", "F", "C", "N", "R", "D", "H"]
+# Ignore W503, E501 because using black creates errors with this
+# Ignore D107 Missing docstring in __init__
+ignore = ["W503", "E501", "D107"]
+# D100, D101, D102, D103: Ignore missing docstrings in tests
+per-file-ignores = ["tests/*:D100,D101,D102,D103,D104,D205,D212"]
+docstring-convention = "google"
+# Check for properly formatted copyright header in each file
+copyright-check = "True"
+copyright-author = "Canonical Ltd."
+copyright-regexp = "Copyright\\s\\d{4}([-,]\\d{4})*\\s+%(author)s"
