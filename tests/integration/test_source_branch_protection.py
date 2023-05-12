@@ -9,7 +9,6 @@ from uuid import uuid4
 import pytest
 
 from repo_policy_compliance import Result, source_branch_protection
-from repo_policy_compliance.github_client import GITHUB_TOKEN_ENV_NAME
 
 from .. import assert_
 from .types_ import BranchWithProtection
