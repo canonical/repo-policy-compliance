@@ -5,7 +5,7 @@ on:
 
 jobs:
   integration-tests:
-    permissions: read-all|write-all
+    permissions: write-all
     runs-on: ubuntu-22.04
     if: ${{ !failure() }}
     steps:
