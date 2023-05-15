@@ -4,6 +4,7 @@
 """Tests for the source_branch_protection function."""
 
 import itertools
+from time import sleep
 from uuid import uuid4
 
 import pytest
@@ -110,6 +111,8 @@ def fixture_source_branch_for_test_pass(
     branch_protection.edit(branch=branch, branch_with_protection=branch_with_protection)
 
     yield branch
+
+    sleep(60)
 
     branch.remove_protection()
     branch_ref.delete()
