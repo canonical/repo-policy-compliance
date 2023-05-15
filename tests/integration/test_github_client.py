@@ -41,7 +41,6 @@ def test_github_token(
     act: when the github client is injected to target_branch_protection.
     assert: An expected error is raised with a specific error message.
     """
-    monkeypatch.delenv(GITHUB_TOKEN_ENV_NAME)
     monkeypatch.setenv(GITHUB_TOKEN_ENV_NAME, str(github_token_value))
     with exception_context as error:
         # The github_client is injected
