@@ -3,6 +3,7 @@
 
 """Fixtures for integration tests."""
 
+import os
 from typing import Generator
 
 import pytest
@@ -32,6 +33,14 @@ def fixture_github_repository_name(pytestconfig: pytest.Config) -> str:
     return pytestconfig.getoption(
         REPOSITORY_ARGUMENT_NAME, default="canonical/repo-policy-compliance"
     )
+
+
+@pytest.fixture(scope="session", name="ci_github_token")
+def fixture_github_token() -> str | None:
+    """Get the GitHub token from the CI environment."""
+    env_name = "CI_GITHUB_TOKEN"
+    github_token = os.getenv(env_name)
+    return github_token
 
 
 @pytest.fixture(scope="session", name="github_repository")

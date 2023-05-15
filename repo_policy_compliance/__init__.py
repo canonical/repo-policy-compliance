@@ -136,7 +136,7 @@ def target_branch_protection(
 
 @inject_github_client
 def source_branch_protection(
-    github_client: Github, repository_name: str, branch_name: str
+    github_client: Github, repository_name: str, branch_name: str, target_branch_name: str
 ) -> Report:
     """Check that the source branch has appropriate protections.
 
@@ -144,6 +144,8 @@ def source_branch_protection(
         github_client: The client to be used for GitHub API interactions.
         repository_name: The name of the repository to run the check on.
         branch_name: The name of the branch to check.
+        target_branch_name: The name of the branch that the source branch is proposed to be merged
+            into.
 
     Returns:
         Whether the branch has appropriate protections.
@@ -159,5 +161,25 @@ def source_branch_protection(
         signed_commits_report := _check_signed_commits_required(branch=branch)
     ).result == Result.FAIL:
         return signed_commits_report
+
+    # Check that all commits unique to the source branch are signed
+    repository = github_client.get_repo(repository_name)
+    target_branch_commit_shas = {
+        commit.sha for commit in repository.get_commits(sha=target_branch_name)
+    }
+    source_branch_commits = repository.get_commits(sha=branch_name)
+    unique_source_branch_commits = (
+        commit for commit in source_branch_commits if commit.sha not in target_branch_commit_shas
+    )
+    unsigned_unique_source_branch_commits = (
+        commit
+        for commit in unique_source_branch_commits
+        if not commit.commit.raw_data["verification"]["verified"]
+    )
+    if first_unsigned_commit := next(unsigned_unique_source_branch_commits, None):
+        return Report(
+            result=Result.FAIL,
+            reason=f"commit is not signed, {branch.name=!r}, {first_unsigned_commit.sha=!r}",
+        )
 
     return Report(result=Result.PASS, reason=None)

@@ -49,7 +49,7 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
         if not github_token:
             raise InputError(
                 f"The {GITHUB_TOKEN_ENV_NAME} environment variable was not provided or empty, "
-                f"it is needed for interactions with GitHub, got: {GITHUB_TOKEN_ENV_NAME!r}"
+                f"it is needed for interactions with GitHub, got: {github_token!r}"
             )
         github_client: Github = Github(login_or_token=github_token)
 
