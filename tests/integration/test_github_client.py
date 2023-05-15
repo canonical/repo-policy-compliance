@@ -37,7 +37,7 @@ def test_github_token(
     monkeypatch: pytest.MonkeyPatch,
 ):
     """
-    arrange: A github repository name and a missing github token.
+    arrange: A github repository name and a missingor invalid github token.
     act: when the github client is injected to target_branch_protection.
     assert: An expected error is raised with a specific error message.
     """
