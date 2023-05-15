@@ -7,6 +7,7 @@ from enum import Enum
 from typing import NamedTuple
 
 from github import Github
+from github.Branch import Branch
 
 from .github_client import inject as inject_github_client
 
@@ -38,6 +39,51 @@ class Report(NamedTuple):
     reason: str | None
 
 
+def _get_branch(github_client: Github, repository_name: str, branch_name: str) -> Branch:
+    """Get the branch for the check.
+
+    Args:
+        github_client: The client to be used for GitHub API interactions.
+        repository_name: The name of the repository to run the check on.
+        branch_name: The name of the branch to check.
+
+    Returns:
+        The requested branch.
+    """
+    repository = github_client.get_repo(repository_name)
+    return repository.get_branch(branch_name)
+
+
+def _check_branch_protected(branch: Branch) -> Report:
+    """Check that the branch has protections enabled.
+
+    Args:
+        branch: The branch to check.
+
+    Returns:
+        Whether the branch has protections enabled.
+    """
+    if not branch.protected:
+        return Report(
+            result=Result.FAIL, reason=f"branch protection not enabled, {branch.name=!r}"
+        )
+    return Report(result=Result.PASS, reason=None)
+
+
+def _check_signed_commits_required(branch: Branch) -> Report:
+    """Check that the branch requires signed commits.
+
+    Args:
+        branch: The branch to check.
+
+    Returns:
+        Whether the branch requires signed commits.
+    """
+    if not branch.get_required_signatures():
+        return Report(result=Result.FAIL, reason=f"signed commits not required, {branch.name=!r}")
+    return Report(result=Result.PASS, reason=None)
+
+
 @inject_github_client
 def target_branch_protection(
     github_client: Github, repository_name: str, branch_name: str
@@ -52,13 +98,12 @@ def target_branch_protection(
     Returns:
         Whether the branch has appropriate protections.
     """
-    repository = github_client.get_repo(repository_name)
-    branch = repository.get_branch(branch_name)
+    branch = _get_branch(
+        github_client=github_client, repository_name=repository_name, branch_name=branch_name
+    )
 
-    if not branch.protected:
-        return Report(
-            result=Result.FAIL, reason=f"branch protection not enabled, {branch_name=!r}"
-        )
+    if (protected_report := _check_branch_protected(branch=branch)).result == Result.FAIL:
+        return protected_report
 
     protection = branch.get_protection()
 
@@ -81,8 +126,60 @@ def target_branch_protection(
             reason=f"pull request reviews can be bypassed, {branch_name=!r}",
         )
 
-    # Check for signatures required
-    if not branch.get_required_signatures():
-        return Report(result=Result.FAIL, reason=f"signed commits not required, {branch_name=!r}")
+    if (
+        signed_commits_report := _check_signed_commits_required(branch=branch)
+    ).result == Result.FAIL:
+        return signed_commits_report
+
+    return Report(result=Result.PASS, reason=None)
+
+
+@inject_github_client
+def source_branch_protection(
+    github_client: Github, repository_name: str, branch_name: str, target_branch_name: str
+) -> Report:
+    """Check that the source branch has appropriate protections.
+
+    Args:
+        github_client: The client to be used for GitHub API interactions.
+        repository_name: The name of the repository to run the check on.
+        branch_name: The name of the branch to check.
+        target_branch_name: The name of the branch that the source branch is proposed to be merged
+            into.
+
+    Returns:
+        Whether the branch has appropriate protections.
+    """
+    branch = _get_branch(
+        github_client=github_client, repository_name=repository_name, branch_name=branch_name
+    )
+
+    if (protected_report := _check_branch_protected(branch=branch)).result == Result.FAIL:
+        return protected_report
+
+    if (
+        signed_commits_report := _check_signed_commits_required(branch=branch)
+    ).result == Result.FAIL:
+        return signed_commits_report
+
+    # Check that all commits unique to the source branch are signed
+    repository = github_client.get_repo(repository_name)
+    target_branch_commit_shas = {
+        commit.sha for commit in repository.get_commits(sha=target_branch_name)
+    }
+    source_branch_commits = repository.get_commits(sha=branch_name)
+    unique_source_branch_commits = (
+        commit for commit in source_branch_commits if commit.sha not in target_branch_commit_shas
+    )
+    unsigned_unique_source_branch_commits = (
+        commit
+        for commit in unique_source_branch_commits
+        if not commit.commit.raw_data["verification"]["verified"]
+    )
+    if first_unsigned_commit := next(unsigned_unique_source_branch_commits, None):
+        return Report(
+            result=Result.FAIL,
+            reason=f"commit is not signed, {branch.name=!r}, {first_unsigned_commit.sha=!r}",
+        )
 
     return Report(result=Result.PASS, reason=None)
