@@ -35,8 +35,8 @@ def fixture_github_repository_name(pytestconfig: pytest.Config) -> str:
     )
 
 
-@pytest.fixture(scope="session", name="ci_github_token")
-def fixture_github_token() -> str | None:
+@pytest.fixture(scope="session")
+def ci_github_token() -> str | None:
     """Get the GitHub token from the CI environment."""
     env_name = "CI_GITHUB_TOKEN"
     github_token = os.getenv(env_name)
