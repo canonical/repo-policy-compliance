@@ -4,7 +4,6 @@
 """Tests for the source_branch_protection function."""
 
 import itertools
-from time import sleep
 from uuid import uuid4
 
 import pytest
