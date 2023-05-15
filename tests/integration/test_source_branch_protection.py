@@ -112,8 +112,6 @@ def fixture_source_branch_for_test_pass(
 
     yield branch
 
-    sleep(60)
-
     branch.remove_protection()
     branch_ref.delete()
 
