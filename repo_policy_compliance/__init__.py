@@ -199,29 +199,29 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
     repository = github_client.get_repo(repository_name)
 
     collaborators_url = repository.collaborators_url.removesuffix("{/collaborator}")
-    check_permissions = "permission=triage"
-    check_affiliation = "affiliation=outside"
+    permission = "permission=triage"
+    affiliation = "affiliation=outside"
 
     # mypy thinks the attribute doesn't exist when it actually does exist
     # need to use requester to send a raw API request
     # pylint: disable=protected-access
     (_, outside_collaborators) = repository._requester.requestJsonAndCheck(  # type: ignore
-        "GET", f"{collaborators_url}?{check_permissions}&{check_affiliation}"
+        "GET", f"{collaborators_url}?{permission}&{affiliation}"
     )
     # pylint: enable=protected-access
 
-    higher_permission_outside_collaborators = tuple(
+    higher_permission_logins = tuple(
         collaborator["login"]
         for collaborator in outside_collaborators
         if collaborator["role_name"] != "read"
     )
 
-    if higher_permission_outside_collaborators:
+    if higher_permission_logins:
         return Report(
             result=Result.FAIL,
             reason=(
                 "the repository includes outside collaborators with higher permissions than read,"
-                f"{higher_permission_outside_collaborators=!r}"
+                f"{higher_permission_logins=!r}"
             ),
         )
 

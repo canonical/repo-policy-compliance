@@ -36,7 +36,7 @@ def fixture_collaborators_with_permission(
     request: pytest.FixtureRequest,
     monkeypatch: pytest.MonkeyPatch,
 ):
-    """Add collaborators with certain permissions to the collaborators request."""
+    """Add collaborators with certain permissions to the collaborators response."""
     requested_collaborator: RequestedCollaborator = request.param
 
     github_client = get_github_client()
@@ -45,11 +45,12 @@ def fixture_collaborators_with_permission(
         "repo_policy_compliance.github_client.Github", lambda *_args, **_kwargs: github_client
     )
 
+    # Request non-outside collaborators with the requester permission to use for the response
     collaborators_url = github_repository.collaborators_url.removesuffix("{/collaborator}")
-    check_permissions = f"permission={requested_collaborator.permission}"
+    permission = f"permission={requested_collaborator.permission}"
     # mypy thinks the attribute doesn't exist when it actually does exist
     (headers, mixin_collabs) = github_repository._requester.requestJsonAndCheck(  # type: ignore
-        "GET", f"{collaborators_url}?{check_permissions}"
+        "GET", f"{collaborators_url}?{permission}"
     )
     mixin_collabs_with_role_name = [
         collaborator
