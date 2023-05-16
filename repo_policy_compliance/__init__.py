@@ -183,3 +183,46 @@ def source_branch_protection(
         )
 
     return Report(result=Result.PASS, reason=None)
+
+
+@inject_github_client
+def collaborators(github_client: Github, repository_name: str) -> Report:
+    """Check that no outside contributors have higher access than read.
+
+    Args:
+        github_client: The client to be used for GitHub API interactions.
+        repository_name: The name of the repository to run the check on.
+
+    Returns:
+        Whether there are any outside collaborators with higher than read permissions.
+    """
+    repository = github_client.get_repo(repository_name)
+
+    collaborators_url = repository.collaborators_url.removesuffix("{/collaborator}")
+    check_permissions = "permission=triage"
+    check_affiliation = "affiliation=outside"
+
+    # mypy thinks the attribute doesn't exist when it actually does exist
+    # need to use requester to send a raw API request
+    # pylint: disable=protected-access
+    (_, outside_collaborators) = repository._requester.requestJsonAndCheck(  # type: ignore
+        "GET", f"{collaborators_url}?{check_permissions}&{check_affiliation}"
+    )
+    # pylint: enable=protected-access
+
+    higher_permission_outside_collaborators = tuple(
+        collaborator["login"]
+        for collaborator in outside_collaborators
+        if collaborator["role_name"] != "read"
+    )
+
+    if higher_permission_outside_collaborators:
+        return Report(
+            result=Result.FAIL,
+            reason=(
+                "the repository includes outside collaborators with higher permissions than read,"
+                f"{higher_permission_outside_collaborators=!r}"
+            ),
+        )
+
+    return Report(result=Result.PASS, reason=None)

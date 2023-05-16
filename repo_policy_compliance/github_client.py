@@ -18,6 +18,24 @@ R = TypeVar("R")
 GITHUB_TOKEN_ENV_NAME = "GITHUB_TOKEN"  # nosec
 
 
+def get() -> Github:
+    """Get a GitHub client.
+
+    Returns:
+        A GitHub client that is configured with a token from the environment.
+
+    Raises:
+        InputError: If the GitHub token environment variable is not provided or empty.
+    """
+    github_token = os.getenv(GITHUB_TOKEN_ENV_NAME)
+    if not github_token:
+        raise InputError(
+            f"The {GITHUB_TOKEN_ENV_NAME} environment variable was not provided or empty, "
+            f"it is needed for interactions with GitHub, got: {github_token!r}"
+        )
+    return Github(login_or_token=github_token)
+
+
 def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
     """Injects a GitHub client as the first argument to a function.
 
@@ -38,20 +56,13 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
             kwargs: The keywords arguments passed to the method
 
         Raises:
-            InputError: If the GitHub token environment variable is not provided or empty.
             GithubClientError: If the Github client encountered an error.
 
         Returns:
             The return value after calling the wrapped function with the injected GitHub client.
 
         """
-        github_token = os.getenv(GITHUB_TOKEN_ENV_NAME)
-        if not github_token:
-            raise InputError(
-                f"The {GITHUB_TOKEN_ENV_NAME} environment variable was not provided or empty, "
-                f"it is needed for interactions with GitHub, got: {github_token!r}"
-            )
-        github_client: Github = Github(login_or_token=github_token)
+        github_client = get()
 
         try:
             return func(github_client, *args, **kwargs)

@@ -74,8 +74,9 @@ def test_fail(
         repository_name=github_repository_name, branch_name=github_branch.name
     )
 
+    assert report.reason
     assert_.substrings_in_string(
-        itertools.chain(reason_string_array, github_branch.name), str(report.reason)
+        itertools.chain(reason_string_array, github_branch.name), report.reason
     )
     assert report.result == Result.FAIL
 
