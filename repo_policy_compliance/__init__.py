@@ -5,6 +5,7 @@
 
 from enum import Enum
 from typing import NamedTuple
+from urllib import parse
 
 from github import Github
 from github.Branch import Branch
@@ -199,14 +200,13 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
     repository = github_client.get_repo(repository_name)
 
     collaborators_url = repository.collaborators_url.removesuffix("{/collaborator}")
-    permission = "permission=triage"
-    affiliation = "affiliation=outside"
+    query = {"permission": "triage", "affiliation": "outside"}
 
     # mypy thinks the attribute doesn't exist when it actually does exist
     # need to use requester to send a raw API request
     # pylint: disable=protected-access
     (_, outside_collaborators) = repository._requester.requestJsonAndCheck(  # type: ignore
-        "GET", f"{collaborators_url}?{permission}&{affiliation}"
+        "GET", f"{collaborators_url}?{parse.urlencode(query)}"
     )
     # pylint: enable=protected-access
 

@@ -8,6 +8,7 @@
 
 import itertools
 from typing import NamedTuple
+from urllib import parse
 
 import pytest
 from github.Repository import Repository
@@ -47,10 +48,10 @@ def fixture_collaborators_with_permission(
 
     # Request non-outside collaborators with the requester permission to use for the response
     collaborators_url = github_repository.collaborators_url.removesuffix("{/collaborator}")
-    permission = f"permission={requested_collaborator.permission}"
+    query = {"permission": requested_collaborator.permission}
     # mypy thinks the attribute doesn't exist when it actually does exist
     (headers, mixin_collabs) = github_repository._requester.requestJsonAndCheck(  # type: ignore
-        "GET", f"{collaborators_url}?{permission}"
+        "GET", f"{collaborators_url}?{parse.urlencode(query)}"
     )
     mixin_collabs_with_role_name = [
         collaborator
