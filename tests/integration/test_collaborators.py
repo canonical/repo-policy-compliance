@@ -47,8 +47,9 @@ def fixture_collaborators_with_permission(
     )
 
     # Request non-outside collaborators with the requester permission to use for the response
-    collaborators_url = github_repository.collaborators_url.removesuffix("{/collaborator}")
-    query = {"permission": requested_collaborator.permission}
+    collaborators_url = github_repository.collaborators_url.replace("{/collaborator}", "")
+    default_query = dict(parse.parse_qsl(parse.urlparse(collaborators_url).query))
+    query = {**default_query, "permission": requested_collaborator.permission}
     # mypy thinks the attribute doesn't exist when it actually does exist
     (headers, mixin_collabs) = github_repository._requester.requestJsonAndCheck(  # type: ignore
         "GET", f"{collaborators_url}?{parse.urlencode(query)}"
