@@ -227,3 +227,19 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
         )
 
     return Report(result=Result.PASS, reason=None)
+
+
+def execute_job(
+    github_client: Github, repository_name: str, branch_name: str, commit_sha: str
+) -> Report:
+    """Check that the execution of the workflow for a SHA has been granted for a PR from a fork.
+
+    Args:
+        github_client: The client to be used for GitHub API interactions.
+        repository_name: The name of the repository to run the check on.
+        branch_name: The name of the branch that has the PR.
+        commit_sha: The commit of the SHAthat the workflow run is on.
+
+    Returns:
+        Whether the workflow run has been approved for a SHA.
+    """

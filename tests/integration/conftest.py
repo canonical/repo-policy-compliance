@@ -7,6 +7,7 @@ import os
 from typing import Generator
 
 import pytest
+from github.Branch import Branch
 from github.Repository import Repository
 
 from repo_policy_compliance.github_client import inject as inject_github_client
@@ -51,25 +52,33 @@ def fixture_github_repository(github_repository_name: str):
 
 @pytest.fixture
 def github_branch(
-    github_repository: Repository,
-    request: pytest.FixtureRequest,
+    github_repository: Repository, request: pytest.FixtureRequest
+) -> Generator[str, None, None]:
+    """Create a new branch for testing."""
+    branch_name: str = request.param
+
+    main_branch = github_repository.get_branch(github_repository.default_branch)
+    branch_ref = github_repository.create_git_ref(
+        ref=f"refs/heads/{branch_name}", sha=main_branch.commit.sha
+    )
+    branch = github_repository.get_branch(branch_name)
+
+    yield branch
+
+    branch_ref.delete()
+
+
+@pytest.fixture
+def protected_github_branch(
+    github_branch: Branch, request: pytest.FixtureRequest
 ) -> Generator[BranchWithProtection, None, None]:
     """Create a new branch for testing."""
     branch_with_protection: BranchWithProtection = request.param
 
-    main_branch = github_repository.get_branch(github_repository.default_branch)
-    branch_ref = github_repository.create_git_ref(
-        ref=f"refs/heads/{branch_with_protection.name}", sha=main_branch.commit.sha
-    )
-    branch = github_repository.get_branch(branch_with_protection.name)
-
     if branch_with_protection.branch_protection_enabled:
-        branch_protection.edit(branch, branch_with_protection)
+        branch_protection.edit(github_branch, branch_with_protection)
 
-    branch_with_protection.github_branch = branch
     yield branch_with_protection
 
     if branch_with_protection.branch_protection_enabled:
-        branch.remove_protection()
-
-    branch_ref.delete()
+        github_branch.remove_protection()
