@@ -5,6 +5,7 @@
 
 from enum import Enum
 from typing import NamedTuple
+from urllib import parse
 
 from github import Github
 from github.Branch import Branch
@@ -180,6 +181,49 @@ def source_branch_protection(
         return Report(
             result=Result.FAIL,
             reason=f"commit is not signed, {branch.name=!r}, {first_unsigned_commit.sha=!r}",
+        )
+
+    return Report(result=Result.PASS, reason=None)
+
+
+@inject_github_client
+def collaborators(github_client: Github, repository_name: str) -> Report:
+    """Check that no outside contributors have higher access than read.
+
+    Args:
+        github_client: The client to be used for GitHub API interactions.
+        repository_name: The name of the repository to run the check on.
+
+    Returns:
+        Whether there are any outside collaborators with higher than read permissions.
+    """
+    repository = github_client.get_repo(repository_name)
+
+    collaborators_url = repository.collaborators_url.replace("{/collaborator}", "")
+    default_query = dict(parse.parse_qsl(parse.urlparse(collaborators_url).query))
+    query = {**default_query, "permission": "triage", "affiliation": "outside"}
+
+    # mypy thinks the attribute doesn't exist when it actually does exist
+    # need to use requester to send a raw API request
+    # pylint: disable=protected-access
+    (_, outside_collaborators) = repository._requester.requestJsonAndCheck(  # type: ignore
+        "GET", f"{collaborators_url}?{parse.urlencode(query)}"
+    )
+    # pylint: enable=protected-access
+
+    higher_permission_logins = tuple(
+        collaborator["login"]
+        for collaborator in outside_collaborators
+        if collaborator["role_name"] != "read"
+    )
+
+    if higher_permission_logins:
+        return Report(
+            result=Result.FAIL,
+            reason=(
+                "the repository includes outside collaborators with higher permissions than read,"
+                f"{higher_permission_logins=!r}"
+            ),
         )
 
     return Report(result=Result.PASS, reason=None)

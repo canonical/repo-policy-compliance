@@ -39,7 +39,7 @@ def test_github_error(
     github_client.get_repo.side_effect = raised_exception
 
     monkeypatch.setattr(
-        "repo_policy_compliance.github_client.Github", lambda *args, **kwargs: github_client
+        "repo_policy_compliance.github_client.Github", lambda *_args, **_kwargs: github_client
     )
 
     with pytest.raises(GithubClientError) as error:
