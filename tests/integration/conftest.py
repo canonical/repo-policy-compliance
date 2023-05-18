@@ -9,6 +9,7 @@ from typing import Generator
 
 import pytest
 from github.Branch import Branch
+from github.Commit import Commit
 from github.GithubException import GithubException
 from github.Repository import Repository
 
@@ -111,22 +112,33 @@ def fixture_forked_github_branch(
     branch_ref.delete()
 
 
-@pytest.fixture
-def pr_from_forked_github_branch(
+@pytest.fixture(name="commit_on_forked_github_branch")
+def fixture_commit_on_forked_github_branch(
     forked_github_branch: Branch,
     forked_github_repository: Repository,
     github_repository: Repository,
 ) -> Generator[str, None, None]:
     """Create a new branch for testing."""
     # Create a commit on the branch
-    forked_github_repository.create_file(
+    commit = forked_github_repository.create_file(
         "test.txt", "testing", "some content", branch=forked_github_branch.name
-    )
+    )["commit"]
 
+    return commit
+
+
+@pytest.fixture
+def pr_from_forked_github_branch(
+    forked_github_branch: Branch,
+    forked_github_repository: Repository,
+    github_repository: Repository,
+    commit_on_forked_github_branch: Commit,
+) -> Generator[str, None, None]:
+    """Create a new branch for testing."""
     # Create PR
     pull = github_repository.create_pull(
         title=forked_github_branch.name,
-        body="PR for testing",
+        body=f"PR for testing {commit_on_forked_github_branch.sha}",
         base=github_repository.default_branch,
         head=f"{forked_github_repository.owner.login}:{forked_github_branch.name}",
         draft=True,

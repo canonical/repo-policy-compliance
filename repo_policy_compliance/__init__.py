@@ -5,14 +5,21 @@
 
 from enum import Enum
 from typing import NamedTuple
-from urllib import parse
 
 from github import Github
 from github.Branch import Branch
 
+from .github_client import get_collaborators
 from .github_client import inject as inject_github_client
 
 BYPASS_ALLOWANCES_KEY = "bypass_pull_request_allowances"
+EXECUTE_JOB_MESSAGE = (
+    "execution not authorized, a comment from a maintainer or above on the repository approving "
+    "the workflow was not found on a PR from a fork, the comment should include the string "
+    "'/canonical/self-hosted-runners/run-workflows <commit SHA>' where the commit SHA is the SHA "
+    "of the latest commit on the branch"
+)
+AUTHORIZATION_STRING_PREFIX = "/canonical/self-hosted-runners/run-workflows"
 
 
 class Result(str, Enum):
@@ -207,18 +214,9 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
         Whether there are any outside collaborators with higher than read permissions.
     """
     repository = github_client.get_repo(repository_name)
-
-    collaborators_url = repository.collaborators_url.replace("{/collaborator}", "")
-    default_query = dict(parse.parse_qsl(parse.urlparse(collaborators_url).query))
-    query = {**default_query, "permission": "triage", "affiliation": "outside"}
-
-    # mypy thinks the attribute doesn't exist when it actually does exist
-    # need to use requester to send a raw API request
-    # pylint: disable=protected-access
-    (_, outside_collaborators) = repository._requester.requestJsonAndCheck(  # type: ignore
-        "GET", f"{collaborators_url}?{parse.urlencode(query)}"
+    outside_collaborators = get_collaborators(
+        repository=repository, permission="triage", affiliation="outside"
     )
-    # pylint: enable=protected-access
 
     higher_permission_logins = tuple(
         collaborator["login"]
@@ -265,8 +263,37 @@ def execute_job(
     # Retrieve PR for the branch
     repository = github_client.get_repo(repository_name)
     pulls = [pull for pull in repository.get_pulls(state="open", head=branch_name)]
-
     if not pulls:
         return Report(result=Result.FAIL, reason=f"no open pull requests for branch {branch_name}")
+
+    # Retrieve comments on the PR
+    pull = pulls[0]
+    comments = pull.get_issue_comments()
+    if not comments.totalCount:
+        return Report(
+            result=Result.FAIL, reason=f"{EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=}"
+        )
+
+    # Check for authroization comment
+    authorization_string = f"{AUTHORIZATION_STRING_PREFIX} {commit_sha}"
+    authorization_comment = next(
+        (comment for comment in comments if authorization_string in comment.body), None
+    )
+    if not authorization_comment:
+        return Report(
+            result=Result.FAIL, reason=f"{EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=}"
+        )
+
+    # Check that the commenter has maintain or above permissions
+    maintain_logins = {
+        collaborator["login"]
+        for collaborator in get_collaborators(
+            repository=repository, permission="maintain", affiliation="all"
+        )
+    }
+    if authorization_comment.user.login not in maintain_logins:
+        return Report(
+            result=Result.FAIL, reason=f"{EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=}"
+        )
 
     return Report(result=Result.PASS, reason=None)

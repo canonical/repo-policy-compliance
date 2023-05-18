@@ -7,9 +7,13 @@ from uuid import uuid4
 
 import pytest
 from github.Branch import Branch
+from github.Commit import Commit
+from github.PullRequest import PullRequest
 from github.Repository import Repository
 
-from repo_policy_compliance import Result, execute_job
+import repo_policy_compliance
+from repo_policy_compliance import AUTHORIZATION_STRING_PREFIX, Result, execute_job
+from repo_policy_compliance.github_client import get as get_github_client
 
 from .. import assert_
 
@@ -50,7 +54,7 @@ def test_fail_forked_no_comment_on_pr(
     forked_github_repository: Repository, forked_github_branch: Branch, github_repository_name: str
 ):
     """
-    arrange: given a fork branch that doesn't have a PR
+    arrange: given a fork branch that has a PR without any comments
     act: when execute_job is called with the name of the branch
     assert: then a fail report is returned.
     """
@@ -60,6 +64,78 @@ def test_fail_forked_no_comment_on_pr(
         source_repository_name=forked_github_repository.full_name,
         branch_name=forked_github_branch.name,
         commit_sha=forked_github_branch.commit.sha,
+    )
+
+    assert report.reason
+    assert_.substrings_in_string(("not", "authorized"), report.reason)
+    assert report.result == Result.FAIL
+
+
+@pytest.mark.parametrize(
+    "forked_github_branch",
+    [f"execute-job/wrong-comment-on-pr/{uuid4()}"],
+    indirect=True,
+)
+def test_fail_forked_wrong_comment_on_pr(
+    forked_github_repository: Repository,
+    github_repository: Repository,
+    forked_github_branch: Branch,
+    github_repository_name: str,
+    pr_from_forked_github_branch: PullRequest,
+):
+    """
+    arrange: given a fork branch that has a PR with the wrong comment on it
+    act: when execute_job is called with the name of the branch
+    assert: then a fail report is returned.
+    """
+    pr_issue = github_repository.get_issue(pr_from_forked_github_branch.number)
+    pr_issue.create_comment("comment 1")
+
+    # The github_client is injected
+    report = execute_job(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name,
+        source_repository_name=forked_github_repository.full_name,
+        branch_name=forked_github_branch.name,
+        commit_sha=forked_github_branch.commit.sha,
+    )
+
+    assert report.reason
+    assert_.substrings_in_string(("not", "authorized"), report.reason)
+    assert report.result == Result.FAIL
+
+
+@pytest.mark.parametrize(
+    "forked_github_branch",
+    [f"execute-job/comment-from-wrong-user-on-pr/{uuid4()}"],
+    indirect=True,
+)
+def test_fail_forked_comment_from_wrong_user_on_pr(
+    forked_github_repository: Repository,
+    github_repository: Repository,
+    forked_github_branch: Branch,
+    github_repository_name: str,
+    pr_from_forked_github_branch: PullRequest,
+    commit_on_forked_github_branch: Commit,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """
+    arrange: given a fork branch that has a PR with the right comment from a user that is not a
+        maintainer
+    act: when execute_job is called with the name of the branch
+    assert: then a fail report is returned.
+    """
+    pr_issue = github_repository.get_issue(pr_from_forked_github_branch.number)
+    pr_issue.create_comment(f"{AUTHORIZATION_STRING_PREFIX} {commit_on_forked_github_branch.sha}")
+
+    # Change the collaborators request to return no collaborators
+    monkeypatch.setattr(repo_policy_compliance, "get_collaborators", lambda *_args, **_kwargs: [])
+
+    # The github_client is injected
+    report = execute_job(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name,
+        source_repository_name=forked_github_repository.full_name,
+        branch_name=forked_github_branch.name,
+        commit_sha=commit_on_forked_github_branch.sha,
     )
 
     assert report.reason
@@ -88,6 +164,39 @@ def test_pass_main_repo(
         source_repository_name=github_repository_name,
         branch_name=github_branch.name,
         commit_sha=main_branch.commit.sha,
+    )
+
+    assert report.reason is None
+    assert report.result == Result.PASS
+
+
+@pytest.mark.parametrize(
+    "forked_github_branch",
+    [f"execute-job/wrong-comment-on-pr/{uuid4()}"],
+    indirect=True,
+)
+def test_pass_fork(
+    forked_github_repository: Repository,
+    github_repository: Repository,
+    forked_github_branch: Branch,
+    github_repository_name: str,
+    pr_from_forked_github_branch: PullRequest,
+    commit_on_forked_github_branch: Commit,
+):
+    """
+    arrange: given a fork branch that doesn't have a PR
+    act: when execute_job is called with the name of the branch
+    assert: then a fail report is returned.
+    """
+    pr_issue = github_repository.get_issue(pr_from_forked_github_branch.number)
+    pr_issue.create_comment(f"{AUTHORIZATION_STRING_PREFIX} {commit_on_forked_github_branch.sha}")
+
+    # The github_client is injected
+    report = execute_job(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name,
+        source_repository_name=forked_github_repository.full_name,
+        branch_name=forked_github_branch.name,
+        commit_sha=commit_on_forked_github_branch.sha,
     )
 
     assert report.reason is None
