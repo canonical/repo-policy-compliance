@@ -3,6 +3,9 @@
 
 """Tests for the execute_job function."""
 
+# The tests in this file have to rely on many fixtures
+# pylint: disable=too-many-arguments
+
 from uuid import uuid4
 
 import pytest
@@ -13,7 +16,6 @@ from github.Repository import Repository
 
 import repo_policy_compliance
 from repo_policy_compliance import AUTHORIZATION_STRING_PREFIX, Result, execute_job
-from repo_policy_compliance.github_client import get as get_github_client
 
 from .. import assert_
 
@@ -208,7 +210,7 @@ def test_pass_main_repo(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"execute-job/wrong-comment-on-pr/{uuid4()}"],
+    [f"execute-job/fork-branch/{uuid4()}"],
     indirect=True,
 )
 def test_pass_fork(

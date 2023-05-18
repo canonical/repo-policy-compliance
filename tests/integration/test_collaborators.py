@@ -3,9 +3,6 @@
 
 """Tests for the collaborators function."""
 
-# Need to override private methods for mocking
-# pylint: disable=protected-access
-
 import itertools
 from typing import Literal, NamedTuple
 

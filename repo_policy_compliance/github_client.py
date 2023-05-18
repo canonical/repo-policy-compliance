@@ -101,7 +101,7 @@ def get_collaborators(
     """
     collaborators_url = repository.collaborators_url.replace("{/collaborator}", "")
     default_query = dict(parse.parse_qsl(parse.urlparse(collaborators_url).query))
-    query = {**default_query, "permission": permission, "affiliation": affiliation}
+    query: dict[str, str] = {**default_query, "permission": permission, "affiliation": affiliation}
 
     # mypy thinks the attribute doesn't exist when it actually does exist
     # need to use requester to send a raw API request

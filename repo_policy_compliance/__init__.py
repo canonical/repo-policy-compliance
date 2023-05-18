@@ -13,13 +13,13 @@ from .github_client import get_collaborators
 from .github_client import inject as inject_github_client
 
 BYPASS_ALLOWANCES_KEY = "bypass_pull_request_allowances"
+AUTHORIZATION_STRING_PREFIX = "/canonical/self-hosted-runners/run-workflows"
 EXECUTE_JOB_MESSAGE = (
     "execution not authorized, a comment from a maintainer or above on the repository approving "
     "the workflow was not found on a PR from a fork, the comment should include the string "
-    "'/canonical/self-hosted-runners/run-workflows <commit SHA>' where the commit SHA is the SHA "
-    "of the latest commit on the branch"
+    f"'{AUTHORIZATION_STRING_PREFIX} <commit SHA>' where the commit SHA is the SHA of the latest "
+    "commit on the branch"
 )
-AUTHORIZATION_STRING_PREFIX = "/canonical/self-hosted-runners/run-workflows"
 
 
 class Result(str, Enum):
@@ -262,13 +262,13 @@ def execute_job(
 
     # Retrieve PR for the branch
     repository = github_client.get_repo(repository_name)
-    pulls = [pull for pull in repository.get_pulls(state="open", head=branch_name)]
-    if not pulls:
+    pulls = repository.get_pulls(state="open")
+    pull_for_branch = next((pull for pull in pulls if pull.head.ref == branch_name), None)
+    if not pull_for_branch:
         return Report(result=Result.FAIL, reason=f"no open pull requests for branch {branch_name}")
 
     # Retrieve comments on the PR
-    pull = pulls[0]
-    comments = pull.get_issue_comments()
+    comments = pull_for_branch.get_issue_comments()
     if not comments.totalCount:
         return Report(
             result=Result.FAIL, reason=f"{EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=}"

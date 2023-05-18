@@ -5,12 +5,13 @@
 
 import os
 from time import sleep
-from typing import Generator
+from typing import Iterator, cast
 
 import pytest
 from github.Branch import Branch
 from github.Commit import Commit
 from github.GithubException import GithubException
+from github.PullRequest import PullRequest
 from github.Repository import Repository
 
 from repo_policy_compliance.github_client import inject as inject_github_client
@@ -56,7 +57,7 @@ def fixture_github_repository(github_repository_name: str):
 @pytest.fixture(name="forked_github_repository")
 def fixture_forked_github_repository(
     github_repository: Repository,
-) -> Generator[BranchWithProtection, None, None]:
+) -> Iterator[Repository]:
     """Create a fork for a GitHub repository."""
     forked_repository = github_repository.create_fork()
 
@@ -76,10 +77,10 @@ def fixture_forked_github_repository(
     forked_repository.delete()
 
 
-@pytest.fixture
-def github_branch(
+@pytest.fixture(name="github_branch")
+def fixture_github_branch(
     github_repository: Repository, request: pytest.FixtureRequest
-) -> Generator[str, None, None]:
+) -> Iterator[Branch]:
     """Create a new branch for testing."""
     branch_name: str = request.param
 
@@ -97,7 +98,7 @@ def github_branch(
 @pytest.fixture(name="forked_github_branch")
 def fixture_forked_github_branch(
     forked_github_repository: Repository, request: pytest.FixtureRequest
-) -> Generator[str, None, None]:
+) -> Iterator[Branch]:
     """Create a new forked branch for testing."""
     branch_name: str = request.param
 
@@ -115,12 +116,15 @@ def fixture_forked_github_branch(
 @pytest.fixture(name="commit_on_forked_github_branch")
 def fixture_commit_on_forked_github_branch(
     forked_github_branch: Branch, forked_github_repository: Repository
-) -> Generator[str, None, None]:
+) -> Commit:
     """Create a new branch for testing."""
     # Create a commit on the branch
-    commit = forked_github_repository.create_file(
-        "test.txt", "testing", "some content", branch=forked_github_branch.name
-    )["commit"]
+    commit = cast(
+        Commit,
+        forked_github_repository.create_file(
+            "test.txt", "testing", "some content", branch=forked_github_branch.name
+        )["commit"],
+    )
 
     return commit
 
@@ -131,7 +135,7 @@ def pr_from_forked_github_branch(
     forked_github_repository: Repository,
     github_repository: Repository,
     commit_on_forked_github_branch: Commit,
-) -> Generator[str, None, None]:
+) -> Iterator[PullRequest]:
     """Create a new branch for testing."""
     # Create PR
     pull = github_repository.create_pull(
@@ -150,7 +154,7 @@ def pr_from_forked_github_branch(
 @pytest.fixture
 def protected_github_branch(
     github_branch: Branch, request: pytest.FixtureRequest
-) -> Generator[BranchWithProtection, None, None]:
+) -> Iterator[BranchWithProtection]:
     """Create a new branch for testing."""
     branch_with_protection: BranchWithProtection = request.param
 
