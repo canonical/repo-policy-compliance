@@ -10,4 +10,9 @@ jobs:
   show-head-ref:
     runs-on: ubuntu-22.04
     steps:
-      - run: echo $GITHUB_HEAD_REF
+      - run: |
+          echo $GITHUB_HEAD_REF
+          echo $GITHUB_REPOSITORY
+          echo $GITHUB_BASE_REF
+          echo $GITHUB_REF
+          
