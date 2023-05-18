@@ -114,9 +114,7 @@ def fixture_forked_github_branch(
 
 @pytest.fixture(name="commit_on_forked_github_branch")
 def fixture_commit_on_forked_github_branch(
-    forked_github_branch: Branch,
-    forked_github_repository: Repository,
-    github_repository: Repository,
+    forked_github_branch: Branch, forked_github_repository: Repository
 ) -> Generator[str, None, None]:
     """Create a new branch for testing."""
     # Create a commit on the branch

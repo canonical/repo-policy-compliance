@@ -81,6 +81,7 @@ def test_fail_forked_wrong_comment_on_pr(
     github_repository: Repository,
     forked_github_branch: Branch,
     github_repository_name: str,
+    commit_on_forked_github_branch: Commit,
     pr_from_forked_github_branch: PullRequest,
 ):
     """
@@ -96,7 +97,42 @@ def test_fail_forked_wrong_comment_on_pr(
         repository_name=github_repository_name,
         source_repository_name=forked_github_repository.full_name,
         branch_name=forked_github_branch.name,
-        commit_sha=forked_github_branch.commit.sha,
+        commit_sha=commit_on_forked_github_branch.sha,
+    )
+
+    assert report.reason
+    assert_.substrings_in_string(("not", "authorized"), report.reason)
+    assert report.result == Result.FAIL
+
+
+@pytest.mark.parametrize(
+    "forked_github_branch",
+    [f"execute-job/wrong-commit-sha-on-pr/{uuid4()}"],
+    indirect=True,
+)
+def test_fail_forked_wrong_commit_sha_on_pr(
+    forked_github_repository: Repository,
+    github_repository: Repository,
+    forked_github_branch: Branch,
+    github_repository_name: str,
+    commit_on_forked_github_branch: Commit,
+    pr_from_forked_github_branch: PullRequest,
+):
+    """
+    arrange: given a fork branch that has a PR with the right comment but wrong commit SHA
+    act: when execute_job is called with the name of the branch
+    assert: then a fail report is returned.
+    """
+    pr_issue = github_repository.get_issue(pr_from_forked_github_branch.number)
+    main_branch = forked_github_repository.get_branch(forked_github_repository.default_branch)
+    pr_issue.create_comment(f"{AUTHORIZATION_STRING_PREFIX} {main_branch.commit.sha}")
+
+    # The github_client is injected
+    report = execute_job(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name,
+        source_repository_name=forked_github_repository.full_name,
+        branch_name=forked_github_branch.name,
+        commit_sha=commit_on_forked_github_branch.sha,
     )
 
     assert report.reason
