@@ -66,6 +66,7 @@ def test_fail(
     # The github_client is injected
     report = source_branch_protection(  # pylint: disable=no-value-for-parameter
         repository_name=github_repository_name,
+        source_repository_name=github_repository_name,
         branch_name=github_branch.name,
         target_branch_name=github_repository.default_branch,
     )
@@ -104,7 +105,7 @@ def fixture_source_branch_for_test_pass(
 @pytest.mark.parametrize(
     "github_branch",
     [f"source-branch/protected/{uuid4()}"],
-    indirect=["github_branch"],
+    indirect=True,
 )
 def test_pass(
     github_repository: Repository,
@@ -121,8 +122,36 @@ def test_pass(
     # The github_client is injected
     report = source_branch_protection(  # pylint: disable=no-value-for-parameter
         repository_name=github_repository_name,
+        source_repository_name=github_repository_name,
         branch_name=source_branch_for_test_pass.name,
         target_branch_name=github_repository.default_branch,
+    )
+
+    assert report.reason is None
+    assert report.result == Result.PASS
+
+
+@pytest.mark.parametrize(
+    "forked_github_branch",
+    [f"source-branch/forked/{uuid4()}"],
+    indirect=True,
+)
+def test_pass_fork(
+    forked_github_branch: Branch, forked_github_repository: Repository, github_repository_name: str
+):
+    """
+    arrange: given a branch that is compliant including a signed commit only in CI (on local runs
+        the source branch has no unique commits and hence the check for unsigned commits will
+        pass).
+    act: when source_branch_protection is called with the name of the branch.
+    assert: then a pass report is returned.
+    """
+    # The github_client is injected
+    report = source_branch_protection(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name,
+        source_repository_name=forked_github_repository.name,
+        branch_name=forked_github_branch.name,
+        target_branch_name=forked_github_repository.default_branch,
     )
 
     assert report.reason is None

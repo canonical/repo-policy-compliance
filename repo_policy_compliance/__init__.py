@@ -137,13 +137,18 @@ def target_branch_protection(
 
 @inject_github_client
 def source_branch_protection(
-    github_client: Github, repository_name: str, branch_name: str, target_branch_name: str
+    github_client: Github,
+    repository_name: str,
+    source_repository_name: str,
+    branch_name: str,
+    target_branch_name: str,
 ) -> Report:
     """Check that the source branch has appropriate protections.
 
     Args:
         github_client: The client to be used for GitHub API interactions.
         repository_name: The name of the repository to run the check on.
+        source_repository_name: The name of the repository that contains the source branch.
         branch_name: The name of the branch to check.
         target_branch_name: The name of the branch that the source branch is proposed to be merged
             into.
@@ -151,6 +156,10 @@ def source_branch_protection(
     Returns:
         Whether the branch has appropriate protections.
     """
+    # Check for fork
+    if source_repository_name != repository_name:
+        return Report(result=Result.PASS, reason=None)
+
     branch = _get_branch(
         github_client=github_client, repository_name=repository_name, branch_name=branch_name
     )
@@ -229,17 +238,35 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
+@inject_github_client
 def execute_job(
-    github_client: Github, repository_name: str, branch_name: str, commit_sha: str
+    github_client: Github,
+    repository_name: str,
+    source_repository_name: str,
+    branch_name: str,
+    commit_sha: str,
 ) -> Report:
     """Check that the execution of the workflow for a SHA has been granted for a PR from a fork.
 
     Args:
         github_client: The client to be used for GitHub API interactions.
         repository_name: The name of the repository to run the check on.
+        source_repository_name: The name of the repository that contains the source branch.
         branch_name: The name of the branch that has the PR.
         commit_sha: The commit of the SHAthat the workflow run is on.
 
     Returns:
         Whether the workflow run has been approved for a SHA.
     """
+    # Not from a forked repository
+    if repository_name == source_repository_name:
+        return Report(result=Result.PASS, reason=None)
+
+    # Retrieve PR for the branch
+    repository = github_client.get_repo(repository_name)
+    pulls = [pull for pull in repository.get_pulls(state="open", head=branch_name)]
+
+    if not pulls:
+        return Report(result=Result.FAIL, reason=f"no open pull requests for branch {branch_name}")
+
+    return Report(result=Result.PASS, reason=None)
