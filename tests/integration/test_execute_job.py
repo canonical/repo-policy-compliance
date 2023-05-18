@@ -30,7 +30,7 @@ def test_fail_forked_no_pr(
 ):
     """
     arrange: given a fork branch that doesn't have a PR
-    act: when execute_job is called with the name of the branch
+    act: when execute_job is called
     assert: then a fail report is returned.
     """
     # The github_client is injected
@@ -57,7 +57,7 @@ def test_fail_forked_no_comment_on_pr(
 ):
     """
     arrange: given a fork branch that has a PR without any comments
-    act: when execute_job is called with the name of the branch
+    act: when execute_job is called
     assert: then a fail report is returned.
     """
     # The github_client is injected
@@ -88,7 +88,7 @@ def test_fail_forked_wrong_comment_on_pr(
 ):
     """
     arrange: given a fork branch that has a PR with the wrong comment on it
-    act: when execute_job is called with the name of the branch
+    act: when execute_job is called
     assert: then a fail report is returned.
     """
     pr_issue = github_repository.get_issue(pr_from_forked_github_branch.number)
@@ -122,7 +122,7 @@ def test_fail_forked_wrong_commit_sha_on_pr(
 ):
     """
     arrange: given a fork branch that has a PR with the right comment but wrong commit SHA
-    act: when execute_job is called with the name of the branch
+    act: when execute_job is called
     assert: then a fail report is returned.
     """
     pr_issue = github_repository.get_issue(pr_from_forked_github_branch.number)
@@ -159,7 +159,7 @@ def test_fail_forked_comment_from_wrong_user_on_pr(
     """
     arrange: given a fork branch that has a PR with the right comment from a user that is not a
         maintainer
-    act: when execute_job is called with the name of the branch
+    act: when execute_job is called
     assert: then a fail report is returned.
     """
     pr_issue = github_repository.get_issue(pr_from_forked_github_branch.number)
@@ -191,7 +191,7 @@ def test_pass_main_repo(
 ):
     """
     arrange: given a branch from the repository
-    act: when execute_job is called with the name of the branch
+    act: when execute_job is called
     assert: then a pass report is returned.
     """
     main_branch = github_repository.get_branch(github_repository.default_branch)
@@ -222,12 +222,15 @@ def test_pass_fork(
     commit_on_forked_github_branch: Commit,
 ):
     """
-    arrange: given a fork branch that doesn't have a PR
-    act: when execute_job is called with the name of the branch
-    assert: then a fail report is returned.
+    arrange: given a fork branch that has a PR with an authorization comment from a maintainer
+    act: when execute_job is called
+    assert: then a pass report is returned.
     """
     pr_issue = github_repository.get_issue(pr_from_forked_github_branch.number)
-    pr_issue.create_comment(f"{AUTHORIZATION_STRING_PREFIX} {commit_on_forked_github_branch.sha}")
+    # Add padding to ensure that the string just needs to be within the comment
+    pr_issue.create_comment(
+        f"padding {AUTHORIZATION_STRING_PREFIX} {commit_on_forked_github_branch.sha} padding"
+    )
 
     # The github_client is injected
     report = execute_job(  # pylint: disable=no-value-for-parameter

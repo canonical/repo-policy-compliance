@@ -251,10 +251,10 @@ def execute_job(
         repository_name: The name of the repository to run the check on.
         source_repository_name: The name of the repository that contains the source branch.
         branch_name: The name of the branch that has the PR.
-        commit_sha: The commit of the SHAthat the workflow run is on.
+        commit_sha: The SHA of the commit that the workflow run is on.
 
     Returns:
-        Whether the workflow run has been approved for a SHA.
+        Whether the workflow run has been approved for the commit SHA.
     """
     # Not from a forked repository
     if repository_name == source_repository_name:

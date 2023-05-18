@@ -140,9 +140,7 @@ def test_pass_fork(
     forked_github_branch: Branch, forked_github_repository: Repository, github_repository_name: str
 ):
     """
-    arrange: given a branch that is compliant including a signed commit only in CI (on local runs
-        the source branch has no unique commits and hence the check for unsigned commits will
-        pass).
+    arrange: given a forked branch that is not compliant
     act: when source_branch_protection is called with the name of the branch.
     assert: then a pass report is returned.
     """

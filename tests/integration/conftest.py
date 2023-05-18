@@ -117,7 +117,7 @@ def fixture_forked_github_branch(
 def fixture_commit_on_forked_github_branch(
     forked_github_branch: Branch, forked_github_repository: Repository
 ) -> Commit:
-    """Create a new branch for testing."""
+    """Create a commit for testing."""
     # Create a commit on the branch
     commit = cast(
         Commit,
@@ -136,7 +136,7 @@ def pr_from_forked_github_branch(
     github_repository: Repository,
     commit_on_forked_github_branch: Commit,
 ) -> Iterator[PullRequest]:
-    """Create a new branch for testing."""
+    """Create a new forked branch for testing."""
     # Create PR
     pull = github_repository.create_pull(
         title=forked_github_branch.name,
@@ -155,7 +155,7 @@ def pr_from_forked_github_branch(
 def protected_github_branch(
     github_branch: Branch, request: pytest.FixtureRequest
 ) -> Iterator[BranchWithProtection]:
-    """Create a new branch for testing."""
+    """Add protection to a branch."""
     branch_with_protection: BranchWithProtection = request.param
 
     if branch_with_protection.branch_protection_enabled:
