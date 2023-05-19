@@ -158,6 +158,9 @@ def pr_from_forked_github_branch(
         sha=main_branch.commit.sha,
     )
     base_branch = github_repository.get_branch(base_branch_name)
+    github_repository.create_file(
+        "another-test.txt", "testing", "some content", branch=base_branch.name
+    )
 
     # Create PR
     pull = github_repository.create_pull(
