@@ -5,8 +5,8 @@ name: Tests
 
 on:
   pull_request:
-    branches:
-      - 'main'
+    branches-ignore:
+      - 'test-branch/**'
 
 jobs:
   inclusive-naming-check:

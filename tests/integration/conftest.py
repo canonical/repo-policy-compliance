@@ -150,7 +150,7 @@ def pr_from_forked_github_branch(
     commit_on_forked_github_branch: Commit,
 ) -> Iterator[PullRequest]:
     """Create a new forked branch for testing."""
-    # Create target for PR
+    # Create target for PR to avoid triggering recursive GitHub action runs
     main_branch = github_repository.get_branch(github_repository.default_branch)
     base_branch_name = f"test-branch/target-for-{forked_github_branch.name}"
     base_branch_ref = github_repository.create_git_ref(
