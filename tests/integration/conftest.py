@@ -150,11 +150,20 @@ def pr_from_forked_github_branch(
     commit_on_forked_github_branch: Commit,
 ) -> Iterator[PullRequest]:
     """Create a new forked branch for testing."""
+    # Create target for PR
+    main_branch = github_repository.get_branch(github_repository.default_branch)
+    base_branch_name = f"test-branch/target-for-{forked_github_branch.name}"
+    base_branch_ref = github_repository.create_git_ref(
+        ref=f"refs/heads/{base_branch_name}",
+        sha=main_branch.commit.sha,
+    )
+    base_branch = github_repository.get_branch(base_branch_name)
+
     # Create PR
     pull = github_repository.create_pull(
         title=forked_github_branch.name,
         body=f"PR for testing {commit_on_forked_github_branch.sha}",
-        base=github_repository.default_branch,
+        base=base_branch.name,
         head=f"{forked_github_repository.owner.login}:{forked_github_branch.name}",
         draft=True,
     )
@@ -162,6 +171,7 @@ def pr_from_forked_github_branch(
     yield pull
 
     pull.edit(state="closed")
+    base_branch_ref.delete()
 
 
 @pytest.fixture
