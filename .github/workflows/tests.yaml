@@ -10,7 +10,6 @@ on:
 
 jobs:
   inclusive-naming-check:
-    if: "!contains(github.head_ref, 'test-branch/')"
     name: Inclusive naming
     runs-on: ubuntu-22.04
     steps:
@@ -49,7 +48,6 @@ jobs:
           workdir: "./"
           woke-version: latest
   shellcheck-lint:
-    if: "!contains(github.head_ref, 'test-branch/')"
     name: Shell scripts lint
     runs-on: ubuntu-22.04
     steps:
@@ -111,7 +109,6 @@ jobs:
       - if: ${{ steps.gather.outputs.filepaths != '' }}
         run: shellcheck -f gcc ${{steps.gather.outputs.filepaths}}
   code-lint:
-    if: "!contains(github.head_ref, 'test-branch/')"
     name: Code lint
     runs-on: ubuntu-22.04
     outputs:
@@ -223,7 +220,6 @@ jobs:
         id: report
         run: echo "outcome=${{ steps.run-tests.conclusion }}" >> $GITHUB_OUTPUT
   license-headers-check:
-    if: "!contains(github.head_ref, 'test-branch/')"
     name: Check license headers
     runs-on: ubuntu-22.04
     steps:
@@ -240,7 +236,7 @@ jobs:
         with:
           config: .licenserc.yaml
   required_status_checks:
-    if: "always() && !contains(github.head_ref, 'test-branch/')"
+    if: "always()"
     name: Required Test Status Checks
     runs-on: ubuntu-22.04
     needs:
