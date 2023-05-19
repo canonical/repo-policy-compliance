@@ -21,12 +21,11 @@ from .types_ import BranchWithProtection, RequestedCollaborator
 )
 def test_fail_target_branch(github_branch: Branch, github_repository_name: str):
     """
-    arrange: given a target branch that is not complient
+    arrange: given a target branch that is not compliant
     act: when all_ is called
     assert: then a fail report is returned.
     """
-    # The github_client is injected
-    report = all_(  # pylint: disable=no-value-for-parameter
+    report = all_(
         repository_name=github_repository_name,
         source_repository_name=github_repository_name,
         target_branch_name=github_branch.name,
@@ -53,14 +52,11 @@ def test_fail_source_branch(
     github_branch: Branch, github_repository_name: str, another_github_branch: Branch
 ):
     """
-    arrange: given a target branch that is not complient
+    arrange: given a target branch that is not compliant
     act: when all_ is called
     assert: then a fail report is returned.
     """
-    # Create invalid source branch
-
-    # The github_client is injected
-    report = all_(  # pylint: disable=no-value-for-parameter
+    report = all_(
         repository_name=github_repository_name,
         source_repository_name=github_repository_name,
         target_branch_name=github_branch.name,
@@ -90,8 +86,7 @@ def test_fail_collaborators(github_branch: Branch, github_repository_name: str):
     act: when all_ is called
     assert: then a fail report is returned.
     """
-    # The github_client is injected
-    report = all_(  # pylint: disable=no-value-for-parameter
+    report = all_(
         repository_name=github_repository_name,
         source_repository_name=github_repository_name,
         target_branch_name=github_branch.name,
@@ -125,8 +120,7 @@ def test_fail_execute_job(
     act: when all_ is called
     assert: then a fail report is returned.
     """
-    # The github_client is injected
-    report = all_(  # pylint: disable=no-value-for-parameter
+    report = all_(
         repository_name=github_repository_name,
         source_repository_name=forked_github_repository.full_name,
         target_branch_name=github_branch.name,
@@ -149,8 +143,7 @@ def test_pass(github_branch: Branch, github_repository_name: str):
     act: when all_ is called
     assert: then a pass report is returned.
     """
-    # The github_client is injected
-    report = all_(  # pylint: disable=no-value-for-parameter
+    report = all_(
         repository_name=github_repository_name,
         source_repository_name=github_repository_name,
         target_branch_name=github_branch.name,

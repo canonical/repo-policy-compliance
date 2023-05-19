@@ -112,6 +112,8 @@ def all_(
     Returns:
         Whether the run is authorized based on all the checks.
     """
+    # The github_client argument is injected, disabling missing arguments check for this function
+    # pylint: disable=no-value-for-parameter
     if (
         target_branch_report := target_branch_protection(
             repository_name=repository_name, branch_name=target_branch_name

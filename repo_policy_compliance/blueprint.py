@@ -6,6 +6,7 @@
 import logging
 import os
 import secrets
+from typing import cast
 
 from flask import Blueprint, Response, request
 from flask_httpauth import HTTPTokenAuth
@@ -21,7 +22,7 @@ CHECK_RUN_ENDPOINT = "/check-run"
 CHARM_USER = "charm"
 RUNNER_USER = "runner"
 
-RUNNER_TOKENS = set()
+RUNNER_TOKENS: set[str] = set()
 EXPECTED_KEYS = {
     "repository_name",
     "source_repository_name",
@@ -32,11 +33,11 @@ EXPECTED_KEYS = {
 
 
 @auth.verify_token
-def verify_token(token) -> str | None:
+def verify_token(token: str) -> str | None:
     """Verify the authentication token.
 
     Args:
-        The token to check.
+        token: The token to check.
 
     Returns:
         The identity associated with the token or None if no token matches.
@@ -44,7 +45,7 @@ def verify_token(token) -> str | None:
     charm_token = os.getenv(CHARM_TOKEN_ENV_NAME)
 
     if not charm_token:
-        logging.error(f"{CHARM_TOKEN_ENV_NAME} or empty, required for generating one time tokens")
+        logging.error("%s or empty, required for generating one time tokens", CHARM_TOKEN_ENV_NAME)
         return None
 
     if token == charm_token:
@@ -58,7 +59,7 @@ def verify_token(token) -> str | None:
 
 
 @auth.get_user_roles
-def get_user_roles(user) -> str | None:
+def get_user_roles(user: str) -> str | None:
     """Get the roles of a user.
 
     Args:
@@ -78,7 +79,7 @@ def get_user_roles(user) -> str | None:
 
 @repo_policy_compliance.route(ONE_TIME_TOKEN_ENDPOINT)
 @auth.login_required(role=CHARM_USER)
-def one_time_token():
+def one_time_token() -> str:
     """Generate a one time token for a runner.
 
     Returns:
@@ -91,13 +92,13 @@ def one_time_token():
 
 @repo_policy_compliance.route(CHECK_RUN_ENDPOINT, methods=["POST"])
 @auth.login_required(role=RUNNER_USER)
-def check_run():
+def check_run() -> Response:
     """Check whether a run should proceed.
 
     Returns:
         Either to proceed with the run or an error not to proceed with a reason why.
     """
-    data: dict[str, str] = request.json
+    data = cast(dict[str, str], request.json)
     missing_keys = EXPECTED_KEYS - data.keys()
     if missing_keys:
         return Response(response=f"missing data, {missing_keys=}, {EXPECTED_KEYS=}", status=400)

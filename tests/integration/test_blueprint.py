@@ -71,7 +71,7 @@ def test_one_time_token_wrong_auth(client: FlaskClient):
     assert: then 401 is returned.
     """
     response = client.get(
-        blueprint.ONE_TIME_TOKEN_ENDPOINT, headers={"Authorization": f"Bearer invalid"}
+        blueprint.ONE_TIME_TOKEN_ENDPOINT, headers={"Authorization": "Bearer invalid"}
     )
 
     assert response.status_code == 401, response.data
