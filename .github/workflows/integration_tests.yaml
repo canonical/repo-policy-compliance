@@ -3,7 +3,7 @@ name: Integration tests
 on:
   pull_request:
     branches-ignore:
-      - 'test-branch/**'
+      - '**test-branch/**'
 
 jobs:
   integration-tests:
