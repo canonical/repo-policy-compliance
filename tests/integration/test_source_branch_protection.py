@@ -21,21 +21,21 @@ from .types_ import BranchWithProtection
     "github_branch, protected_github_branch, add_commit, reason_string_array",
     [
         pytest.param(
-            f"source-branch/not-protected/{uuid4()}",
+            f"test-branch/source-branch/not-protected/{uuid4()}",
             BranchWithProtection(branch_protection_enabled=False),
             False,
             ("not enabled"),
             id="branch_protection disabled",
         ),
         pytest.param(
-            f"source-branch/requires-signature/{uuid4()}",
+            f"test-branch/source-branch/requires-signature/{uuid4()}",
             BranchWithProtection(required_signatures_enabled=False),
             False,
             ("signed", "commits", "not required"),
             id="required-signature disabled",
         ),
         pytest.param(
-            f"source-branch/unsigned-commits/{uuid4()}",
+            f"test-branch/source-branch/unsigned-commits/{uuid4()}",
             BranchWithProtection(required_signatures_enabled=True),
             True,
             ("commit", "not signed"),
@@ -103,7 +103,7 @@ def fixture_source_branch_for_test_pass(
 
 @pytest.mark.parametrize(
     "github_branch",
-    [f"source-branch/protected/{uuid4()}"],
+    [f"test-branch/source-branch/protected/{uuid4()}"],
     indirect=True,
 )
 def test_pass(
@@ -132,7 +132,7 @@ def test_pass(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"source-branch/forked/{uuid4()}"],
+    [f"test-branch/source-branch/forked/{uuid4()}"],
     indirect=True,
 )
 def test_pass_fork(

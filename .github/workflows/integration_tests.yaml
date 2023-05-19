@@ -5,61 +5,62 @@ on:
 
 jobs:
   integration-tests:
-    runs-on: ubuntu-22.04
-    if: ${{ !failure() }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install tox
-        run: python3 -m pip install tox
-      - name: Run integration tests
-        id: run-tests
-        env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
-          CI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Ensure that stdout appears as normal and redirect to file and exit depends on exit code of first command
-          STDOUT_LOG=$(mktemp --suffix=stdout.log)
-          echo STDOUT_LOG=$STDOUT_LOG >> $GITHUB_ENV
-          tox -e test,coverage-report --result-json=test-result.json | tee $STDOUT_LOG ; test ${PIPESTATUS[0]} -eq 0
-      - name: Export test report
-        if: always()
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const no_color = (text) => {
-                return text.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
-            }
+    run_if:
+      if: ${{ !failure() && !startsWith(github.head_ref, 'test-branch/') }}
+      runs-on: ubuntu-22.04
+      steps:
+        - uses: actions/checkout@v3
+        - name: Install tox
+          run: python3 -m pip install tox
+        - name: Run integration tests
+          id: run-tests
+          env:
+            GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+            CI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run: |
+            # Ensure that stdout appears as normal and redirect to file and exit depends on exit code of first command
+            STDOUT_LOG=$(mktemp --suffix=stdout.log)
+            echo STDOUT_LOG=$STDOUT_LOG >> $GITHUB_ENV
+            tox -e test,coverage-report --result-json=test-result.json | tee $STDOUT_LOG ; test ${PIPESTATUS[0]} -eq 0
+        - name: Export test report
+          if: always()
+          uses: actions/github-script@v6
+          with:
+            script: |
+              const no_color = (text) => {
+                  return text.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
+              }
 
-            const sha = '${{ github.event.pull_request.head.sha }}';
-            const fs = require('fs');
-            const result = JSON.parse(fs.readFileSync('./test-result.json')).testenvs;
+              const sha = '${{ github.event.pull_request.head.sha }}';
+              const fs = require('fs');
+              const result = JSON.parse(fs.readFileSync('./test-result.json')).testenvs;
 
-            let int_result = result.test.test;
-            let int_success = int_result[0].retcode == 0;
-            let int_output = int_result[0].output;
-            let coverage_result = result["coverage-report"].test;
-            let coverage_output = coverage_result[0].output;
+              let int_result = result.test.test;
+              let int_success = int_result[0].retcode == 0;
+              let int_output = int_result[0].output;
+              let coverage_result = result["coverage-report"].test;
+              let coverage_output = coverage_result[0].output;
 
-            let reports = [];
-            if (!int_success) {
+              let reports = [];
+              if (!int_success) {
+                reports.push(
+                  `Integration tests failed for ${sha}\n
+                  \`\`\`\n${no_color(int_output).trim()}\n\`\`\``
+                );
+              }
               reports.push(
-                `Integration tests failed for ${sha}\n
-                \`\`\`\n${no_color(int_output).trim()}\n\`\`\``
+                `Test coverage for ${sha}\n
+                \`\`\`\n${no_color(coverage_output).trim()}\n\`\`\``
               );
-            }
-            reports.push(
-              `Test coverage for ${sha}\n
-              \`\`\`\n${no_color(coverage_output).trim()}\n\`\`\``
-            );
-            let json = JSON.stringify(reports);
-            fs.writeFileSync('report_int.json', json);
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v3
-        if: always() && github.event_name == 'pull_request'
-        with:
-          name: report
-          path: report_int.json
-      - name: Report
-        if: always()
-        id: report
-        run: echo "outcome=${{ steps.run-tests.conclusion }}" >> $GITHUB_OUTPUT
+              let json = JSON.stringify(reports);
+              fs.writeFileSync('report_int.json', json);
+        - name: Upload coverage report
+          uses: actions/upload-artifact@v3
+          if: always() && github.event_name == 'pull_request'
+          with:
+            name: report
+            path: report_int.json
+        - name: Report
+          if: always()
+          id: report
+          run: echo "outcome=${{ steps.run-tests.conclusion }}" >> $GITHUB_OUTPUT

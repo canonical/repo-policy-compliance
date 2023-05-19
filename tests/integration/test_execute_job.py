@@ -22,7 +22,7 @@ from .. import assert_
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"execute-job/no-pr/{uuid4()}"],
+    [f"test-branch/execute-job/no-pr/{uuid4()}"],
     indirect=True,
 )
 def test_fail_forked_no_pr(
@@ -48,7 +48,7 @@ def test_fail_forked_no_pr(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"execute-job/no-comment-on-pr/{uuid4()}"],
+    [f"test-branch/execute-job/no-comment-on-pr/{uuid4()}"],
     indirect=True,
 )
 @pytest.mark.usefixtures("pr_from_forked_github_branch")
@@ -75,7 +75,7 @@ def test_fail_forked_no_comment_on_pr(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"execute-job/wrong-comment-on-pr/{uuid4()}"],
+    [f"test-branch/execute-job/wrong-comment-on-pr/{uuid4()}"],
     indirect=True,
 )
 def test_fail_forked_wrong_comment_on_pr(
@@ -109,7 +109,7 @@ def test_fail_forked_wrong_comment_on_pr(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"execute-job/wrong-commit-sha-on-pr/{uuid4()}"],
+    [f"test-branch/execute-job/wrong-commit-sha-on-pr/{uuid4()}"],
     indirect=True,
 )
 def test_fail_forked_wrong_commit_sha_on_pr(
@@ -144,7 +144,7 @@ def test_fail_forked_wrong_commit_sha_on_pr(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"execute-job/comment-from-wrong-user-on-pr/{uuid4()}"],
+    [f"test-branch/execute-job/comment-from-wrong-user-on-pr/{uuid4()}"],
     indirect=True,
 )
 def test_fail_forked_comment_from_wrong_user_on_pr(
@@ -195,7 +195,7 @@ def test_fail_forked_comment_from_wrong_user_on_pr(
 
 @pytest.mark.parametrize(
     "github_branch",
-    [f"execute-job/repo-branch/{uuid4()}"],
+    [f"test-branch/execute-job/repo-branch/{uuid4()}"],
     indirect=True,
 )
 def test_pass_main_repo(
@@ -222,7 +222,7 @@ def test_pass_main_repo(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"execute-job/fork-branch/{uuid4()}"],
+    [f"test-branch/execute-job/fork-branch/{uuid4()}"],
     indirect=True,
 )
 def test_pass_fork(

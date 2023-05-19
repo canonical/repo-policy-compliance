@@ -8,243 +8,253 @@ on:
 
 jobs:
   inclusive-naming-check:
-    name: Inclusive naming
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          repository: canonical/Inclusive-naming
-          path: "./"
-      - run: mv * /tmp
-      - uses: actions/checkout@v3
-      - name: Merge configuration files
-        run: |
-          # Combine all entries and replace matching elements by
-          # .name in .rules for the ones in .woke.yaml
-          woke_file=""
-          if [ -f .woke.yaml ]; then
-            woke_file=".woke.yaml"
-          elif [ -f .woke.yml ]; then
-            woke_file=".woke.yml"
-          fi
-          if [ ! -z "$woke_file" ]; then
-            yq eval-all '
-            (
-              . as $item ireduce ({}; . *+ $item) | .rules | unique_by(.name)
-            ) as $mergedArray | . as $item ireduce ({}; . *+ $item) | .rules = $mergedArray
-            ' $woke_file /tmp/config.yml | tee /tmp/merged.yml
-            mv /tmp/merged.yml /tmp/config.yml
-          fi
-      - name: Run inclusive naming check
-        uses: canonical/inclusive-naming@main
-        with:
-          fail-on-error: "true"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: github-pr-review
-          woke-args: '. -c /tmp/config.yml'
-          filter-mode: nofilter
-          workdir: "./"
-          woke-version: latest
+    run_if:
+      if: ${{ !startsWith(github.head_ref, 'test-branch/') }}
+      name: Inclusive naming
+      runs-on: ubuntu-22.04
+      steps:
+        - uses: actions/checkout@v3
+          with:
+            repository: canonical/Inclusive-naming
+            path: "./"
+        - run: mv * /tmp
+        - uses: actions/checkout@v3
+        - name: Merge configuration files
+          run: |
+            # Combine all entries and replace matching elements by
+            # .name in .rules for the ones in .woke.yaml
+            woke_file=""
+            if [ -f .woke.yaml ]; then
+              woke_file=".woke.yaml"
+            elif [ -f .woke.yml ]; then
+              woke_file=".woke.yml"
+            fi
+            if [ ! -z "$woke_file" ]; then
+              yq eval-all '
+              (
+                . as $item ireduce ({}; . *+ $item) | .rules | unique_by(.name)
+              ) as $mergedArray | . as $item ireduce ({}; . *+ $item) | .rules = $mergedArray
+              ' $woke_file /tmp/config.yml | tee /tmp/merged.yml
+              mv /tmp/merged.yml /tmp/config.yml
+            fi
+        - name: Run inclusive naming check
+          uses: canonical/inclusive-naming@main
+          with:
+            fail-on-error: "true"
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            reporter: github-pr-review
+            woke-args: '. -c /tmp/config.yml'
+            filter-mode: nofilter
+            workdir: "./"
+            woke-version: latest
   shellcheck-lint:
-    name: Shell scripts lint
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
-      - name: Gather files to scan
-        shell: bash
-        id: gather
-        run: |
-          declare -a filepaths
-          shebangregex="^#! */[^ ]*/(env *)?[abk]*sh"
+    run_if:
+      if: ${{ !startsWith(github.head_ref, 'test-branch/') }}
+      name: Shell scripts lint
+      runs-on: ubuntu-22.04
+      steps:
+        - uses: actions/checkout@v3
+        - name: Gather files to scan
+          shell: bash
+          id: gather
+          run: |
+            declare -a filepaths
+            shebangregex="^#! */[^ ]*/(env *)?[abk]*sh"
 
-          set -f # temporarily disable globbing so that globs in inputs aren't expanded
+            set -f # temporarily disable globbing so that globs in inputs aren't expanded
 
-          while IFS= read -r -d '' file; do
-          filepaths+=("$file")
-          done < <(find . \
-                        -type f \
-                        '(' \
-                        -name '*.bash' \
-                        -o -name '.bashrc' \
-                        -o -name 'bashrc' \
-                        -o -name '.bash_aliases' \
-                        -o -name '.bash_completion' \
-                        -o -name '.bash_login' \
-                        -o -name '.bash_logout' \
-                        -o -name '.bash_profile' \
-                        -o -name 'bash_profile' \
-                        -o -name '*.ksh' \
-                        -o -name 'suid_profile' \
-                        -o -name '*.zsh' \
-                        -o -name '.zlogin' \
-                        -o -name 'zlogin' \
-                        -o -name '.zlogout' \
-                        -o -name 'zlogout' \
-                        -o -name '.zprofile' \
-                        -o -name 'zprofile' \
-                        -o -name '.zsenv' \
-                        -o -name 'zsenv' \
-                        -o -name '.zshrc' \
-                        -o -name 'zshrc' \
-                        -o -name '*.sh' \
-                        -o -path '*/.profile' \
-                        -o -path '*/profile' \
-                        -o -name '*.shlib' \
-                        ')' \
-                        -print0)
+            while IFS= read -r -d '' file; do
+            filepaths+=("$file")
+            done < <(find . \
+                          -type f \
+                          '(' \
+                          -name '*.bash' \
+                          -o -name '.bashrc' \
+                          -o -name 'bashrc' \
+                          -o -name '.bash_aliases' \
+                          -o -name '.bash_completion' \
+                          -o -name '.bash_login' \
+                          -o -name '.bash_logout' \
+                          -o -name '.bash_profile' \
+                          -o -name 'bash_profile' \
+                          -o -name '*.ksh' \
+                          -o -name 'suid_profile' \
+                          -o -name '*.zsh' \
+                          -o -name '.zlogin' \
+                          -o -name 'zlogin' \
+                          -o -name '.zlogout' \
+                          -o -name 'zlogout' \
+                          -o -name '.zprofile' \
+                          -o -name 'zprofile' \
+                          -o -name '.zsenv' \
+                          -o -name 'zsenv' \
+                          -o -name '.zshrc' \
+                          -o -name 'zshrc' \
+                          -o -name '*.sh' \
+                          -o -path '*/.profile' \
+                          -o -path '*/profile' \
+                          -o -name '*.shlib' \
+                          ')' \
+                          -print0)
 
-          while IFS= read -r -d '' file; do
-          head -n1 "$file" | grep -Eqs "$shebangregex" || continue
-          filepaths+=("$file")
-          done < <(find . \
-                        -type f ! -name '*.*' -perm /111 \
-                        -print0)
-          echo "filepaths=${filepaths[@]}" >> $GITHUB_OUTPUT
-          set +f # re-enable globbing
-      - if: ${{ steps.gather.outputs.filepaths != '' }}
-        name: Shellcheck Problem Matchers
-        uses: lumaxis/shellcheck-problem-matchers@v1.1.2
-      - if: ${{ steps.gather.outputs.filepaths != '' }}
-        run: shellcheck -f gcc ${{steps.gather.outputs.filepaths}}
+            while IFS= read -r -d '' file; do
+            head -n1 "$file" | grep -Eqs "$shebangregex" || continue
+            filepaths+=("$file")
+            done < <(find . \
+                          -type f ! -name '*.*' -perm /111 \
+                          -print0)
+            echo "filepaths=${filepaths[@]}" >> $GITHUB_OUTPUT
+            set +f # re-enable globbing
+        - if: ${{ steps.gather.outputs.filepaths != '' }}
+          name: Shellcheck Problem Matchers
+          uses: lumaxis/shellcheck-problem-matchers@v1.1.2
+        - if: ${{ steps.gather.outputs.filepaths != '' }}
+          run: shellcheck -f gcc ${{steps.gather.outputs.filepaths}}
   code-lint:
-    name: Code lint
-    runs-on: ubuntu-22.04
-    outputs:
-      outcome: ${{ steps.report.outputs.outcome }}
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install tox
-        run: python3 -m pip install tox
-      - name: Run tests
-        id: run-tests
-        run: |
-          # Ensure that stdout appears as normal and redirect to file and exit depends on exit code of first command
-          STDOUT_LOG=$(mktemp --suffix=stdout.log)
-          echo STDOUT_LOG=$STDOUT_LOG >> $GITHUB_ENV
-          tox --result-json=test-result.json | tee $STDOUT_LOG ; test ${PIPESTATUS[0]} -eq 0
-      - name: Check lint and test stdout
-        run: |
-          # Check dependencies
-          EXPECTED_LINT_DEPS="\
-              mypy \
-              isort \
-              black \
-              flake8-docstrings \
-              flake8-docstrings-complete \
-              flake8-builtins \
-              flake8-test-docs \
-              pep8-naming \
-              codespell \
-              pylint \
-              pydocstyle \
-              "
-          for EXPECTED_LINT_DEP in $EXPECTED_LINT_DEPS; do
-              # Check that there is a `lint...<dependency>` line for each of the expected dependencies
-              DEP_REGEX="lint.*$EXPECTED_LINT_DEP"
-              if ! grep -q "$DEP_REGEX" $STDOUT_LOG ; then
-                  # Write to stderr
-                  >&2 echo "$EXPECTED_LINT_DEP should be in deps of [testenv:lint] environment in tox.ini"
-                  exit 1
-              fi
-          done
+    run_if:
+      if: ${{ !startsWith(github.head_ref, 'test-branch/') }}
+      name: Code lint
+      runs-on: ubuntu-22.04
+      outputs:
+        outcome: ${{ steps.report.outputs.outcome }}
+      steps:
+        - uses: actions/checkout@v3
+        - name: Install tox
+          run: python3 -m pip install tox
+        - name: Run tests
+          id: run-tests
+          run: |
+            # Ensure that stdout appears as normal and redirect to file and exit depends on exit code of first command
+            STDOUT_LOG=$(mktemp --suffix=stdout.log)
+            echo STDOUT_LOG=$STDOUT_LOG >> $GITHUB_ENV
+            tox --result-json=test-result.json | tee $STDOUT_LOG ; test ${PIPESTATUS[0]} -eq 0
+        - name: Check lint and test stdout
+          run: |
+            # Check dependencies
+            EXPECTED_LINT_DEPS="\
+                mypy \
+                isort \
+                black \
+                flake8-docstrings \
+                flake8-docstrings-complete \
+                flake8-builtins \
+                flake8-test-docs \
+                pep8-naming \
+                codespell \
+                pylint \
+                pydocstyle \
+                "
+            for EXPECTED_LINT_DEP in $EXPECTED_LINT_DEPS; do
+                # Check that there is a `lint...<dependency>` line for each of the expected dependencies
+                DEP_REGEX="lint.*$EXPECTED_LINT_DEP"
+                if ! grep -q "$DEP_REGEX" $STDOUT_LOG ; then
+                    # Write to stderr
+                    >&2 echo "$EXPECTED_LINT_DEP should be in deps of [testenv:lint] environment in tox.ini"
+                    exit 1
+                fi
+            done
 
-          # Check commands
-          EXPECTED_LINT_CMDS="\
-              pydocstyle \
-              codespell \
-              flake8 \
-              isort \
-              black \
-              mypy \
-              pylint \
-              "
-          for EXPECTED_LINT_CMD in $EXPECTED_LINT_CMDS; do
-              # Check that there is a `lint...commands...<command>` line for each of the expected commands
-              CMD_REGEX="lint.*commands.*$EXPECTED_LINT_CMD"
-              if ! grep -q "$CMD_REGEX" $STDOUT_LOG ; then
-                  # Write to stderr
-                  >&2 echo "$EXPECTED_LINT_CMD should be in commands of [testenv:lint] environment in tox.ini"
-                  exit 1
-              fi
-          done
-      - name: Export test report
-        if: always()
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const no_color = (text) => {
-                return text.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
-            }
-
-            const sha = '${{ github.event.pull_request.head.sha }}';
-            const fs = require('fs');
-            const result = JSON.parse(fs.readFileSync('./test-result.json')).testenvs;
-
-            let lint_result = result.lint.test;
-            let lint_success = true;
-            let lint_output = '';
-            for (let lint_test_result of lint_result) {
-              if (lint_test_result.retcode != 0) {
-                lint_success = false;
+            # Check commands
+            EXPECTED_LINT_CMDS="\
+                pydocstyle \
+                codespell \
+                flake8 \
+                isort \
+                black \
+                mypy \
+                pylint \
+                "
+            for EXPECTED_LINT_CMD in $EXPECTED_LINT_CMDS; do
+                # Check that there is a `lint...commands...<command>` line for each of the expected commands
+                CMD_REGEX="lint.*commands.*$EXPECTED_LINT_CMD"
+                if ! grep -q "$CMD_REGEX" $STDOUT_LOG ; then
+                    # Write to stderr
+                    >&2 echo "$EXPECTED_LINT_CMD should be in commands of [testenv:lint] environment in tox.ini"
+                    exit 1
+                fi
+            done
+        - name: Export test report
+          if: always()
+          uses: actions/github-script@v6
+          with:
+            script: |
+              const no_color = (text) => {
+                  return text.replace(/[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g, '');
               }
-              if (lint_test_result.output) {
-                lint_output += lint_test_result.output;
-              }
-            }
-            let static_result = result.static.test;
-            let static_output = static_result[0].output;
 
-            let reports = [];
-            if (!lint_success) {
+              const sha = '${{ github.event.pull_request.head.sha }}';
+              const fs = require('fs');
+              const result = JSON.parse(fs.readFileSync('./test-result.json')).testenvs;
+
+              let lint_result = result.lint.test;
+              let lint_success = true;
+              let lint_output = '';
+              for (let lint_test_result of lint_result) {
+                if (lint_test_result.retcode != 0) {
+                  lint_success = false;
+                }
+                if (lint_test_result.output) {
+                  lint_output += lint_test_result.output;
+                }
+              }
+              let static_result = result.static.test;
+              let static_output = static_result[0].output;
+
+              let reports = [];
+              if (!lint_success) {
+                reports.push(
+                  `Lint checks failed for ${sha}\n
+                  \`\`\`\n${no_color(lint_output).trim()}\n\`\`\``
+                );
+              }
               reports.push(
-                `Lint checks failed for ${sha}\n
-                \`\`\`\n${no_color(lint_output).trim()}\n\`\`\``
+                `Static code analysis report\n
+                \`\`\`\n${no_color(static_output).trim()}\n\`\`\``
               );
-            }
-            reports.push(
-              `Static code analysis report\n
-              \`\`\`\n${no_color(static_output).trim()}\n\`\`\``
-            );
-            let json = JSON.stringify(reports);
-            fs.writeFileSync('report.json', json);
-      - name: Upload Lint report
-        uses: actions/upload-artifact@v3
-        if: always() && github.event_name == 'pull_request'
-        with:
-          name: report
-          path: report.json
-      - name: Report
-        if: always()
-        id: report
-        run: echo "outcome=${{ steps.run-tests.conclusion }}" >> $GITHUB_OUTPUT
+              let json = JSON.stringify(reports);
+              fs.writeFileSync('report.json', json);
+        - name: Upload Lint report
+          uses: actions/upload-artifact@v3
+          if: always() && github.event_name == 'pull_request'
+          with:
+            name: report
+            path: report.json
+        - name: Report
+          if: always()
+          id: report
+          run: echo "outcome=${{ steps.run-tests.conclusion }}" >> $GITHUB_OUTPUT
   license-headers-check:
-    name: Check license headers
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
-      - name: Check .licenserc.yaml exists
-        id: licenserc-yaml
-        run: echo "exists=$([ -f .licenserc.yaml ] && echo "true" || echo "false")" >> $GITHUB_OUTPUT
-      - name: Get default license configuration
-        if: steps.licenserc-yaml.outputs.exists == 'false'
-        run: |
-          curl -fLsSo .licenserc.yaml https://raw.githubusercontent.com/canonical/operator-workflows/main/.github/files/.licenserc.yaml
-      - name: Check license headers
-        uses: apache/skywalking-eyes/header@main
-        with:
-          config: .licenserc.yaml
+    run_if:
+      if: ${{ !startsWith(github.head_ref, 'test-branch/') }}
+      name: Check license headers
+      runs-on: ubuntu-22.04
+      steps:
+        - uses: actions/checkout@v3
+        - name: Check .licenserc.yaml exists
+          id: licenserc-yaml
+          run: echo "exists=$([ -f .licenserc.yaml ] && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+        - name: Get default license configuration
+          if: steps.licenserc-yaml.outputs.exists == 'false'
+          run: |
+            curl -fLsSo .licenserc.yaml https://raw.githubusercontent.com/canonical/operator-workflows/main/.github/files/.licenserc.yaml
+        - name: Check license headers
+          uses: apache/skywalking-eyes/header@main
+          with:
+            config: .licenserc.yaml
   required_status_checks:
-    name: Required Test Status Checks
-    runs-on: ubuntu-22.04
-    needs:
-      - inclusive-naming-check
-      - code-lint
-      - shellcheck-lint
-      - license-headers-check
-    if: always()
-    steps:
-      - run: |
-          [ '${{ needs.inclusive-naming-check.result }}' = 'success' ] || (echo inclusive-naming-check failed && false)
-          [ '${{ needs.code-lint.result }}' = 'success' ] || (echo lint-and-unit-test failed && false)
-          [ '${{ needs.shellcheck-lint.result }}' = 'success' ] || (echo shellcheck-lint failed && false)
-          [ '${{ needs.license-headers-check.result }}' = 'success' ] || (echo license-headers-check failed && false)
+    run_if:
+      if: ${{ !startsWith(github.head_ref, 'test-branch/') }}
+      name: Required Test Status Checks
+      runs-on: ubuntu-22.04
+      needs:
+        - inclusive-naming-check
+        - code-lint
+        - shellcheck-lint
+        - license-headers-check
+      if: always()
+      steps:
+        - run: |
+            [ '${{ needs.inclusive-naming-check.result }}' = 'success' ] || (echo inclusive-naming-check failed && false)
+            [ '${{ needs.code-lint.result }}' = 'success' ] || (echo lint-and-unit-test failed && false)
+            [ '${{ needs.shellcheck-lint.result }}' = 'success' ] || (echo shellcheck-lint failed && false)
+            [ '${{ needs.license-headers-check.result }}' = 'success' ] || (echo license-headers-check failed && false)
