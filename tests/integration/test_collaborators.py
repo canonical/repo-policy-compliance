@@ -81,7 +81,8 @@ def test_fail(github_repository_name: str, collaborators_with_permission: list[d
         repository_name=github_repository_name
     )
 
-    assert report.reason
+    assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
     assert_.substrings_in_string(
         itertools.chain(
             ("includes", "outside collaborators", "higher permission", "read"),
@@ -89,7 +90,6 @@ def test_fail(github_repository_name: str, collaborators_with_permission: list[d
         ),
         report.reason,
     )
-    assert report.result == Result.FAIL
 
 
 @pytest.mark.parametrize(

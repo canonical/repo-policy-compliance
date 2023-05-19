@@ -70,11 +70,11 @@ def test_fail(
         target_branch_name=github_repository.default_branch,
     )
 
-    assert report.reason
+    assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
     assert_.substrings_in_string(
         itertools.chain(reason_string_array, github_branch.name), report.reason
     )
-    assert report.result == Result.FAIL
 
 
 @pytest.fixture(name="source_branch_for_test_pass")
