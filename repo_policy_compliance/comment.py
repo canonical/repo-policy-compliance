@@ -14,4 +14,4 @@ def remove_quote_lines(body: str) -> str:
         The comment with any lines that start with > removed.
     """
     lines = body.splitlines()
-    return "\n".join(line for line in lines if not line.startswith(">"))
+    return "\n".join(line for line in lines if not line.strip().startswith(">"))

@@ -14,6 +14,9 @@ from repo_policy_compliance import comment
         pytest.param("", "", id="empty"),
         pytest.param("line 1", "line 1", id="single line no quote"),
         pytest.param(">line 1", "", id="single line single quote"),
+        pytest.param(" >line 1", "", id="single line single quote single leading space"),
+        pytest.param("  >line 1", "", id="single line single quote multiple leading spaces"),
+        pytest.param("\t>line 1", "", id="single line single quote single leading tab"),
         pytest.param(">>line 1", "", id="single line multiple quotes"),
         pytest.param(
             """line 1
