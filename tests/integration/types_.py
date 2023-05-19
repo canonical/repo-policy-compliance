@@ -4,6 +4,7 @@
 """Shared types for testing."""
 
 from dataclasses import dataclass
+from typing import Literal, NamedTuple
 
 
 @dataclass
@@ -24,3 +25,15 @@ class BranchWithProtection:
     dismiss_stale_reviews_enabled: bool = True
     bypass_pull_request_allowance_disabled: bool = True
     required_signatures_enabled: bool = True
+
+
+class RequestedCollaborator(NamedTuple):
+    """Information about the requested collaborators to be added.
+
+    Attrs:
+        permission: The permission the collaborators should have.
+        role_name: The name of the role the collaborators should have
+    """
+
+    permission: Literal["admin", "pull"]
+    role_name: str

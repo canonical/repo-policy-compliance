@@ -15,10 +15,13 @@ from github.GithubException import GithubException
 from github.PullRequest import PullRequest
 from github.Repository import Repository
 
+import repo_policy_compliance
+from repo_policy_compliance.github_client import get as get_github_client
+from repo_policy_compliance.github_client import get_collaborators
 from repo_policy_compliance.github_client import inject as inject_github_client
 
 from . import branch_protection
-from .types_ import BranchWithProtection
+from .types_ import BranchWithProtection, RequestedCollaborator
 
 REPOSITORY_ARGUMENT_NAME = "--repository"
 
@@ -92,6 +95,24 @@ def fixture_forked_github_repository(
 
 @pytest.fixture(name="github_branch")
 def fixture_github_branch(
+    github_repository: Repository, request: pytest.FixtureRequest
+) -> Iterator[Branch]:
+    """Create a new branch for testing."""
+    branch_name: str = request.param
+
+    main_branch = github_repository.get_branch(github_repository.default_branch)
+    branch_ref = github_repository.create_git_ref(
+        ref=f"refs/heads/{branch_name}", sha=main_branch.commit.sha
+    )
+    branch = github_repository.get_branch(branch_name)
+
+    yield branch
+
+    branch_ref.delete()
+
+
+@pytest.fixture(name="another_github_branch")
+def fixture_another_github_branch(
     github_repository: Repository, request: pytest.FixtureRequest
 ) -> Iterator[Branch]:
     """Create a new branch for testing."""
@@ -191,3 +212,41 @@ def protected_github_branch(
 
     if branch_with_protection.branch_protection_enabled:
         github_branch.remove_protection()
+
+
+@pytest.fixture(name="collaborators_with_permission")
+def fixture_collaborators_with_permission(
+    github_repository: Repository,
+    request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Add collaborators with certain permissions to the collaborators response."""
+    requested_collaborator: RequestedCollaborator = request.param
+
+    github_client = get_github_client()
+    monkeypatch.setattr(github_client, "get_repo", lambda *_args, **_kwargs: github_repository)
+    monkeypatch.setattr(
+        "repo_policy_compliance.github_client.Github", lambda *_args, **_kwargs: github_client
+    )
+
+    # Request non-outside collaborators with the requester permission to use for the response
+    mixin_collabs = get_collaborators(
+        affiliation="all",
+        permission=requested_collaborator.permission,
+        repository=github_repository,
+    )
+    mixin_collabs_with_role_name = [
+        collaborator
+        for collaborator in mixin_collabs
+        if collaborator["role_name"] == requested_collaborator.role_name
+    ]
+    assert mixin_collabs_with_role_name
+
+    # Change the collaborators request to return mixin collaborators
+    monkeypatch.setattr(
+        repo_policy_compliance,
+        "get_collaborators",
+        lambda *_args, **_kwargs: mixin_collabs_with_role_name,
+    )
+
+    return mixin_collabs_with_role_name
