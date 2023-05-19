@@ -3,18 +3,16 @@
 
 """Tests for the collaborators function."""
 
-# Need to override private methods for mocking
-# pylint: disable=protected-access
-
 import itertools
-from typing import NamedTuple
-from urllib import parse
+from typing import Literal, NamedTuple
 
 import pytest
 from github.Repository import Repository
 
+import repo_policy_compliance
 from repo_policy_compliance import Result, collaborators
 from repo_policy_compliance.github_client import get as get_github_client
+from repo_policy_compliance.github_client import get_collaborators
 
 from .. import assert_
 
@@ -27,7 +25,7 @@ class RequestedCollaborator(NamedTuple):
         role_name: The name of the role the collaborators should have
     """
 
-    permission: str
+    permission: Literal["admin", "pull"]
     role_name: str
 
 
@@ -47,12 +45,10 @@ def fixture_collaborators_with_permission(
     )
 
     # Request non-outside collaborators with the requester permission to use for the response
-    collaborators_url = github_repository.collaborators_url.replace("{/collaborator}", "")
-    default_query = dict(parse.parse_qsl(parse.urlparse(collaborators_url).query))
-    query = {**default_query, "permission": requested_collaborator.permission}
-    # mypy thinks the attribute doesn't exist when it actually does exist
-    (headers, mixin_collabs) = github_repository._requester.requestJsonAndCheck(  # type: ignore
-        "GET", f"{collaborators_url}?{parse.urlencode(query)}"
+    mixin_collabs = get_collaborators(
+        affiliation="all",
+        permission=requested_collaborator.permission,
+        repository=github_repository,
     )
     mixin_collabs_with_role_name = [
         collaborator
@@ -61,11 +57,11 @@ def fixture_collaborators_with_permission(
     ]
     assert mixin_collabs_with_role_name
 
-    # mypy thinks the attribute doesn't exist when it actually does exist
+    # Change the collaborators request to return mixin collaborators
     monkeypatch.setattr(
-        github_repository._requester,  # type: ignore
-        "requestJsonAndCheck",
-        lambda *_args, **_kwargs: (headers, mixin_collabs_with_role_name),
+        repo_policy_compliance,
+        "get_collaborators",
+        lambda *_args, **_kwargs: mixin_collabs_with_role_name,
     )
 
     return mixin_collabs_with_role_name

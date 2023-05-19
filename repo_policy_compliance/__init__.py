@@ -5,14 +5,22 @@
 
 from enum import Enum
 from typing import NamedTuple
-from urllib import parse
 
 from github import Github
 from github.Branch import Branch
 
+from .comment import remove_quote_lines
+from .github_client import get_collaborators
 from .github_client import inject as inject_github_client
 
 BYPASS_ALLOWANCES_KEY = "bypass_pull_request_allowances"
+AUTHORIZATION_STRING_PREFIX = "/canonical/self-hosted-runners/run-workflows"
+EXECUTE_JOB_MESSAGE = (
+    "execution not authorized, a comment from a maintainer or above on the repository approving "
+    "the workflow was not found on a PR from a fork, the comment should include the string "
+    f"'{AUTHORIZATION_STRING_PREFIX} <commit SHA>' where the commit SHA is the SHA of the latest "
+    "commit on the branch"
+)
 
 
 class Result(str, Enum):
@@ -137,13 +145,18 @@ def target_branch_protection(
 
 @inject_github_client
 def source_branch_protection(
-    github_client: Github, repository_name: str, branch_name: str, target_branch_name: str
+    github_client: Github,
+    repository_name: str,
+    source_repository_name: str,
+    branch_name: str,
+    target_branch_name: str,
 ) -> Report:
     """Check that the source branch has appropriate protections.
 
     Args:
         github_client: The client to be used for GitHub API interactions.
         repository_name: The name of the repository to run the check on.
+        source_repository_name: The name of the repository that contains the source branch.
         branch_name: The name of the branch to check.
         target_branch_name: The name of the branch that the source branch is proposed to be merged
             into.
@@ -151,6 +164,10 @@ def source_branch_protection(
     Returns:
         Whether the branch has appropriate protections.
     """
+    # Check for fork
+    if source_repository_name != repository_name:
+        return Report(result=Result.PASS, reason=None)
+
     branch = _get_branch(
         github_client=github_client, repository_name=repository_name, branch_name=branch_name
     )
@@ -198,18 +215,9 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
         Whether there are any outside collaborators with higher than read permissions.
     """
     repository = github_client.get_repo(repository_name)
-
-    collaborators_url = repository.collaborators_url.replace("{/collaborator}", "")
-    default_query = dict(parse.parse_qsl(parse.urlparse(collaborators_url).query))
-    query = {**default_query, "permission": "triage", "affiliation": "outside"}
-
-    # mypy thinks the attribute doesn't exist when it actually does exist
-    # need to use requester to send a raw API request
-    # pylint: disable=protected-access
-    (_, outside_collaborators) = repository._requester.requestJsonAndCheck(  # type: ignore
-        "GET", f"{collaborators_url}?{parse.urlencode(query)}"
+    outside_collaborators = get_collaborators(
+        repository=repository, permission="triage", affiliation="outside"
     )
-    # pylint: enable=protected-access
 
     higher_permission_logins = tuple(
         collaborator["login"]
@@ -223,6 +231,81 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
             reason=(
                 "the repository includes outside collaborators with higher permissions than read,"
                 f"{higher_permission_logins=!r}"
+            ),
+        )
+
+    return Report(result=Result.PASS, reason=None)
+
+
+@inject_github_client
+def execute_job(
+    github_client: Github,
+    repository_name: str,
+    source_repository_name: str,
+    branch_name: str,
+    commit_sha: str,
+) -> Report:
+    """Check that the execution of the workflow for a SHA has been granted for a PR from a fork.
+
+    Args:
+        github_client: The client to be used for GitHub API interactions.
+        repository_name: The name of the repository to run the check on.
+        source_repository_name: The name of the repository that contains the source branch.
+        branch_name: The name of the branch that has the PR.
+        commit_sha: The SHA of the commit that the workflow run is on.
+
+    Returns:
+        Whether the workflow run has been approved for the commit SHA.
+    """
+    # Not from a forked repository
+    if repository_name == source_repository_name:
+        return Report(result=Result.PASS, reason=None)
+
+    # Retrieve PR for the branch
+    repository = github_client.get_repo(repository_name)
+    pulls = repository.get_pulls(state="open")
+    pull_for_branch = next((pull for pull in pulls if pull.head.ref == branch_name), None)
+    if not pull_for_branch:
+        return Report(result=Result.FAIL, reason=f"no open pull requests for branch {branch_name}")
+
+    # Retrieve comments on the PR
+    comments = pull_for_branch.get_issue_comments()
+    if not comments.totalCount:
+        return Report(
+            result=Result.FAIL,
+            reason=(
+                f"no comment found on PR - {EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=} "
+                f"{pull_for_branch.number=}"
+            ),
+        )
+
+    # Check for authroization comment
+    authorization_string = f"{AUTHORIZATION_STRING_PREFIX} {commit_sha}"
+    authorization_comments = tuple(
+        comment for comment in comments if authorization_string in remove_quote_lines(comment.body)
+    )
+    if not authorization_comments:
+        return Report(
+            result=Result.FAIL,
+            reason=(
+                f"authorization comment not found on PR, expected: {authorization_string} - "
+                f"{EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=}, {pull_for_branch.number=}"
+            ),
+        )
+
+    # Check that the commenter has maintain or above permissions
+    maintain_logins = {
+        collaborator["login"]
+        for collaborator in get_collaborators(
+            repository=repository, permission="maintain", affiliation="all"
+        )
+    }
+    if not any(comment.user.login in maintain_logins for comment in authorization_comments):
+        return Report(
+            result=Result.FAIL,
+            reason=(
+                f"authorization comment from a user that is not a maintainer or above - "
+                f"{EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=}, {pull_for_branch.number=}"
             ),
         )
 

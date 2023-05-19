@@ -5,9 +5,11 @@
 
 import functools
 import os
-from typing import Callable, Concatenate, ParamSpec, TypeVar
+from typing import Callable, Concatenate, Literal, ParamSpec, TypeVar
+from urllib import parse
 
 from github import BadCredentialsException, Github, GithubException, RateLimitExceededException
+from github.Repository import Repository
 
 from .exceptions import GithubClientError, InputError
 
@@ -80,3 +82,33 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
             raise GithubClientError("The github client encountered an error.") from exc
 
     return wrapper
+
+
+def get_collaborators(
+    affiliation: Literal["outside", "all"],
+    permission: Literal["triage", "maintain", "admin", "pull"],
+    repository: Repository,
+) -> list[dict]:
+    """Get collaborators with a given affiliation and permission.
+
+    Args:
+        affiliation: The relationship the collaborator has with the repository.
+        permission: The permission the collaborator has on the repository.
+        repository: The repository to get collaborators for.
+
+    Returns:
+        The logins of collaborators that match the criteria.
+    """
+    collaborators_url = repository.collaborators_url.replace("{/collaborator}", "")
+    default_query = dict(parse.parse_qsl(parse.urlparse(collaborators_url).query))
+    query: dict[str, str] = {**default_query, "permission": permission, "affiliation": affiliation}
+
+    # mypy thinks the attribute doesn't exist when it actually does exist
+    # need to use requester to send a raw API request
+    # pylint: disable=protected-access
+    (_, outside_collaborators) = repository._requester.requestJsonAndCheck(  # type: ignore
+        "GET", f"{collaborators_url}?{parse.urlencode(query)}"
+    )
+    # pylint: enable=protected-access
+
+    return outside_collaborators

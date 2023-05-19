@@ -7,6 +7,7 @@ import itertools
 from uuid import uuid4
 
 import pytest
+from github.Branch import Branch
 
 from repo_policy_compliance import Result, target_branch_protection
 
@@ -15,55 +16,43 @@ from .types_ import BranchWithProtection
 
 
 @pytest.mark.parametrize(
-    "github_branch, reason_string_array",
+    "github_branch, protected_github_branch, reason_string_array",
     [
         pytest.param(
-            BranchWithProtection(
-                name=f"target-branch/not-protected/{uuid4()}", branch_protection_enabled=False
-            ),
+            f"test-branch/target-branch/not-protected/{uuid4()}",
+            BranchWithProtection(branch_protection_enabled=False),
             ("not enabled"),
             id="branch_protection disabled",
         ),
         pytest.param(
-            BranchWithProtection(
-                name=f"target-branch/no-code-owner-review/{uuid4()}",
-                require_code_owner_reviews=False,
-            ),
+            f"test-branch/target-branch/no-code-owner-review/{uuid4()}",
+            BranchWithProtection(require_code_owner_reviews=False),
             ("codeowner", "pull request", "review", "not required"),
             id="code-owner missing",
         ),
         pytest.param(
-            BranchWithProtection(
-                name=f"target-branch/stale-review-not-dismissed/{uuid4()}",
-                dismiss_stale_reviews_enabled=False,
-            ),
+            f"test-branch/target-branch/stale-review-not-dismissed/{uuid4()}",
+            BranchWithProtection(dismiss_stale_reviews_enabled=False),
             ("stale", "reviews", "not dismissed"),
             id="stale-review not-dismissed",
         ),
         pytest.param(
-            BranchWithProtection(
-                name=f"target-branch/pull-request-allowance-not-empty/{uuid4()}",
-                bypass_pull_request_allowance_disabled=False,
-            ),
+            f"test-branch/target-branch/pull-request-allowance-not-empty/{uuid4()}",
+            BranchWithProtection(bypass_pull_request_allowance_disabled=False),
             ("pull request", "reviews", "can be bypassed"),
             id="pull-request-allowance not empty",
         ),
         pytest.param(
-            BranchWithProtection(
-                name=f"target-branch/requires-signature/{uuid4()}",
-                required_signatures_enabled=False,
-            ),
+            f"test-branch/target-branch/requires-signature/{uuid4()}",
+            BranchWithProtection(required_signatures_enabled=False),
             ("signed", "commits", "not required"),
             id="required-signature disabled",
         ),
     ],
-    indirect=["github_branch"],
+    indirect=["github_branch", "protected_github_branch"],
 )
-def test_fail(
-    github_branch: BranchWithProtection,
-    reason_string_array: tuple[str],
-    github_repository_name: str,
-):
+@pytest.mark.usefixtures("protected_github_branch")
+def test_fail(github_branch: Branch, reason_string_array: tuple[str], github_repository_name: str):
     """
     arrange: given a branch that is not compliant.
     act: when target_branch_protection is called with the name of the branch.
@@ -82,12 +71,12 @@ def test_fail(
 
 
 @pytest.mark.parametrize(
-    "github_branch", [BranchWithProtection(name=f"protected/{uuid4()}")], indirect=True
+    "github_branch, protected_github_branch",
+    [(f"test-branch/target-branch/protected/{uuid4()}", BranchWithProtection())],
+    indirect=["github_branch", "protected_github_branch"],
 )
-def test_pass(
-    github_branch: BranchWithProtection,
-    github_repository_name: str,
-):
+@pytest.mark.usefixtures("protected_github_branch")
+def test_pass(github_branch: Branch, github_repository_name: str):
     """
     arrange: given a branch that is compliant.
     act: when target_branch_protection is called with the name of the branch.

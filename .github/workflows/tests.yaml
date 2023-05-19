@@ -5,6 +5,8 @@ name: Tests
 
 on:
   pull_request:
+    branches-ignore:
+      - '**test-branch/**'
 
 jobs:
   inclusive-naming-check:
@@ -234,6 +236,7 @@ jobs:
         with:
           config: .licenserc.yaml
   required_status_checks:
+    if: "always()"
     name: Required Test Status Checks
     runs-on: ubuntu-22.04
     needs:
@@ -241,7 +244,6 @@ jobs:
       - code-lint
       - shellcheck-lint
       - license-headers-check
-    if: always()
     steps:
       - run: |
           [ '${{ needs.inclusive-naming-check.result }}' = 'success' ] || (echo inclusive-naming-check failed && false)
