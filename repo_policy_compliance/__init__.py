@@ -9,6 +9,7 @@ from typing import NamedTuple
 from github import Github
 from github.Branch import Branch
 
+from .comment import remove_quote_lines
 from .github_client import get_collaborators
 from .github_client import inject as inject_github_client
 
@@ -281,7 +282,7 @@ def execute_job(
     # Check for authroization comment
     authorization_string = f"{AUTHORIZATION_STRING_PREFIX} {commit_sha}"
     authorization_comments = tuple(
-        comment for comment in comments if authorization_string in comment.body
+        comment for comment in comments if authorization_string in remove_quote_lines(comment.body)
     )
     if not authorization_comments:
         return Report(

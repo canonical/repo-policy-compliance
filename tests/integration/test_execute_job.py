@@ -144,6 +144,40 @@ def test_fail_forked_wrong_commit_sha_on_pr(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
+    [f"test-branch/execute-job/quoted-authorization/{uuid4()}"],
+    indirect=True,
+)
+def test_fail_forked_quoted_authorizationr(
+    forked_github_repository: Repository,
+    github_repository: Repository,
+    forked_github_branch: Branch,
+    github_repository_name: str,
+    commit_on_forked_github_branch: Commit,
+    pr_from_forked_github_branch: PullRequest,
+):
+    """
+    arrange: given a fork branch that has a PR with the right comment that is quoted
+    act: when execute_job is called
+    assert: then a fail report is returned.
+    """
+    pr_issue = github_repository.get_issue(pr_from_forked_github_branch.number)
+    pr_issue.create_comment(f">{AUTHORIZATION_STRING_PREFIX} {commit_on_forked_github_branch.sha}")
+
+    # The github_client is injected
+    report = execute_job(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name,
+        source_repository_name=forked_github_repository.full_name,
+        branch_name=forked_github_branch.name,
+        commit_sha=commit_on_forked_github_branch.sha,
+    )
+
+    assert report.reason
+    assert_.substrings_in_string(("not", "authorized", "maintainer"), report.reason)
+    assert report.result == Result.FAIL
+
+
+@pytest.mark.parametrize(
+    "forked_github_branch",
     [f"test-branch/execute-job/comment-from-wrong-user-on-pr/{uuid4()}"],
     indirect=True,
 )
