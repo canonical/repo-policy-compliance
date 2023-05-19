@@ -7,7 +7,6 @@ import itertools
 from uuid import uuid4
 
 import pytest
-from github import Github
 from github.Branch import Branch
 from github.Repository import Repository
 
@@ -80,14 +79,14 @@ def test_fail(
 
 @pytest.fixture(name="source_branch_for_test_pass")
 def fixture_source_branch_for_test_pass(
-    github_branch: Branch, ci_github_token: str | None, github_repository_name: str
+    github_branch: Branch, ci_github_repository: Repository | None
 ):
     """Create branch for the test_pass test."""
     # Use the CI GitHub token to create a signed commit only in CI
-    if ci_github_token:
-        ci_github_client = Github(login_or_token=ci_github_token)
-        ci_repository = ci_github_client.get_repo(github_repository_name)
-        ci_repository.create_file("test.txt", "testing", "some content", branch=github_branch.name)
+    if ci_github_repository:
+        ci_github_repository.create_file(
+            "test.txt", "testing", "some content", branch=github_branch.name
+        )
 
     branch_with_protection = BranchWithProtection(
         require_code_owner_reviews=False,

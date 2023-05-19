@@ -8,6 +8,7 @@ from time import sleep
 from typing import Iterator, cast
 
 import pytest
+from github import Github
 from github.Branch import Branch
 from github.Commit import Commit
 from github.GithubException import GithubException
@@ -39,16 +40,28 @@ def fixture_github_repository_name(pytestconfig: pytest.Config) -> str:
     )
 
 
-@pytest.fixture(scope="session")
-def ci_github_token() -> str | None:
+@pytest.fixture(scope="session", name="ci_github_token")
+def fixture_ci_github_token() -> str | None:
     """Get the GitHub token from the CI environment."""
     env_name = "CI_GITHUB_TOKEN"
     github_token = os.getenv(env_name)
     return github_token
 
 
+@pytest.fixture(scope="session", name="ci_github_repository")
+def fixture_ci_github_repository(
+    github_repository_name: str, ci_github_token: str | None
+) -> None | Repository:
+    """Returns client to the Github repository."""
+    if not ci_github_token:
+        return None
+
+    github_client = Github(login_or_token=ci_github_token)
+    return github_client.get_repo(github_repository_name)
+
+
 @pytest.fixture(scope="session", name="github_repository")
-def fixture_github_repository(github_repository_name: str):
+def fixture_github_repository(github_repository_name: str) -> Repository:
     """Returns client to the Github repository."""
     github_client = inject_github_client(lambda client: client)()
     return github_client.get_repo(github_repository_name)

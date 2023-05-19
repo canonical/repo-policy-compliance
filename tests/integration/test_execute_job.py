@@ -69,7 +69,7 @@ def test_fail_forked_no_comment_on_pr(
     )
 
     assert report.reason
-    assert_.substrings_in_string(("not", "authorized"), report.reason)
+    assert_.substrings_in_string(("not", "authorized", "no comment"), report.reason)
     assert report.result == Result.FAIL
 
 
@@ -103,7 +103,7 @@ def test_fail_forked_wrong_comment_on_pr(
     )
 
     assert report.reason
-    assert_.substrings_in_string(("not", "authorized"), report.reason)
+    assert_.substrings_in_string(("not", "authorized", "string"), report.reason)
     assert report.result == Result.FAIL
 
 
@@ -138,7 +138,7 @@ def test_fail_forked_wrong_commit_sha_on_pr(
     )
 
     assert report.reason
-    assert_.substrings_in_string(("not", "authorized"), report.reason)
+    assert_.substrings_in_string(("not", "authorized", "maintainer"), report.reason)
     assert report.result == Result.FAIL
 
 
@@ -155,6 +155,7 @@ def test_fail_forked_comment_from_wrong_user_on_pr(
     pr_from_forked_github_branch: PullRequest,
     commit_on_forked_github_branch: Commit,
     monkeypatch: pytest.MonkeyPatch,
+    ci_github_repository: Repository | None,
 ):
     """
     arrange: given a fork branch that has a PR with the right comment from a user that is not a
@@ -162,11 +163,22 @@ def test_fail_forked_comment_from_wrong_user_on_pr(
     act: when execute_job is called
     assert: then a fail report is returned.
     """
-    pr_issue = github_repository.get_issue(pr_from_forked_github_branch.number)
-    pr_issue.create_comment(f"{AUTHORIZATION_STRING_PREFIX} {commit_on_forked_github_branch.sha}")
+    # Locally patch the get_collaborators call, in CI use bot to comment
+    if ci_github_repository:
+        ci_pr_issue = ci_github_repository.get_issue(pr_from_forked_github_branch.number)
+        ci_pr_issue.create_comment(
+            f"{AUTHORIZATION_STRING_PREFIX} {commit_on_forked_github_branch.sha}"
+        )
+    else:
+        pr_issue = github_repository.get_issue(pr_from_forked_github_branch.number)
+        pr_issue.create_comment(
+            f"{AUTHORIZATION_STRING_PREFIX} {commit_on_forked_github_branch.sha}"
+        )
 
-    # Change the collaborators request to return no collaborators
-    monkeypatch.setattr(repo_policy_compliance, "get_collaborators", lambda *_args, **_kwargs: [])
+        # Change the collaborators request to return no collaborators
+        monkeypatch.setattr(
+            repo_policy_compliance, "get_collaborators", lambda *_args, **_kwargs: []
+        )
 
     # The github_client is injected
     report = execute_job(  # pylint: disable=no-value-for-parameter
@@ -220,6 +232,7 @@ def test_pass_fork(
     github_repository_name: str,
     pr_from_forked_github_branch: PullRequest,
     commit_on_forked_github_branch: Commit,
+    ci_github_repository: Repository | None,
 ):
     """
     arrange: given a fork branch that has a PR with an authorization comment from a maintainer
@@ -227,6 +240,15 @@ def test_pass_fork(
     assert: then a pass report is returned.
     """
     pr_issue = github_repository.get_issue(pr_from_forked_github_branch.number)
+
+    # In CI, add an authorization comment from the bot which checks that multiple authorization
+    # comments are correctly handled where some are not from an authorizaed user
+    if ci_github_repository:
+        ci_pr_issue = ci_github_repository.get_issue(pr_from_forked_github_branch.number)
+        ci_pr_issue.create_comment(
+            f"{AUTHORIZATION_STRING_PREFIX} {commit_on_forked_github_branch.sha}"
+        )
+
     # Add padding to ensure that the string just needs to be within the comment
     pr_issue.create_comment(
         f"padding {AUTHORIZATION_STRING_PREFIX} {commit_on_forked_github_branch.sha} padding"

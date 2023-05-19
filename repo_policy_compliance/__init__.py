@@ -271,17 +271,25 @@ def execute_job(
     comments = pull_for_branch.get_issue_comments()
     if not comments.totalCount:
         return Report(
-            result=Result.FAIL, reason=f"{EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=}"
+            result=Result.FAIL,
+            reason=(
+                f"no comment found on PR - {EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=} "
+                f"{pull_for_branch.number=}"
+            ),
         )
 
     # Check for authroization comment
     authorization_string = f"{AUTHORIZATION_STRING_PREFIX} {commit_sha}"
-    authorization_comment = next(
-        (comment for comment in comments if authorization_string in comment.body), None
+    authorization_comments = tuple(
+        comment for comment in comments if authorization_string in comment.body
     )
-    if not authorization_comment:
+    if not authorization_comments:
         return Report(
-            result=Result.FAIL, reason=f"{EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=}"
+            result=Result.FAIL,
+            reason=(
+                f"authorization comment not found on PR, expected: {authorization_string} - "
+                f"{EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=}, {pull_for_branch.number=}"
+            ),
         )
 
     # Check that the commenter has maintain or above permissions
@@ -291,9 +299,13 @@ def execute_job(
             repository=repository, permission="maintain", affiliation="all"
         )
     }
-    if authorization_comment.user.login not in maintain_logins:
+    if not any(comment.user.login in maintain_logins for comment in authorization_comments):
         return Report(
-            result=Result.FAIL, reason=f"{EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=}"
+            result=Result.FAIL,
+            reason=(
+                f"authorization comment from a user that is not a maintainer or above - "
+                f"{EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=}, {pull_for_branch.number=}"
+            ),
         )
 
     return Report(result=Result.PASS, reason=None)
