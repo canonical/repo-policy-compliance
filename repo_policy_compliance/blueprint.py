@@ -15,14 +15,16 @@ from . import Result, all_
 
 repo_policy_compliance = Blueprint("repo_policy_compliance", __name__)
 auth = HTTPTokenAuth(scheme="Bearer")
+runner_tokens: set[str] = set()
 
 CHARM_TOKEN_ENV_NAME = "CHARM_TOKEN"
 ONE_TIME_TOKEN_ENDPOINT = "/one-time-token"
 CHECK_RUN_ENDPOINT = "/check-run"
 CHARM_USER = "charm"
+CHARM_ROLE = CHARM_USER
 RUNNER_USER = "runner"
+RUNNER_ROLE = RUNNER_USER
 
-RUNNER_TOKENS: set[str] = set()
 EXPECTED_KEYS = {
     "repository_name",
     "source_repository_name",
@@ -45,14 +47,20 @@ def verify_token(token: str) -> str | None:
     charm_token = os.getenv(CHARM_TOKEN_ENV_NAME)
 
     if not charm_token:
-        logging.error("%s or empty, required for generating one time tokens", CHARM_TOKEN_ENV_NAME)
+        logging.error(
+            (
+                "%s environment variable is required for generating one time tokens, it is not "
+                "defined or empty"
+            ),
+            CHARM_TOKEN_ENV_NAME,
+        )
         return None
 
     if token == charm_token:
         return CHARM_USER
 
-    if token in RUNNER_TOKENS:
-        RUNNER_TOKENS.remove(token)
+    if token in runner_tokens:
+        runner_tokens.remove(token)
         return RUNNER_USER
 
     return None
@@ -63,22 +71,22 @@ def get_user_roles(user: str) -> str | None:
     """Get the roles of a user.
 
     Args:
-        user: The name of the suer.
+        user: The name of the user.
 
     Returns:
         The role of the user if they have one, else None.
     """
     if user == CHARM_USER:
-        return CHARM_USER
+        return CHARM_ROLE
 
     if user == RUNNER_USER:
-        return RUNNER_USER
+        return RUNNER_ROLE
 
     return None
 
 
 @repo_policy_compliance.route(ONE_TIME_TOKEN_ENDPOINT)
-@auth.login_required(role=CHARM_USER)
+@auth.login_required(role=CHARM_ROLE)
 def one_time_token() -> str:
     """Generate a one time token for a runner.
 
@@ -86,12 +94,12 @@ def one_time_token() -> str:
         The one time token.
     """
     token = secrets.token_hex(32)
-    RUNNER_TOKENS.add(token)
+    runner_tokens.add(token)
     return token
 
 
 @repo_policy_compliance.route(CHECK_RUN_ENDPOINT, methods=["POST"])
-@auth.login_required(role=RUNNER_USER)
+@auth.login_required(role=RUNNER_ROLE)
 def check_run() -> Response:
     """Check whether a run should proceed.
 

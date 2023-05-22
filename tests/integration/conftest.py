@@ -16,7 +16,6 @@ from github.PullRequest import PullRequest
 from github.Repository import Repository
 
 import repo_policy_compliance
-from repo_policy_compliance.github_client import get as get_github_client
 from repo_policy_compliance.github_client import get_collaborators
 from repo_policy_compliance.github_client import inject as inject_github_client
 
@@ -222,12 +221,6 @@ def fixture_collaborators_with_permission(
 ):
     """Add collaborators with certain permissions to the collaborators response."""
     requested_collaborator: RequestedCollaborator = request.param
-
-    github_client = get_github_client()
-    monkeypatch.setattr(github_client, "get_repo", lambda *_args, **_kwargs: github_repository)
-    monkeypatch.setattr(
-        "repo_policy_compliance.github_client.Github", lambda *_args, **_kwargs: github_client
-    )
 
     # Request non-outside collaborators with the requester permission to use for the response
     mixin_collabs = get_collaborators(
