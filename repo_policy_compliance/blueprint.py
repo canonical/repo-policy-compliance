@@ -17,8 +17,11 @@ repo_policy_compliance = Blueprint("repo_policy_compliance", __name__)
 auth = HTTPTokenAuth(scheme="Bearer")
 runner_tokens: set[str] = set()
 
-CHARM_TOKEN_ENV_NAME = "CHARM_TOKEN"
-ONE_TIME_TOKEN_ENDPOINT = "/one-time-token"
+# Bandit thinks this is the token value when it is the name of the environment variable with the
+# token value
+CHARM_TOKEN_ENV_NAME = "CHARM_TOKEN"  # nosec
+# Bandit thinks this is the token value when it is the name of the endpoint to get a one time token
+ONE_TIME_TOKEN_ENDPOINT = "/one-time-token"  # nosec
 CHECK_RUN_ENDPOINT = "/check-run"
 CHARM_USER = "charm"
 CHARM_ROLE = CHARM_USER
@@ -82,7 +85,8 @@ def get_user_roles(user: str) -> str | None:
     if user == RUNNER_USER:
         return RUNNER_ROLE
 
-    return None
+    # It shouldn't be possible to get here since each valid token should be associated with a user
+    return None  # pragma: no cover
 
 
 @repo_policy_compliance.route(ONE_TIME_TOKEN_ENDPOINT)
