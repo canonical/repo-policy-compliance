@@ -41,9 +41,9 @@ def test_fail_forked_no_pr(
         commit_sha=forked_github_branch.commit.sha,
     )
 
-    assert report.reason
-    assert_.substrings_in_string(("no", "pull request"), report.reason)
     assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
+    assert_.substrings_in_string(("no", "pull request"), report.reason)
 
 
 @pytest.mark.parametrize(
@@ -68,9 +68,9 @@ def test_fail_forked_no_comment_on_pr(
         commit_sha=forked_github_branch.commit.sha,
     )
 
-    assert report.reason
-    assert_.substrings_in_string(("not", "authorized", "no comment"), report.reason)
     assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
+    assert_.substrings_in_string(("not", "authorized", "no comment"), report.reason)
 
 
 @pytest.mark.parametrize(
@@ -102,9 +102,9 @@ def test_fail_forked_wrong_comment_on_pr(
         commit_sha=commit_on_forked_github_branch.sha,
     )
 
-    assert report.reason
-    assert_.substrings_in_string(("not", "authorized", "string"), report.reason)
     assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
+    assert_.substrings_in_string(("not", "authorized", "string"), report.reason)
 
 
 @pytest.mark.parametrize(
@@ -137,9 +137,9 @@ def test_fail_forked_wrong_commit_sha_on_pr(
         commit_sha=commit_on_forked_github_branch.sha,
     )
 
-    assert report.reason
-    assert_.substrings_in_string(("not", "authorized", "maintainer"), report.reason)
     assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
+    assert_.substrings_in_string(("not", "authorized", "maintainer"), report.reason)
 
 
 @pytest.mark.parametrize(
@@ -171,9 +171,9 @@ def test_fail_forked_quoted_authorizationr(
         commit_sha=commit_on_forked_github_branch.sha,
     )
 
-    assert report.reason
-    assert_.substrings_in_string(("not", "authorized", "maintainer"), report.reason)
     assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
+    assert_.substrings_in_string(("not", "authorized", "maintainer"), report.reason)
 
 
 @pytest.mark.parametrize(
@@ -222,9 +222,9 @@ def test_fail_forked_comment_from_wrong_user_on_pr(
         commit_sha=commit_on_forked_github_branch.sha,
     )
 
-    assert report.reason
-    assert_.substrings_in_string(("not", "authorized"), report.reason)
     assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
+    assert_.substrings_in_string(("not", "authorized"), report.reason)
 
 
 @pytest.mark.parametrize(

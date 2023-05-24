@@ -93,6 +93,62 @@ def _check_signed_commits_required(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
+def all_(
+    repository_name: str,
+    source_repository_name: str,
+    target_branch_name: str,
+    source_branch_name: str,
+    commit_sha: str,
+) -> Report:
+    """Run all the checks.
+
+    Args:
+        repository_name: The name of the repository to run the check on.
+        source_repository_name: The name of the repository that has the source branch.
+        target_branch_name: The name of the branch that is targeted by the PR.
+        source_branch_name: The name of the branch that contains the commits to be merged.
+        commit_sha: The SHA of the commit that the workflow run is on.
+
+    Returns:
+        Whether the run is authorized based on all the checks.
+    """
+    # The github_client argument is injected, disabling missing arguments check for this function
+    # pylint: disable=no-value-for-parameter
+    if (
+        target_branch_report := target_branch_protection(
+            repository_name=repository_name, branch_name=target_branch_name
+        )
+    ).result == Result.FAIL:
+        return target_branch_report
+
+    if (
+        source_branch_report := source_branch_protection(
+            repository_name=repository_name,
+            source_repository_name=source_repository_name,
+            branch_name=source_branch_name,
+            target_branch_name=target_branch_name,
+        )
+    ).result == Result.FAIL:
+        return source_branch_report
+
+    if (
+        collaborators_report := collaborators(repository_name=repository_name)
+    ).result == Result.FAIL:
+        return collaborators_report
+
+    if (
+        execute_job_report := execute_job(
+            repository_name=repository_name,
+            source_repository_name=source_repository_name,
+            branch_name=source_branch_name,
+            commit_sha=commit_sha,
+        )
+    ).result == Result.FAIL:
+        return execute_job_report
+
+    return Report(result=Result.PASS, reason=None)
+
+
 @inject_github_client
 def target_branch_protection(
     github_client: Github, repository_name: str, branch_name: str

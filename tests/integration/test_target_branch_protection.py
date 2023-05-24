@@ -63,11 +63,11 @@ def test_fail(github_branch: Branch, reason_string_array: tuple[str], github_rep
         repository_name=github_repository_name, branch_name=github_branch.name
     )
 
-    assert report.reason
+    assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
     assert_.substrings_in_string(
         itertools.chain(reason_string_array, github_branch.name), report.reason
     )
-    assert report.result == Result.FAIL
 
 
 @pytest.mark.parametrize(

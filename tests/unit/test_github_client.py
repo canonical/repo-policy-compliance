@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 """Tests for the github_client function."""
+
 from unittest.mock import MagicMock
 
 import pytest
