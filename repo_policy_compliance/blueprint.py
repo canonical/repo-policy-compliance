@@ -6,6 +6,7 @@
 import logging
 import os
 import secrets
+from enum import Enum
 from hmac import compare_digest
 from typing import cast
 
@@ -26,10 +27,22 @@ CHARM_TOKEN_ENV_NAME = "CHARM_TOKEN"  # nosec
 # Bandit thinks this is the token value when it is the name of the endpoint to get a one time token
 ONE_TIME_TOKEN_ENDPOINT = "/one-time-token"  # nosec
 CHECK_RUN_ENDPOINT = "/check-run"
-CHARM_USER = "charm"
-CHARM_ROLE = CHARM_USER
-RUNNER_USER = "runner"
-RUNNER_ROLE = RUNNER_USER
+
+
+class Users(str, Enum):
+    """The possible users.
+
+    Attrs:
+        CHARM: The charm user that can request one time tokens.
+        RUNNER: The runner user that can check whether a run should proceed.
+    """
+
+    CHARM = "charm"
+    RUNNER = "runner"
+
+
+CHARM_ROLE = Users.CHARM
+RUNNER_ROLE = Users.RUNNER
 
 EXPECTED_KEYS = {
     "repository_name",
@@ -63,11 +76,11 @@ def verify_token(token: str) -> str | None:
         return None
 
     if compare_digest(token, charm_token):
-        return CHARM_USER
+        return Users.CHARM
 
     if token in runner_tokens:
         runner_tokens.remove(token)
-        return RUNNER_USER
+        return Users.RUNNER
 
     return None
 
@@ -82,14 +95,15 @@ def get_user_roles(user: str) -> str | None:
     Returns:
         The role of the user if they have one, else None.
     """
-    if user == CHARM_USER:
-        return CHARM_ROLE
-
-    if user == RUNNER_USER:
-        return RUNNER_ROLE
-
-    # It shouldn't be possible to get here since each valid token should be associated with a user
-    return None  # pragma: no cover
+    match user:
+        case Users.CHARM:
+            return CHARM_ROLE
+        case Users.RUNNER:
+            return RUNNER_ROLE
+        case _:
+            # It shouldn't be possible to get here since each valid token should be associated with
+            # a user
+            return None  # pragma: no cover
 
 
 @repo_policy_compliance.route(ONE_TIME_TOKEN_ENDPOINT)

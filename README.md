@@ -15,7 +15,7 @@ policies:
 * `collaborators`: Check that all outside collaborators of the project have at
   most `read` permissions.
 * `execute_job`: That a maintainer or above has left the comment
-  `/canonical/self-hosted-runners/run-workflows <sommit SHA>` approving a
+  `/canonical/self-hosted-runners/run-workflows <commit SHA>` approving a
   workflow run for a specific commit SHA. Only applicable to forked source
   branches.
 * `all_`: All of the above are checked.
