@@ -1,7 +1,12 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Provides API blueprint for flask to run the policy checks."""
+"""Provides API blueprint for flask to run the policy checks.
+
+Note that this blueprint requires the application to be run with a single worker due to the use of
+an in-memory set to store the one time tokens. This is done to reduce the complexity of deployments
+as the alternative would be to require a database.
+"""
 
 import logging
 import os
