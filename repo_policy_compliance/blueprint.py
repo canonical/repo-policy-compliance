@@ -105,10 +105,10 @@ def get_user_roles(user: str) -> str | None:
             return CHARM_ROLE
         case Users.RUNNER:
             return RUNNER_ROLE
-        case _:
-            # It shouldn't be possible to get here since each valid token should be associated with
-            # a user
-            return None  # pragma: no cover
+        # It shouldn't be possible to get here since each valid token should be associated with
+        # a user
+        case _:  # pragma: no cover
+            return None
 
 
 @repo_policy_compliance.route(ONE_TIME_TOKEN_ENDPOINT)
