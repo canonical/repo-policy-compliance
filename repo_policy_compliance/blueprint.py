@@ -6,6 +6,7 @@
 import logging
 import os
 import secrets
+from hmac import compare_digest
 from typing import cast
 
 from flask import Blueprint, Response, request
@@ -15,6 +16,8 @@ from . import Result, all_
 
 repo_policy_compliance = Blueprint("repo_policy_compliance", __name__)
 auth = HTTPTokenAuth(scheme="Bearer")
+# Using a set means that this blueprint can only be used with a single worker. This is done to
+# reduce deployment complexity as a database would otherwise be required.
 runner_tokens: set[str] = set()
 
 # Bandit thinks this is the token value when it is the name of the environment variable with the
@@ -59,7 +62,7 @@ def verify_token(token: str) -> str | None:
         )
         return None
 
-    if token == charm_token:
+    if compare_digest(token, charm_token):
         return CHARM_USER
 
     if token in runner_tokens:
