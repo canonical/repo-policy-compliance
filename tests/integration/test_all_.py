@@ -9,7 +9,7 @@ import pytest
 from github.Branch import Branch
 from github.Repository import Repository
 
-from repo_policy_compliance import Result, all_, policy
+from repo_policy_compliance import Input, Result, all_, policy
 
 from .types_ import BranchWithProtection, RequestedCollaborator
 
@@ -23,11 +23,13 @@ def test_invalid_policy():
     policy_document = {"invalid": {"enabled": True}}
 
     report = all_(
-        repository_name="repository 1",
-        source_repository_name="repository 2",
-        target_branch_name="branch 1",
-        source_branch_name="",
-        commit_sha="",
+        input_=Input(
+            repository_name="repository 1",
+            source_repository_name="repository 2",
+            target_branch_name="branch 1",
+            source_branch_name="",
+            commit_sha="",
+        ),
         policy_document=policy_document,
     )
 
@@ -66,11 +68,13 @@ def test_fail_target_branch(
     policy_document = {policy.Property.TARGET_BRANCH_PROTECTION: {"enabled": policy_enabled}}
 
     report = all_(
-        repository_name=github_repository_name,
-        source_repository_name=github_repository_name,
-        target_branch_name=github_branch.name,
-        source_branch_name="",
-        commit_sha="",
+        input_=Input(
+            repository_name=github_repository_name,
+            source_repository_name=github_repository_name,
+            target_branch_name=github_branch.name,
+            source_branch_name="",
+            commit_sha="",
+        ),
         policy_document=policy_document,
     )
 
@@ -116,11 +120,13 @@ def test_fail_source_branch(
     policy_document = {policy.Property.SOURCE_BRANCH_PROTECTION: {"enabled": policy_enabled}}
 
     report = all_(
-        repository_name=github_repository_name,
-        source_repository_name=github_repository_name,
-        target_branch_name=github_branch.name,
-        source_branch_name=another_github_branch.name,
-        commit_sha=another_github_branch.commit.sha,
+        input_=Input(
+            repository_name=github_repository_name,
+            source_repository_name=github_repository_name,
+            target_branch_name=github_branch.name,
+            source_branch_name=another_github_branch.name,
+            commit_sha=another_github_branch.commit.sha,
+        ),
         policy_document=policy_document,
     )
 
@@ -166,11 +172,13 @@ def test_fail_collaborators(
     policy_document = {policy.Property.COLLABORATORS: {"enabled": policy_enabled}}
 
     report = all_(
-        repository_name=github_repository_name,
-        source_repository_name=github_repository_name,
-        target_branch_name=github_branch.name,
-        source_branch_name=github_branch.name,
-        commit_sha=github_branch.commit.sha,
+        input_=Input(
+            repository_name=github_repository_name,
+            source_repository_name=github_repository_name,
+            target_branch_name=github_branch.name,
+            source_branch_name=github_branch.name,
+            commit_sha=github_branch.commit.sha,
+        ),
         policy_document=policy_document,
     )
 
@@ -201,7 +209,8 @@ def test_fail_collaborators(
     indirect=["github_branch", "protected_github_branch", "forked_github_branch"],
 )
 @pytest.mark.usefixtures("protected_github_branch")
-def test_fail_execute_job(
+# All the arguments are required for the test
+def test_fail_execute_job(  # pylint: disable=too-many-arguments
     github_branch: Branch,
     github_repository_name: str,
     forked_github_branch: Branch,
@@ -218,11 +227,13 @@ def test_fail_execute_job(
     policy_document = {policy.Property.EXECUTE_JOB: {"enabled": policy_enabled}}
 
     report = all_(
-        repository_name=github_repository_name,
-        source_repository_name=forked_github_repository.full_name,
-        target_branch_name=github_branch.name,
-        source_branch_name=forked_github_branch.name,
-        commit_sha=forked_github_branch.commit.sha,
+        input_=Input(
+            repository_name=github_repository_name,
+            source_repository_name=forked_github_repository.full_name,
+            target_branch_name=github_branch.name,
+            source_branch_name=forked_github_branch.name,
+            commit_sha=forked_github_branch.commit.sha,
+        ),
         policy_document=policy_document,
     )
 
@@ -242,11 +253,13 @@ def test_pass(github_branch: Branch, github_repository_name: str):
     assert: then a pass report is returned.
     """
     report = all_(
-        repository_name=github_repository_name,
-        source_repository_name=github_repository_name,
-        target_branch_name=github_branch.name,
-        source_branch_name=github_branch.name,
-        commit_sha=github_branch.commit.sha,
+        input_=Input(
+            repository_name=github_repository_name,
+            source_repository_name=github_repository_name,
+            target_branch_name=github_branch.name,
+            source_branch_name=github_branch.name,
+            commit_sha=github_branch.commit.sha,
+        ),
     )
 
     assert report.result == Result.PASS

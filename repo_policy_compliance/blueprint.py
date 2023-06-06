@@ -18,7 +18,7 @@ from typing import cast
 from flask import Blueprint, Response, request
 from flask_httpauth import HTTPTokenAuth
 
-from . import Result, all_
+from . import ALL, Input, Result, all_
 
 repo_policy_compliance = Blueprint("repo_policy_compliance", __name__)
 auth = HTTPTokenAuth(scheme="Bearer")
@@ -137,7 +137,8 @@ def check_run() -> Response:
     if missing_keys:
         return Response(response=f"missing data, {missing_keys=}, {EXPECTED_KEYS=}", status=400)
 
-    if (report := all_(**data)).result == Result.FAIL:
+    input_ = Input(**data)
+    if (report := all_(input_=input_, policy_document=ALL)).result == Result.FAIL:
         return Response(response=report.reason, status=403)
 
     return Response(status=204)

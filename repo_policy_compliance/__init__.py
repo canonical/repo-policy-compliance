@@ -95,29 +95,48 @@ def _check_signed_commits_required(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
-class All:
+# This is a flag to indicate all policy documents should be used
+class All:  # pylint: disable=too-few-public-methods
     """Indicate that all policies should be checked."""
 
 
 ALL = All()
 
 
-def all_(
-    repository_name: str,
-    source_repository_name: str,
-    target_branch_name: str,
-    source_branch_name: str,
-    commit_sha: str,
-    policy_document: dict | All = ALL,
-) -> Report:
-    """Run all the checks.
+class Input(NamedTuple):
+    """Input arguments for checks.
 
-    Args:
+    Attrs:
         repository_name: The name of the repository to run the check on.
         source_repository_name: The name of the repository that has the source branch.
         target_branch_name: The name of the branch that is targeted by the PR.
         source_branch_name: The name of the branch that contains the commits to be merged.
         commit_sha: The SHA of the commit that the workflow run is on.
+    """
+
+    repository_name: str
+    source_repository_name: str
+    target_branch_name: str
+    source_branch_name: str
+    commit_sha: str
+
+
+def _policy_enabled(name: str, policy_document: MappingProxyType) -> bool:
+    """Check whether a given policy is enabled.
+
+    Args:
+        name: The property name of the policy.
+        policy_document: Describes the policies that should be run.
+    """
+    return name in policy_document and policy_document[name]["enabled"]
+
+
+def all_(input_: Input, policy_document: dict | All = ALL) -> Report:
+    """Run all the checks.
+
+    Args:
+        input_: Data required for executing checks.
+        policy_document: Describes the policies that should be run.
 
     Returns:
         Whether the run is authorized based on all the checks.
@@ -132,11 +151,12 @@ def all_(
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
     if (
-        policy.Property.TARGET_BRANCH_PROTECTION in used_policy_document
-        and used_policy_document[policy.Property.TARGET_BRANCH_PROTECTION]["enabled"]
+        _policy_enabled(
+            name=policy.Property.TARGET_BRANCH_PROTECTION, policy_document=used_policy_document
+        )
         and (
             target_branch_report := target_branch_protection(
-                repository_name=repository_name, branch_name=target_branch_name
+                repository_name=input_.repository_name, branch_name=input_.target_branch_name
             )
         ).result
         == Result.FAIL
@@ -144,14 +164,15 @@ def all_(
         return target_branch_report
 
     if (
-        policy.Property.SOURCE_BRANCH_PROTECTION in used_policy_document
-        and used_policy_document[policy.Property.SOURCE_BRANCH_PROTECTION]["enabled"]
+        _policy_enabled(
+            name=policy.Property.SOURCE_BRANCH_PROTECTION, policy_document=used_policy_document
+        )
         and (
             source_branch_report := source_branch_protection(
-                repository_name=repository_name,
-                source_repository_name=source_repository_name,
-                branch_name=source_branch_name,
-                target_branch_name=target_branch_name,
+                repository_name=input_.repository_name,
+                source_repository_name=input_.source_repository_name,
+                branch_name=input_.source_branch_name,
+                target_branch_name=input_.target_branch_name,
             )
         ).result
         == Result.FAIL
@@ -159,22 +180,20 @@ def all_(
         return source_branch_report
 
     if (
-        policy.Property.COLLABORATORS in used_policy_document
-        and used_policy_document[policy.Property.COLLABORATORS]["enabled"]
-        and (collaborators_report := collaborators(repository_name=repository_name)).result
+        _policy_enabled(name=policy.Property.COLLABORATORS, policy_document=used_policy_document)
+        and (collaborators_report := collaborators(repository_name=input_.repository_name)).result
         == Result.FAIL
     ):
         return collaborators_report
 
     if (
-        policy.Property.EXECUTE_JOB in used_policy_document
-        and used_policy_document[policy.Property.EXECUTE_JOB]["enabled"]
+        _policy_enabled(name=policy.Property.EXECUTE_JOB, policy_document=used_policy_document)
         and (
             execute_job_report := execute_job(
-                repository_name=repository_name,
-                source_repository_name=source_repository_name,
-                branch_name=source_branch_name,
-                commit_sha=commit_sha,
+                repository_name=input_.repository_name,
+                source_repository_name=input_.source_repository_name,
+                branch_name=input_.source_branch_name,
+                commit_sha=input_.commit_sha,
             )
         ).result
         == Result.FAIL
