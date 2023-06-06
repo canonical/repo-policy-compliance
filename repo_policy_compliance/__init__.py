@@ -4,11 +4,13 @@
 """Library for checking that GitHub repos comply with policy."""
 
 from enum import Enum
+from types import MappingProxyType
 from typing import NamedTuple
 
 from github import Github
 from github.Branch import Branch
 
+from . import policy
 from .comment import remove_quote_lines
 from .github_client import get_collaborators
 from .github_client import inject as inject_github_client
@@ -93,12 +95,20 @@ def _check_signed_commits_required(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
+class All:
+    """Indicate that all policies should be checked."""
+
+
+ALL = All()
+
+
 def all_(
     repository_name: str,
     source_repository_name: str,
     target_branch_name: str,
     source_branch_name: str,
     commit_sha: str,
+    policy_document: dict | All = ALL,
 ) -> Report:
     """Run all the checks.
 
@@ -112,38 +122,63 @@ def all_(
     Returns:
         Whether the run is authorized based on all the checks.
     """
+    if isinstance(policy_document, All):
+        used_policy_document: MappingProxyType = policy.ALL
+    else:
+        if not (policy_report := policy.check(document=policy_document)).result:
+            return Report(result=Result.FAIL, reason=policy_report.reason)
+        used_policy_document = MappingProxyType(policy_document)
+
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
     if (
-        target_branch_report := target_branch_protection(
-            repository_name=repository_name, branch_name=target_branch_name
-        )
-    ).result == Result.FAIL:
+        policy.Property.TARGET_BRANCH_PROTECTION in used_policy_document
+        and used_policy_document[policy.Property.TARGET_BRANCH_PROTECTION]["enabled"]
+        and (
+            target_branch_report := target_branch_protection(
+                repository_name=repository_name, branch_name=target_branch_name
+            )
+        ).result
+        == Result.FAIL
+    ):
         return target_branch_report
 
     if (
-        source_branch_report := source_branch_protection(
-            repository_name=repository_name,
-            source_repository_name=source_repository_name,
-            branch_name=source_branch_name,
-            target_branch_name=target_branch_name,
-        )
-    ).result == Result.FAIL:
+        policy.Property.SOURCE_BRANCH_PROTECTION in used_policy_document
+        and used_policy_document[policy.Property.SOURCE_BRANCH_PROTECTION]["enabled"]
+        and (
+            source_branch_report := source_branch_protection(
+                repository_name=repository_name,
+                source_repository_name=source_repository_name,
+                branch_name=source_branch_name,
+                target_branch_name=target_branch_name,
+            )
+        ).result
+        == Result.FAIL
+    ):
         return source_branch_report
 
     if (
-        collaborators_report := collaborators(repository_name=repository_name)
-    ).result == Result.FAIL:
+        policy.Property.COLLABORATORS in used_policy_document
+        and used_policy_document[policy.Property.COLLABORATORS]["enabled"]
+        and (collaborators_report := collaborators(repository_name=repository_name)).result
+        == Result.FAIL
+    ):
         return collaborators_report
 
     if (
-        execute_job_report := execute_job(
-            repository_name=repository_name,
-            source_repository_name=source_repository_name,
-            branch_name=source_branch_name,
-            commit_sha=commit_sha,
-        )
-    ).result == Result.FAIL:
+        policy.Property.EXECUTE_JOB in used_policy_document
+        and used_policy_document[policy.Property.EXECUTE_JOB]["enabled"]
+        and (
+            execute_job_report := execute_job(
+                repository_name=repository_name,
+                source_repository_name=source_repository_name,
+                branch_name=source_branch_name,
+                commit_sha=commit_sha,
+            )
+        ).result
+        == Result.FAIL
+    ):
         return execute_job_report
 
     return Report(result=Result.PASS, reason=None)

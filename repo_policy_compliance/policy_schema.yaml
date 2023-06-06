@@ -8,6 +8,7 @@ properties:
     $ref: "#/$defs/rule"
   execute_job:
     $ref: "#/$defs/rule"
+additionalProperties: false
 $defs:
   rule:
     type: object

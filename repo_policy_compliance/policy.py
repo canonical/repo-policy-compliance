@@ -3,11 +3,33 @@
 
 """Module for the policy document."""
 
+from enum import Enum
 from pathlib import Path
+from types import MappingProxyType
 from typing import NamedTuple
 
 import yaml
 from jsonschema import ValidationError, validate
+
+
+class Property(str, Enum):
+    """The result of a check.
+
+    Attrs:
+        TARGET_BRANCH_PROTECTION: Branch protection for the target branch.
+        SOURCE_BRANCH_PROTECTION: Branch protection for the source branch.
+        COLLABORATORS: Particupants on a repository.
+        EXECUTE_JOB: Whether a job should be executed.
+    """
+
+    TARGET_BRANCH_PROTECTION = "target_branch_protection"
+    SOURCE_BRANCH_PROTECTION = "source_branch_protection"
+    COLLABORATORS = "collaborators"
+    EXECUTE_JOB = "execute_job"
+
+
+_ENABLED_RULE = MappingProxyType({"enabled": True})
+ALL = MappingProxyType({prop: _ENABLED_RULE for prop in Property})
 
 
 class Report(NamedTuple):
