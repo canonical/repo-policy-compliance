@@ -20,15 +20,15 @@ def test_invalid_policy():
     act: when all_ is called with the policy
     assert: then a fail report is returned.
     """
-    policy_document = {"invalid": {"enabled": True}}
+    policy_document = {"invalid": {**policy.ENABLED_RULE}}
 
     report = all_(
         input_=Input(
             repository_name="repository 1",
             source_repository_name="repository 2",
             target_branch_name="branch 1",
-            source_branch_name="",
-            commit_sha="",
+            source_branch_name="branch 2",
+            commit_sha="commit sha 1",
         ),
         policy_document=policy_document,
     )

@@ -95,7 +95,7 @@ def _check_signed_commits_required(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
-# This is a flag to indicate all policy documents should be used
+# This is a flag to indicate all policies should be checked
 class All:  # pylint: disable=too-few-public-methods
     """Indicate that all policies should be checked."""
 
@@ -127,6 +127,9 @@ def _policy_enabled(name: str, policy_document: MappingProxyType) -> bool:
     Args:
         name: The property name of the policy.
         policy_document: Describes the policies that should be run.
+
+    Returns:
+        Whether the policy is enabled in the document.
     """
     return name in policy_document and policy_document[name]["enabled"]
 

@@ -15,9 +15,11 @@ from .. import assert_
     [
         pytest.param({}, True, None, id="empty"),
         pytest.param(
-            {"invalid": {"enabled": True}}, False, ("invalid", "additional"), id="invalid"
+            {"invalid": {**policy.ENABLED_RULE}}, False, ("invalid", "additional"), id="invalid"
         ),
-        pytest.param({prop: {"enabled": True} for prop in policy.Property}, True, None, id="all"),
+        pytest.param(
+            {prop: {**policy.ENABLED_RULE} for prop in policy.Property}, True, None, id="all"
+        ),
     ]
     + [
         pytest.param(
@@ -30,7 +32,7 @@ from .. import assert_
     ]
     + [
         pytest.param(
-            {prop: {"enabled": True}},
+            {prop: {**policy.ENABLED_RULE}},
             True,
             None,
             id=f"{prop} valid",

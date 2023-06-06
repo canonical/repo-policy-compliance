@@ -13,7 +13,7 @@ from jsonschema import ValidationError, validate
 
 
 class Property(str, Enum):
-    """The result of a check.
+    """The names of the properties for the policy document.
 
     Attrs:
         TARGET_BRANCH_PROTECTION: Branch protection for the target branch.
@@ -28,8 +28,9 @@ class Property(str, Enum):
     EXECUTE_JOB = "execute_job"
 
 
-_ENABLED_RULE = MappingProxyType({"enabled": True})
-ALL = MappingProxyType({prop: _ENABLED_RULE for prop in Property})
+# Using MappingProxyType to make these immutable
+ENABLED_RULE = MappingProxyType({"enabled": True})
+ALL = MappingProxyType({prop: ENABLED_RULE for prop in Property})
 
 
 class Report(NamedTuple):
@@ -61,4 +62,4 @@ def check(document: dict) -> Report:
         validate(instance=document, schema=schema)
         return Report(result=True, reason=None)
     except ValidationError as exc:
-        return Report(result=False, reason=f"invalid policy document,{exc=} ")
+        return Report(result=False, reason=f"invalid policy document, {exc=}")

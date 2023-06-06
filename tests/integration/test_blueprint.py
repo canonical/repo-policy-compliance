@@ -48,6 +48,9 @@ def get_runner_token(client: FlaskClient, charm_token: str) -> str:
     Args:
         client: Client to the flask application.
         charm_token: Token with the charm role.
+
+    Returns:
+        A one-time token for a runner.
     """
     token_response = client.get(
         blueprint.ONE_TIME_TOKEN_ENDPOINT, headers={"Authorization": f"Bearer {charm_token}"}
@@ -59,32 +62,6 @@ def get_runner_token(client: FlaskClient, charm_token: str) -> str:
 def fixture_runner_token(client: FlaskClient, charm_token: str) -> str:
     """The token used by the runner to check whether runs are allowed."""
     return get_runner_token(client=client, charm_token=charm_token)
-
-
-def test_one_time_token_no_auth(client: FlaskClient):
-    """
-    arrange: given flask application with the blueprint registered and the charm token environment
-        variable set
-    act: when a one time token is requested without an authorization header provided
-    assert: then 401 is returned.
-    """
-    response = client.get(blueprint.ONE_TIME_TOKEN_ENDPOINT)
-
-    assert response.status_code == 401, response.data
-
-
-def test_one_time_token_wrong_auth(client: FlaskClient):
-    """
-    arrange: given flask application with the blueprint registered and the charm token environment
-        variable set
-    act: when a one time token is requested with the wrong token
-    assert: then 401 is returned.
-    """
-    response = client.get(
-        blueprint.ONE_TIME_TOKEN_ENDPOINT, headers={"Authorization": "Bearer invalid"}
-    )
-
-    assert response.status_code == 401, response.data
 
 
 def test_one_time_token_as_runner(client: FlaskClient, runner_token: str):
@@ -229,23 +206,26 @@ def test_check_run_pass(client: FlaskClient, runner_token: str, github_repositor
 
 
 @pytest.mark.parametrize(
-    "endpoint",
+    "endpoint, method",
     [
-        pytest.param(blueprint.POLICY_ENDPOINT, id=blueprint.POLICY_ENDPOINT),
-        pytest.param(blueprint.CHECK_RUN_ENDPOINT, id=blueprint.CHECK_RUN_ENDPOINT),
+        pytest.param(
+            blueprint.ONE_TIME_TOKEN_ENDPOINT, "get", id=blueprint.ONE_TIME_TOKEN_ENDPOINT
+        ),
+        pytest.param(blueprint.POLICY_ENDPOINT, "post", id=blueprint.POLICY_ENDPOINT),
+        pytest.param(blueprint.CHECK_RUN_ENDPOINT, "post", id=blueprint.CHECK_RUN_ENDPOINT),
     ],
 )
-def test_post_unauth(endpoint: str, client: FlaskClient):
+def test_endpoint_method_unauth(endpoint: str, method: str, client: FlaskClient):
     """
     arrange: given endpoint
-    act: when a request without the Authorization header and an invalid token is sent
+    act: when a request without the Authorization header or an invalid token is sent
     assert: then 401 is returned.
     """
-    response = client.post(endpoint, headers={})
+    response = getattr(client, method)(endpoint, headers={})
 
     assert response.status_code == 401, response.data
 
-    response = client.post(endpoint, headers={"Authorization": "Bearer invalid"})
+    response = getattr(client, method)(endpoint, headers={"Authorization": "Bearer invalid"})
 
     assert response.status_code == 401, response.data
 
@@ -259,7 +239,7 @@ def test_policy_invalid(client: FlaskClient, charm_token: str):
     """
     response = client.post(
         blueprint.POLICY_ENDPOINT,
-        json={"invalid": {"enabled": True}},
+        json={"invalid": {**policy.ENABLED_RULE}},
         headers={"Authorization": f"Bearer {charm_token}"},
     )
 

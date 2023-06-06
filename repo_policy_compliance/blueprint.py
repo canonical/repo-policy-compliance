@@ -134,10 +134,11 @@ def policy_endpoint() -> Response:
     Returns:
         Either that the policy was updated or an error if the policy is invalid.
     """
-    # Need to use this to update variable in outside scope
-    global policy_document
+    # Need to use this to update variable in outside scope, part of what is required to not require
+    # a database
+    global policy_document  # pylint: disable=global-statement
 
-    data = cast(dict[str, str], request.json)
+    data = cast(dict, request.json)
     if not (policy_report := policy.check(document=data)).result:
         return Response(response=policy_report.reason, status=400)
 
