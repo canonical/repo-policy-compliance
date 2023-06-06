@@ -13,7 +13,7 @@ from flask.testing import FlaskClient
 from github.Branch import Branch
 from github.Repository import Repository
 
-from repo_policy_compliance import blueprint
+from repo_policy_compliance import blueprint, policy
 
 from .. import assert_
 
@@ -42,13 +42,23 @@ def fixture_charm_token(monkeypatch: pytest.MonkeyPatch) -> str:
     return token
 
 
-@pytest.fixture(name="runner_token")
-def fixture_runner_token(client: FlaskClient, charm_token: str) -> str:
-    """The token used by the runner to check whether runs are allowed."""
+def get_runner_token(client: FlaskClient, charm_token: str) -> str:
+    """Get a one-time token for a runner.
+
+    Args:
+        client: Client to the flask application.
+        charm_token: Token with the charm role.
+    """
     token_response = client.get(
         blueprint.ONE_TIME_TOKEN_ENDPOINT, headers={"Authorization": f"Bearer {charm_token}"}
     )
     return token_response.data.decode("utf-8")
+
+
+@pytest.fixture(name="runner_token")
+def fixture_runner_token(client: FlaskClient, charm_token: str) -> str:
+    """The token used by the runner to check whether runs are allowed."""
+    return get_runner_token(client=client, charm_token=charm_token)
 
 
 def test_one_time_token_no_auth(client: FlaskClient):
@@ -216,3 +226,100 @@ def test_check_run_pass(client: FlaskClient, runner_token: str, github_repositor
     )
 
     assert response.status_code == 204, response.data
+
+
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        pytest.param(blueprint.POLICY_ENDPOINT, id=blueprint.POLICY_ENDPOINT),
+        pytest.param(blueprint.CHECK_RUN_ENDPOINT, id=blueprint.CHECK_RUN_ENDPOINT),
+    ],
+)
+def test_post_unauth(endpoint: str, client: FlaskClient):
+    """
+    arrange: given endpoint
+    act: when a request without the Authorization header and an invalid token is sent
+    assert: then 401 is returned.
+    """
+    response = client.post(endpoint, headers={})
+
+    assert response.status_code == 401, response.data
+
+    response = client.post(endpoint, headers={"Authorization": "Bearer invalid"})
+
+    assert response.status_code == 401, response.data
+
+
+def test_policy_invalid(client: FlaskClient, charm_token: str):
+    """
+    arrange: given flask application with the blueprint registered and the charm token environment
+        variable set
+    act: when an invalid policy is sent to the policy endpoint
+    assert: then 400 is returned.
+    """
+    response = client.post(
+        blueprint.POLICY_ENDPOINT,
+        json={"invalid": {"enabled": True}},
+        headers={"Authorization": f"Bearer {charm_token}"},
+    )
+
+    assert response.status_code == 400, response.data
+
+
+@pytest.mark.parametrize(
+    "github_branch",
+    [f"test-branch/blueprint/fail/{uuid4()}"],
+    indirect=True,
+)
+def test_check_run_fail_policy_disabled(
+    client: FlaskClient,
+    runner_token: str,
+    charm_token: str,
+    github_repository: Repository,
+    github_branch: Branch,
+):
+    """
+    arrange: given flask application with the blueprint registered and the charm token environment
+        variable set
+    act: when check run is requested with a runner token and an invalid run and with the policy
+        enabled and then disabled
+    assert: then 403 and 204 is returned, respectively.
+    """
+    fail_response = client.post(
+        blueprint.CHECK_RUN_ENDPOINT,
+        json={
+            "repository_name": github_repository.full_name,
+            "source_repository_name": github_repository.full_name,
+            "target_branch_name": github_repository.default_branch,
+            "source_branch_name": github_branch.name,
+            "commit_sha": github_branch.commit.sha,
+        },
+        headers={"Authorization": f"Bearer {runner_token}"},
+    )
+
+    assert fail_response.status_code == 403, fail_response.data
+
+    # Disable branch protection policy
+    policy_response = client.post(
+        blueprint.POLICY_ENDPOINT,
+        json={policy.Property.TARGET_BRANCH_PROTECTION: {"enabled": False}},
+        headers={"Authorization": f"Bearer {charm_token}"},
+    )
+
+    assert policy_response.status_code == 204, policy_response.data
+
+    disabled_response = client.post(
+        blueprint.CHECK_RUN_ENDPOINT,
+        json={
+            "repository_name": github_repository.full_name,
+            "source_repository_name": github_repository.full_name,
+            "target_branch_name": github_repository.default_branch,
+            "source_branch_name": github_branch.name,
+            "commit_sha": github_branch.commit.sha,
+        },
+        headers={
+            "Authorization": f"Bearer {get_runner_token(client=client, charm_token=charm_token)}"
+        },
+    )
+
+    assert disabled_response.status_code == 204, disabled_response.data

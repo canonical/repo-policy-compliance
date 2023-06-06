@@ -18,19 +18,21 @@ from typing import cast
 from flask import Blueprint, Response, request
 from flask_httpauth import HTTPTokenAuth
 
-from . import ALL, Input, Result, all_
+from . import ALL, All, Input, Result, all_, policy
 
 repo_policy_compliance = Blueprint("repo_policy_compliance", __name__)
 auth = HTTPTokenAuth(scheme="Bearer")
-# Using a set means that this blueprint can only be used with a single worker. This is done to
-# reduce deployment complexity as a database would otherwise be required.
+# Using local variables means that this blueprint can only be used with a single worker. This is
+# done to reduce deployment complexity as a database would otherwise be required.
 runner_tokens: set[str] = set()
+policy_document: dict | All = ALL
 
 # Bandit thinks this is the token value when it is the name of the environment variable with the
 # token value
 CHARM_TOKEN_ENV_NAME = "CHARM_TOKEN"  # nosec
 # Bandit thinks this is the token value when it is the name of the endpoint to get a one time token
 ONE_TIME_TOKEN_ENDPOINT = "/one-time-token"  # nosec
+POLICY_ENDPOINT = "/policy"
 CHECK_RUN_ENDPOINT = "/check-run"
 
 
@@ -124,6 +126,25 @@ def one_time_token() -> str:
     return token
 
 
+@repo_policy_compliance.route(POLICY_ENDPOINT, methods=["POST"])
+@auth.login_required(role=CHARM_ROLE)
+def policy_endpoint() -> Response:
+    """Generate a one time token for a runner.
+
+    Returns:
+        Either that the policy was updated or an error if the policy is invalid.
+    """
+    # Need to use this to update variable in outside scope
+    global policy_document
+
+    data = cast(dict[str, str], request.json)
+    if not (policy_report := policy.check(document=data)).result:
+        return Response(response=policy_report.reason, status=400)
+
+    policy_document = data
+    return Response(status=204)
+
+
 @repo_policy_compliance.route(CHECK_RUN_ENDPOINT, methods=["POST"])
 @auth.login_required(role=RUNNER_ROLE)
 def check_run() -> Response:
@@ -138,7 +159,7 @@ def check_run() -> Response:
         return Response(response=f"missing data, {missing_keys=}, {EXPECTED_KEYS=}", status=400)
 
     input_ = Input(**data)
-    if (report := all_(input_=input_, policy_document=ALL)).result == Result.FAIL:
+    if (report := all_(input_=input_, policy_document=policy_document)).result == Result.FAIL:
         return Response(response=report.reason, status=403)
 
     return Response(status=204)
