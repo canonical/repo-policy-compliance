@@ -95,12 +95,13 @@ def _check_signed_commits_required(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
-# This is a flag to indicate all policies should be checked
-class All:  # pylint: disable=too-few-public-methods
-    """Indicate that all policies should be checked."""
+class UsedPolicy(Enum):
+    """Sentinel to indicate which policy to use.
 
+    ALL: Use all policies.
+    """
 
-ALL = All()
+    ALL = 1
 
 
 class Input(NamedTuple):
@@ -134,7 +135,7 @@ def _policy_enabled(name: str, policy_document: MappingProxyType) -> bool:
     return name in policy_document and policy_document[name]["enabled"]
 
 
-def all_(input_: Input, policy_document: dict | All = ALL) -> Report:
+def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> Report:
     """Run all the checks.
 
     Args:
@@ -144,7 +145,7 @@ def all_(input_: Input, policy_document: dict | All = ALL) -> Report:
     Returns:
         Whether the run is authorized based on all the checks.
     """
-    if isinstance(policy_document, All):
+    if policy_document == UsedPolicy.ALL:
         used_policy_document: MappingProxyType = policy.ALL
     else:
         if not (policy_report := policy.check(document=policy_document)).result:

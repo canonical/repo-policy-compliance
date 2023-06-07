@@ -151,7 +151,7 @@ def test_fail_source_branch(
             RequestedCollaborator("admin", "admin"),
             False,
             Result.PASS,
-            id="policy enabled",
+            id="policy disabled",
         ),
     ],
     indirect=["github_branch", "protected_github_branch", "collaborators_with_permission"],

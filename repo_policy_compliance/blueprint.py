@@ -8,24 +8,30 @@ an in-memory set to store the one time tokens. This is done to reduce the comple
 as the alternative would be to require a database.
 """
 
+import json
 import logging
 import os
 import secrets
+import tempfile
 from enum import Enum
 from hmac import compare_digest
+from pathlib import Path
 from typing import cast
 
 from flask import Blueprint, Response, request
 from flask_httpauth import HTTPTokenAuth
 
-from . import ALL, All, Input, Result, all_, policy
+from . import Input, Result, UsedPolicy, all_, policy
 
 repo_policy_compliance = Blueprint("repo_policy_compliance", __name__)
 auth = HTTPTokenAuth(scheme="Bearer")
 # Using local variables means that this blueprint can only be used with a single worker. This is
 # done to reduce deployment complexity as a database would otherwise be required.
 runner_tokens: set[str] = set()
-policy_document: dict | All = ALL
+# Need temporary file to persist policy document so better not wrap the entire module in a with
+# statement
+policy_document_file = tempfile.NamedTemporaryFile()  # pylint: disable=consider-using-with
+policy_document_path = Path(policy_document_file.name)
 
 # Bandit thinks this is the token value when it is the name of the environment variable with the
 # token value
@@ -134,15 +140,11 @@ def policy_endpoint() -> Response:
     Returns:
         Either that the policy was updated or an error if the policy is invalid.
     """
-    # Need to use this to update variable in outside scope, part of what is required to not require
-    # a database
-    global policy_document  # pylint: disable=global-statement
-
     data = cast(dict, request.json)
     if not (policy_report := policy.check(document=data)).result:
         return Response(response=policy_report.reason, status=400)
 
-    policy_document = data
+    policy_document_path.write_text(json.dumps(data), encoding="utf-8")
     return Response(status=204)
 
 
@@ -158,6 +160,10 @@ def check_run() -> Response:
     missing_keys = EXPECTED_KEYS - data.keys()
     if missing_keys:
         return Response(response=f"missing data, {missing_keys=}, {EXPECTED_KEYS=}", status=400)
+
+    policy_document: dict | UsedPolicy = UsedPolicy.ALL
+    if stored_policy_document_contents := policy_document_path.read_text(encoding="utf-8"):
+        policy_document = json.loads(stored_policy_document_contents)
 
     input_ = Input(**data)
     if (report := all_(input_=input_, policy_document=policy_document)).result == Result.FAIL:
