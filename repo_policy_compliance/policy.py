@@ -64,3 +64,16 @@ def check(document: dict) -> Report:
         return Report(result=True, reason=None)
     except ValidationError as exc:
         return Report(result=False, reason=f"invalid policy document, {exc=}")
+
+
+def enabled(name: Property, policy_document: MappingProxyType) -> bool:
+    """Check whether a given policy is enabled.
+
+    Args:
+        name: The property name of the policy.
+        policy_document: Describes the policies that should be run.
+
+    Returns:
+        Whether the policy is enabled in the document.
+    """
+    return name in policy_document and policy_document[name][ENABLED_KEY]

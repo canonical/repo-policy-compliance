@@ -123,19 +123,6 @@ class Input(NamedTuple):
     commit_sha: str
 
 
-def _policy_enabled(name: str, policy_document: MappingProxyType) -> bool:
-    """Check whether a given policy is enabled.
-
-    Args:
-        name: The property name of the policy.
-        policy_document: Describes the policies that should be run.
-
-    Returns:
-        Whether the policy is enabled in the document.
-    """
-    return name in policy_document and policy_document[name][policy.ENABLED_KEY]
-
-
 def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> Report:
     """Run all the checks.
 
@@ -158,7 +145,7 @@ def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
     if (
-        _policy_enabled(
+        policy.enabled(
             name=policy.Property.TARGET_BRANCH_PROTECTION, policy_document=used_policy_document
         )
         and (
@@ -171,7 +158,7 @@ def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> 
         return target_branch_report
 
     if (
-        _policy_enabled(
+        policy.enabled(
             name=policy.Property.SOURCE_BRANCH_PROTECTION, policy_document=used_policy_document
         )
         and (
@@ -187,14 +174,14 @@ def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> 
         return source_branch_report
 
     if (
-        _policy_enabled(name=policy.Property.COLLABORATORS, policy_document=used_policy_document)
+        policy.enabled(name=policy.Property.COLLABORATORS, policy_document=used_policy_document)
         and (collaborators_report := collaborators(repository_name=input_.repository_name)).result
         == Result.FAIL
     ):
         return collaborators_report
 
     if (
-        _policy_enabled(name=policy.Property.EXECUTE_JOB, policy_document=used_policy_document)
+        policy.enabled(name=policy.Property.EXECUTE_JOB, policy_document=used_policy_document)
         and (
             execute_job_report := execute_job(
                 repository_name=input_.repository_name,
