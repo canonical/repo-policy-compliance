@@ -282,7 +282,7 @@ def test_check_run_fail_policy_disabled(
     # Disable branch protection policy
     policy_response = client.post(
         blueprint.POLICY_ENDPOINT,
-        json={policy.Property.TARGET_BRANCH_PROTECTION: {"enabled": False}},
+        json={policy.Property.TARGET_BRANCH_PROTECTION: {policy.ENABLED_KEY: False}},
         headers={"Authorization": f"Bearer {charm_token}"},
     )
 

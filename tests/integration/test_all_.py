@@ -65,7 +65,9 @@ def test_fail_target_branch(
     act: when all_ is called with the policy
     assert: then the expected report is returned.
     """
-    policy_document = {policy.Property.TARGET_BRANCH_PROTECTION: {"enabled": policy_enabled}}
+    policy_document = {
+        policy.Property.TARGET_BRANCH_PROTECTION: {policy.ENABLED_KEY: policy_enabled}
+    }
 
     report = all_(
         input_=Input(
@@ -117,7 +119,9 @@ def test_fail_source_branch(
     act: when all_ is called with the policy
     assert: then the expected report is returned.
     """
-    policy_document = {policy.Property.SOURCE_BRANCH_PROTECTION: {"enabled": policy_enabled}}
+    policy_document = {
+        policy.Property.SOURCE_BRANCH_PROTECTION: {policy.ENABLED_KEY: policy_enabled}
+    }
 
     report = all_(
         input_=Input(
@@ -169,7 +173,7 @@ def test_fail_collaborators(
     act: when all_ is called with the policy
     assert: then the expected report is returned.
     """
-    policy_document = {policy.Property.COLLABORATORS: {"enabled": policy_enabled}}
+    policy_document = {policy.Property.COLLABORATORS: {policy.ENABLED_KEY: policy_enabled}}
 
     report = all_(
         input_=Input(
@@ -224,7 +228,7 @@ def test_fail_execute_job(  # pylint: disable=too-many-arguments
     act: when all_ is called with the policy
     assert: then the expected report is returned.
     """
-    policy_document = {policy.Property.EXECUTE_JOB: {"enabled": policy_enabled}}
+    policy_document = {policy.Property.EXECUTE_JOB: {policy.ENABLED_KEY: policy_enabled}}
 
     report = all_(
         input_=Input(

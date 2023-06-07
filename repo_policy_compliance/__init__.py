@@ -133,7 +133,7 @@ def _policy_enabled(name: str, policy_document: MappingProxyType) -> bool:
     Returns:
         Whether the policy is enabled in the document.
     """
-    return name in policy_document and policy_document[name]["enabled"]
+    return name in policy_document and policy_document[name][policy.ENABLED_KEY]
 
 
 def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> Report:

@@ -25,7 +25,7 @@ from .. import assert_
         pytest.param(
             {prop: {}},
             False,
-            ("invalid", "enabled", "required"),
+            ("invalid", policy.ENABLED_KEY, "required"),
             id=f"{prop} invalid",
         )
         for prop in policy.Property

@@ -29,7 +29,8 @@ class Property(str, Enum):
 
 
 # Using MappingProxyType to make these immutable
-ENABLED_RULE = MappingProxyType({"enabled": True})
+ENABLED_KEY = "enabled"
+ENABLED_RULE = MappingProxyType({ENABLED_KEY: True})
 ALL = MappingProxyType({prop: ENABLED_RULE for prop in Property})
 
 
