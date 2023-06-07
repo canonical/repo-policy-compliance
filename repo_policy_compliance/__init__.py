@@ -5,7 +5,7 @@
 
 from enum import Enum
 from types import MappingProxyType
-from typing import NamedTuple
+from typing import NamedTuple, cast
 
 from github import Github
 from github.Branch import Branch
@@ -98,7 +98,8 @@ def _check_signed_commits_required(branch: Branch) -> Report:
 class UsedPolicy(Enum):
     """Sentinel to indicate which policy to use.
 
-    ALL: Use all policies.
+    Attrs:
+        ALL: Use all policies.
     """
 
     ALL = 1
@@ -148,6 +149,8 @@ def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> 
     if policy_document == UsedPolicy.ALL:
         used_policy_document: MappingProxyType = policy.ALL
     else:
+        # Guaranteed to be a dict due to initial if
+        policy_document = cast(dict, policy_document)
         if not (policy_report := policy.check(document=policy_document)).result:
             return Report(result=Result.FAIL, reason=policy_report.reason)
         used_policy_document = MappingProxyType(policy_document)
