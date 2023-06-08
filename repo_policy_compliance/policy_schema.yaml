@@ -1,0 +1,22 @@
+# Copyright 2023 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+type: object
+properties:
+  target_branch_protection:
+    $ref: "#/$defs/rule"
+  source_branch_protection:
+    $ref: "#/$defs/rule"
+  collaborators:
+    $ref: "#/$defs/rule"
+  execute_job:
+    $ref: "#/$defs/rule"
+additionalProperties: false
+$defs:
+  rule:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+    required:
+      - enabled

@@ -4,11 +4,13 @@
 """Library for checking that GitHub repos comply with policy."""
 
 from enum import Enum
-from typing import NamedTuple
+from types import MappingProxyType
+from typing import NamedTuple, cast
 
 from github import Github
 from github.Branch import Branch
 
+from . import policy
 from .comment import remove_quote_lines
 from .github_client import get_collaborators
 from .github_client import inject as inject_github_client
@@ -93,57 +95,103 @@ def _check_signed_commits_required(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
-def all_(
-    repository_name: str,
-    source_repository_name: str,
-    target_branch_name: str,
-    source_branch_name: str,
-    commit_sha: str,
-) -> Report:
-    """Run all the checks.
+class UsedPolicy(Enum):
+    """Sentinel to indicate which policy to use.
 
-    Args:
+    Attrs:
+        ALL: Use all policies.
+    """
+
+    ALL = 1
+
+
+class Input(NamedTuple):
+    """Input arguments for checks.
+
+    Attrs:
         repository_name: The name of the repository to run the check on.
         source_repository_name: The name of the repository that has the source branch.
         target_branch_name: The name of the branch that is targeted by the PR.
         source_branch_name: The name of the branch that contains the commits to be merged.
         commit_sha: The SHA of the commit that the workflow run is on.
+    """
+
+    repository_name: str
+    source_repository_name: str
+    target_branch_name: str
+    source_branch_name: str
+    commit_sha: str
+
+
+def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> Report:
+    """Run all the checks.
+
+    Args:
+        input_: Data required for executing checks.
+        policy_document: Describes the policies that should be run.
 
     Returns:
         Whether the run is authorized based on all the checks.
     """
+    if policy_document == UsedPolicy.ALL:
+        used_policy_document: MappingProxyType = policy.ALL
+    else:
+        # Guaranteed to be a dict due to initial if
+        policy_document = cast(dict, policy_document)
+        if not (policy_report := policy.check(document=policy_document)).result:
+            return Report(result=Result.FAIL, reason=policy_report.reason)
+        used_policy_document = MappingProxyType(policy_document)
+
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
     if (
-        target_branch_report := target_branch_protection(
-            repository_name=repository_name, branch_name=target_branch_name
+        policy.enabled(
+            name=policy.Property.TARGET_BRANCH_PROTECTION, policy_document=used_policy_document
         )
-    ).result == Result.FAIL:
+        and (
+            target_branch_report := target_branch_protection(
+                repository_name=input_.repository_name, branch_name=input_.target_branch_name
+            )
+        ).result
+        == Result.FAIL
+    ):
         return target_branch_report
 
     if (
-        source_branch_report := source_branch_protection(
-            repository_name=repository_name,
-            source_repository_name=source_repository_name,
-            branch_name=source_branch_name,
-            target_branch_name=target_branch_name,
+        policy.enabled(
+            name=policy.Property.SOURCE_BRANCH_PROTECTION, policy_document=used_policy_document
         )
-    ).result == Result.FAIL:
+        and (
+            source_branch_report := source_branch_protection(
+                repository_name=input_.repository_name,
+                source_repository_name=input_.source_repository_name,
+                branch_name=input_.source_branch_name,
+                target_branch_name=input_.target_branch_name,
+            )
+        ).result
+        == Result.FAIL
+    ):
         return source_branch_report
 
     if (
-        collaborators_report := collaborators(repository_name=repository_name)
-    ).result == Result.FAIL:
+        policy.enabled(name=policy.Property.COLLABORATORS, policy_document=used_policy_document)
+        and (collaborators_report := collaborators(repository_name=input_.repository_name)).result
+        == Result.FAIL
+    ):
         return collaborators_report
 
     if (
-        execute_job_report := execute_job(
-            repository_name=repository_name,
-            source_repository_name=source_repository_name,
-            branch_name=source_branch_name,
-            commit_sha=commit_sha,
-        )
-    ).result == Result.FAIL:
+        policy.enabled(name=policy.Property.EXECUTE_JOB, policy_document=used_policy_document)
+        and (
+            execute_job_report := execute_job(
+                repository_name=input_.repository_name,
+                source_repository_name=input_.source_repository_name,
+                branch_name=input_.source_branch_name,
+                commit_sha=input_.commit_sha,
+            )
+        ).result
+        == Result.FAIL
+    ):
         return execute_job_report
 
     return Report(result=Result.PASS, reason=None)
