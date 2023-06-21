@@ -9,6 +9,7 @@ from typing import NamedTuple, cast
 
 from github import Github
 from github.Branch import Branch
+from github.Repository import Repository
 from pydantic import BaseModel, Field
 
 from . import policy
@@ -93,6 +94,40 @@ def _check_signed_commits_required(branch: Branch) -> Report:
     """
     if not branch.get_required_signatures():
         return Report(result=Result.FAIL, reason=f"signed commits not required, {branch.name=!r}")
+    return Report(result=Result.PASS, reason=None)
+
+
+def _check_unique_commits_signed(
+    branch_name: Branch, other_branch_name: Branch, repository: Repository
+) -> Report:
+    """Check that the commits unique to a branch are signed.
+
+    Args:
+        branch: The name of the branch to check.
+        branch_name: The name of the branch which will be used to exclude commits.
+        repository: The repository the branches are on.
+
+    Returns:
+        Whether the unique commits on the branch are signed.
+    """
+    other_branch_commit_shas = {
+        commit.sha for commit in repository.get_commits(sha=other_branch_name)
+    }
+    branch_commits = repository.get_commits(sha=branch_name)
+    unique_branch_commits = (
+        commit for commit in branch_commits if commit.sha not in other_branch_commit_shas
+    )
+    unsigned_unique_branch_commits = (
+        commit
+        for commit in unique_branch_commits
+        if not commit.commit.raw_data["verification"]["verified"]
+    )
+    if first_unsigned_commit := next(unsigned_unique_branch_commits, None):
+        return Report(
+            result=Result.FAIL,
+            reason=f"commit is not signed, {branch_name=!r}, {first_unsigned_commit.sha=!r}",
+        )
+
     return Report(result=Result.PASS, reason=None)
 
 
@@ -285,24 +320,66 @@ def source_branch_protection(
     ).result == Result.FAIL:
         return signed_commits_report
 
-    # Check that all commits unique to the source branch are signed
     repository = github_client.get_repo(repository_name)
-    target_branch_commit_shas = {
-        commit.sha for commit in repository.get_commits(sha=target_branch_name)
-    }
-    source_branch_commits = repository.get_commits(sha=branch_name)
-    unique_source_branch_commits = (
-        commit for commit in source_branch_commits if commit.sha not in target_branch_commit_shas
+    if (
+        unique_commits_signed_report := _check_unique_commits_signed(
+            branch_name=branch_name,
+            other_branch_name=target_branch_name,
+            repository=repository,
+        )
+    ).result == Result.FAIL:
+        return unique_commits_signed_report
+
+    return Report(result=Result.PASS, reason=None)
+
+
+@inject_github_client
+def branch_protection(
+    github_client: Github,
+    repository_name: str,
+    branch_name: str,
+    commit_sha: str,
+) -> Report:
+    """Check that the branch has appropriate protections.
+
+    Args:
+        github_client: The client to be used for GitHub API interactions.
+        repository_name: The name of the repository to run the check on.
+        branch_name: The name of the branch to check.
+        commit_sha: The SHA of the commit that the workflow run is on.
+
+    Returns:
+        Whether the branch has appropriate protections.
+    """
+
+    branch = _get_branch(
+        github_client=github_client, repository_name=repository_name, branch_name=branch_name
     )
-    unsigned_unique_source_branch_commits = (
-        commit
-        for commit in unique_source_branch_commits
-        if not commit.commit.raw_data["verification"]["verified"]
-    )
-    if first_unsigned_commit := next(unsigned_unique_source_branch_commits, None):
+
+    if (protected_report := _check_branch_protected(branch=branch)).result == Result.FAIL:
+        return protected_report
+
+    if (
+        signed_commits_report := _check_signed_commits_required(branch=branch)
+    ).result == Result.FAIL:
+        return signed_commits_report
+
+    repository = github_client.get_repo(repository_name)
+    if (
+        unique_commits_signed_report := _check_unique_commits_signed(
+            branch_name=branch_name,
+            other_branch_name=repository.default_branch,
+            repository=repository,
+        )
+    ).result == Result.FAIL:
+        return unique_commits_signed_report
+
+    # Check that the commit the job is running on is signed
+    commit = repository.get_commit(sha=commit_sha)
+    if not commit.commit.raw_data["verification"]["verified"]:
         return Report(
             result=Result.FAIL,
-            reason=f"commit is not signed, {branch.name=!r}, {first_unsigned_commit.sha=!r}",
+            reason=f"commit is not signed, {branch_name=!r}, {commit_sha=!r}",
         )
 
     return Report(result=Result.PASS, reason=None)
