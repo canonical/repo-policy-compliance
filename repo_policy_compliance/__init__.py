@@ -9,6 +9,7 @@ from typing import NamedTuple, cast
 
 from github import Github
 from github.Branch import Branch
+from pydantic import BaseModel, Field
 
 from . import policy
 from .comment import remove_quote_lines
@@ -105,7 +106,7 @@ class UsedPolicy(Enum):
     ALL = 1
 
 
-class Input(NamedTuple):
+class Input(BaseModel):
     """Input arguments for checks.
 
     Attrs:
@@ -116,11 +117,11 @@ class Input(NamedTuple):
         commit_sha: The SHA of the commit that the workflow run is on.
     """
 
-    repository_name: str
-    source_repository_name: str
-    target_branch_name: str
-    source_branch_name: str
-    commit_sha: str
+    repository_name: str = Field(min_length=1)
+    source_repository_name: str = Field(min_length=1)
+    target_branch_name: str = Field(min_length=1)
+    source_branch_name: str = Field(min_length=1)
+    commit_sha: str = Field(min_length=1)
 
 
 def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> Report:

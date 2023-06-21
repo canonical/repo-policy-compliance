@@ -130,6 +130,23 @@ def test_check_run_twice_same_token(
     assert second_response.status_code == 401, second_response.data
 
 
+def test_check_run_not_json(client: FlaskClient, runner_token: str):
+    """
+    arrange: given flask application with the blueprint registered and the charm token environment
+        variable set
+    act: when check run is requested with a runner token and an data that isn't JSON
+    assert: then 400 is returned.
+    """
+    response = client.post(
+        blueprint.CHECK_RUN_ENDPOINT,
+        data="",
+        headers={"Authorization": f"Bearer {runner_token}"},
+    )
+
+    assert response.status_code == 415, response.data
+    assert_.substrings_in_string(("Content-Type", "JSON"), response.data.decode("utf-8"))
+
+
 def test_check_run_missing_data(client: FlaskClient, runner_token: str):
     """
     arrange: given flask application with the blueprint registered and the charm token environment
@@ -179,6 +196,28 @@ def test_check_run_fail(
     assert_.substrings_in_string(
         ("branch protection", "not enabled"), response.data.decode("utf-8")
     )
+
+
+def test_check_run_empty_values(client: FlaskClient, runner_token: str):
+    """
+    arrange: given flask application with the blueprint registered and the charm token environment
+        variable set
+    act: when check run is requested with a runner token and a run with empty values
+    assert: then 400 is returned.
+    """
+    response = client.post(
+        blueprint.CHECK_RUN_ENDPOINT,
+        json={
+            "repository_name": "",
+            "source_repository_name": "",
+            "target_branch_name": "",
+            "source_branch_name": "",
+            "commit_sha": "",
+        },
+        headers={"Authorization": f"Bearer {runner_token}"},
+    )
+
+    assert response.status_code == 400, response.data
 
 
 def test_check_run_pass(client: FlaskClient, runner_token: str, github_repository: Repository):
