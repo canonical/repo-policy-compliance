@@ -135,7 +135,7 @@ def test_check_run_not_json(client: FlaskClient, runner_token: str):
     arrange: given flask application with the blueprint registered and the charm token environment
         variable set
     act: when check run is requested with a runner token and an data that isn't JSON
-    assert: then 400 is returned.
+    assert: then 415 is returned.
     """
     response = client.post(
         blueprint.CHECK_RUN_ENDPOINT,
