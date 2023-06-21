@@ -165,14 +165,7 @@ def check_run(body: Input) -> Response:
     if stored_policy_document_contents := policy_document_path.read_text(encoding="utf-8"):
         policy_document = json.loads(stored_policy_document_contents)
 
-    input_ = Input(
-        repository_name=body.repository_name,
-        source_repository_name=body.source_repository_name,
-        target_branch_name=body.target_branch_name,
-        source_branch_name=body.source_branch_name,
-        commit_sha=body.commit_sha,
-    )
-    if (report := all_(input_=input_, policy_document=policy_document)).result == Result.FAIL:
+    if (report := all_(input_=body, policy_document=policy_document)).result == Result.FAIL:
         return Response(response=report.reason, status=403)
 
     return Response(status=204)

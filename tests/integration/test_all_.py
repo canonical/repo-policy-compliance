@@ -74,8 +74,8 @@ def test_fail_target_branch(
             repository_name=github_repository_name,
             source_repository_name=github_repository_name,
             target_branch_name=github_branch.name,
-            source_branch_name="",
-            commit_sha="",
+            source_branch_name="branch 1",
+            commit_sha="sha 1",
         ),
         policy_document=policy_document,
     )
