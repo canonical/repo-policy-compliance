@@ -41,6 +41,7 @@ CHARM_TOKEN_ENV_NAME = "CHARM_TOKEN"  # nosec
 ONE_TIME_TOKEN_ENDPOINT = "/one-time-token"  # nosec
 POLICY_ENDPOINT = "/policy"
 CHECK_RUN_ENDPOINT = "/check-run"
+PULL_REQUEST_CHECK_RUN_ENDPOINT = "/pull_request/check-run"
 
 
 class Users(str, Enum):
@@ -149,10 +150,12 @@ def policy_endpoint() -> Response:
     return Response(status=204)
 
 
+# Keeping /check-run pointing to this for backwards compatibility
 @repo_policy_compliance.route(CHECK_RUN_ENDPOINT, methods=["POST"])
+@repo_policy_compliance.route(PULL_REQUEST_CHECK_RUN_ENDPOINT, methods=["POST"])
 @auth.login_required(role=RUNNER_ROLE)
 @validate()
-def check_run(body: PullRequestInput) -> Response:
+def pull_request_check_run(body: PullRequestInput) -> Response:
     """Check whether a run should proceed.
 
     Args:

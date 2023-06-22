@@ -5,6 +5,7 @@
 
 import itertools
 import secrets
+from collections.abc import Iterable
 from uuid import uuid4
 
 import pytest
@@ -130,35 +131,39 @@ def test_check_run_twice_same_token(
     assert second_response.status_code == 401, second_response.data
 
 
-def test_check_run_not_json(client: FlaskClient, runner_token: str):
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        pytest.param(blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT, id="pull request"),
+    ],
+)
+def test_check_run_not_json(endpoint: str, client: FlaskClient, runner_token: str):
     """
     arrange: given flask application with the blueprint registered and the charm token environment
-        variable set
-    act: when check run is requested with a runner token and an data that isn't JSON
+        variable set and an endpoint
+    act: when check run endpoint is requested with a runner token and an data that isn't JSON
     assert: then 415 is returned.
     """
-    response = client.post(
-        blueprint.CHECK_RUN_ENDPOINT,
-        data="",
-        headers={"Authorization": f"Bearer {runner_token}"},
-    )
+    response = client.post(endpoint, data="", headers={"Authorization": f"Bearer {runner_token}"})
 
     assert response.status_code == 415, response.data
     assert_.substrings_in_string(("Content-Type", "JSON"), response.data.decode("utf-8"))
 
 
-def test_check_run_missing_data(client: FlaskClient, runner_token: str):
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        pytest.param(blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT, id="pull request"),
+    ],
+)
+def test_check_run_missing_data(endpoint: str, client: FlaskClient, runner_token: str):
     """
     arrange: given flask application with the blueprint registered and the charm token environment
-        variable set
-    act: when check run is requested with a runner token and an not all required data
+        variable set and an endpoint
+    act: when check run endpoint is requested with a runner token and an not all required data
     assert: then 400 is returned.
     """
-    response = client.post(
-        blueprint.CHECK_RUN_ENDPOINT,
-        json={},
-        headers={"Authorization": f"Bearer {runner_token}"},
-    )
+    response = client.post(endpoint, json={}, headers={"Authorization": f"Bearer {runner_token}"})
 
     assert response.status_code == 400, response.data
     assert_.substrings_in_string(
@@ -171,17 +176,17 @@ def test_check_run_missing_data(client: FlaskClient, runner_token: str):
     [f"test-branch/blueprint/fail/{uuid4()}"],
     indirect=True,
 )
-def test_check_run_fail(
+def test_pull_request_check_run_fail(
     client: FlaskClient, runner_token: str, github_repository: Repository, github_branch: Branch
 ):
     """
     arrange: given flask application with the blueprint registered and the charm token environment
         variable set
-    act: when check run is requested with a runner token and an invalid run
+    act: when pull request check run is requested with a runner token and an invalid run
     assert: then 403 is returned.
     """
     response = client.post(
-        blueprint.CHECK_RUN_ENDPOINT,
+        blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
         json={
             "repository_name": github_repository.full_name,
             "source_repository_name": github_repository.full_name,
@@ -198,39 +203,54 @@ def test_check_run_fail(
     )
 
 
-def test_check_run_empty_values(client: FlaskClient, runner_token: str):
+@pytest.mark.parametrize(
+    "endpoint, props",
+    [
+        pytest.param(
+            blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
+            policy.PullRequestProperty,
+            id="pull request",
+        ),
+    ],
+)
+def test_check_run_empty_values(
+    endpoint: str, props: Iterable[str], client: FlaskClient, runner_token: str
+):
     """
     arrange: given flask application with the blueprint registered and the charm token environment
-        variable set
-    act: when check run is requested with a runner token and a run with empty values
+        variable set and an endpoint
+    act: when check run endpoint is requested with a runner token and a run with empty values
     assert: then 400 is returned.
     """
     response = client.post(
-        blueprint.CHECK_RUN_ENDPOINT,
-        json={
-            "repository_name": "",
-            "source_repository_name": "",
-            "target_branch_name": "",
-            "source_branch_name": "",
-            "commit_sha": "",
-        },
+        endpoint,
+        json={prop: "" for prop in props},
         headers={"Authorization": f"Bearer {runner_token}"},
     )
 
     assert response.status_code == 400, response.data
 
 
-def test_check_run_pass(client: FlaskClient, runner_token: str, github_repository: Repository):
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        pytest.param(blueprint.CHECK_RUN_ENDPOINT, id="check run"),
+        pytest.param(blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT, id="pull request"),
+    ],
+)
+def test_check_run_pass(
+    endpoint: str, client: FlaskClient, runner_token: str, github_repository: Repository
+):
     """
     arrange: given flask application with the blueprint registered and the charm token environment
         variable set
-    act: when check run is requested with a runner token and a valid run
+    act: when pull request check run is requested with a runner token and a valid run
     assert: then 204 is returned.
     """
     main_branch = github_repository.get_branch(github_repository.default_branch)
 
     response = client.post(
-        blueprint.CHECK_RUN_ENDPOINT,
+        endpoint,
         json={
             "repository_name": github_repository.full_name,
             "source_repository_name": github_repository.full_name,
@@ -252,6 +272,11 @@ def test_check_run_pass(client: FlaskClient, runner_token: str, github_repositor
         ),
         pytest.param(blueprint.POLICY_ENDPOINT, "post", id=blueprint.POLICY_ENDPOINT),
         pytest.param(blueprint.CHECK_RUN_ENDPOINT, "post", id=blueprint.CHECK_RUN_ENDPOINT),
+        pytest.param(
+            blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
+            "post",
+            id=blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
+        ),
     ],
 )
 def test_endpoint_method_unauth(endpoint: str, method: str, client: FlaskClient):
@@ -290,7 +315,7 @@ def test_policy_invalid(client: FlaskClient, charm_token: str):
     [f"test-branch/blueprint/fail/{uuid4()}"],
     indirect=True,
 )
-def test_check_run_fail_policy_disabled(
+def test_pull_request_check_run_fail_policy_disabled(
     client: FlaskClient,
     runner_token: str,
     charm_token: str,
@@ -300,12 +325,12 @@ def test_check_run_fail_policy_disabled(
     """
     arrange: given flask application with the blueprint registered and the charm token environment
         variable set
-    act: when check run is requested with a runner token and an invalid run and with the policy
-        enabled and then disabled
+    act: when pull request check run is requested with a runner token and an invalid run and with
+        the policy enabled and then disabled
     assert: then 403 and 204 is returned, respectively.
     """
     fail_response = client.post(
-        blueprint.CHECK_RUN_ENDPOINT,
+        blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
         json={
             "repository_name": github_repository.full_name,
             "source_repository_name": github_repository.full_name,
