@@ -22,7 +22,7 @@ from flask import Blueprint, Response, request
 from flask_httpauth import HTTPTokenAuth
 from flask_pydantic import validate
 
-from . import Input, Result, UsedPolicy, all_, policy
+from . import PullRequestInput, Result, UsedPolicy, policy, pull_request
 
 repo_policy_compliance = Blueprint("repo_policy_compliance", __name__)
 auth = HTTPTokenAuth(scheme="Bearer")
@@ -152,7 +152,7 @@ def policy_endpoint() -> Response:
 @repo_policy_compliance.route(CHECK_RUN_ENDPOINT, methods=["POST"])
 @auth.login_required(role=RUNNER_ROLE)
 @validate()
-def check_run(body: Input) -> Response:
+def check_run(body: PullRequestInput) -> Response:
     """Check whether a run should proceed.
 
     Args:
@@ -165,7 +165,9 @@ def check_run(body: Input) -> Response:
     if stored_policy_document_contents := policy_document_path.read_text(encoding="utf-8"):
         policy_document = json.loads(stored_policy_document_contents)
 
-    if (report := all_(input_=body, policy_document=policy_document)).result == Result.FAIL:
+    if (
+        report := pull_request(input_=body, policy_document=policy_document)
+    ).result == Result.FAIL:
         return Response(response=report.reason, status=403)
 
     return Response(status=204)

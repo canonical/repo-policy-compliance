@@ -141,7 +141,7 @@ class UsedPolicy(Enum):
     ALL = 1
 
 
-class Input(BaseModel):
+class PullRequestInput(BaseModel):
     """Input arguments for checks.
 
     Attrs:
@@ -159,7 +159,9 @@ class Input(BaseModel):
     commit_sha: str = Field(min_length=1)
 
 
-def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> Report:
+def pull_request(
+    input_: PullRequestInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
+) -> Report:
     """Run all the checks.
 
     Args:

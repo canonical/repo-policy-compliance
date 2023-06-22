@@ -9,7 +9,7 @@ import pytest
 from github.Branch import Branch
 from github.Repository import Repository
 
-from repo_policy_compliance import Input, Result, all_, policy
+from repo_policy_compliance import PullRequestInput, Result, policy, pull_request
 
 from .types_ import BranchWithProtection, RequestedCollaborator
 
@@ -17,13 +17,13 @@ from .types_ import BranchWithProtection, RequestedCollaborator
 def test_invalid_policy():
     """
     arrange: given invalid policy
-    act: when all_ is called with the policy
+    act: when pull_request is called with the policy
     assert: then a fail report is returned.
     """
     policy_document = {"invalid": {**policy.ENABLED_RULE}}
 
-    report = all_(
-        input_=Input(
+    report = pull_request(
+        input_=PullRequestInput(
             repository_name="repository 1",
             source_repository_name="repository 2",
             target_branch_name="branch 1",
@@ -62,15 +62,15 @@ def test_fail_target_branch(
 ):
     """
     arrange: given a target branch that is not compliant and whether the policy is enabled
-    act: when all_ is called with the policy
+    act: when pull_request is called with the policy
     assert: then the expected report is returned.
     """
     policy_document = {
         policy.Property.TARGET_BRANCH_PROTECTION: {policy.ENABLED_KEY: policy_enabled}
     }
 
-    report = all_(
-        input_=Input(
+    report = pull_request(
+        input_=PullRequestInput(
             repository_name=github_repository_name,
             source_repository_name=github_repository_name,
             target_branch_name=github_branch.name,
@@ -116,15 +116,15 @@ def test_fail_source_branch(
 ):
     """
     arrange: given a source branch that is not compliant and whether the policy is enabled
-    act: when all_ is called with the policy
+    act: when pull_request is called with the policy
     assert: then the expected report is returned.
     """
     policy_document = {
         policy.Property.SOURCE_BRANCH_PROTECTION: {policy.ENABLED_KEY: policy_enabled}
     }
 
-    report = all_(
-        input_=Input(
+    report = pull_request(
+        input_=PullRequestInput(
             repository_name=github_repository_name,
             source_repository_name=github_repository_name,
             target_branch_name=github_branch.name,
@@ -170,13 +170,13 @@ def test_fail_collaborators(
     """
     arrange: given a source and target branch that are compliant and outside collaborators with
         more than read permission and whether the policy is enabled
-    act: when all_ is called with the policy
+    act: when pull_request is called with the policy
     assert: then the expected report is returned.
     """
     policy_document = {policy.Property.COLLABORATORS: {policy.ENABLED_KEY: policy_enabled}}
 
-    report = all_(
-        input_=Input(
+    report = pull_request(
+        input_=PullRequestInput(
             repository_name=github_repository_name,
             source_repository_name=github_repository_name,
             target_branch_name=github_branch.name,
@@ -225,13 +225,13 @@ def test_fail_execute_job(  # pylint: disable=too-many-arguments
     """
     arrange: given a target and repository that is compliant and a source branch that is a fork and
         whether the policy is enabled
-    act: when all_ is called with the policy
+    act: when pull_request is called with the policy
     assert: then the expected report is returned.
     """
     policy_document = {policy.Property.EXECUTE_JOB: {policy.ENABLED_KEY: policy_enabled}}
 
-    report = all_(
-        input_=Input(
+    report = pull_request(
+        input_=PullRequestInput(
             repository_name=github_repository_name,
             source_repository_name=forked_github_repository.full_name,
             target_branch_name=github_branch.name,
@@ -253,11 +253,11 @@ def test_fail_execute_job(  # pylint: disable=too-many-arguments
 def test_pass(github_branch: Branch, github_repository_name: str):
     """
     arrange: given a source and target branch and repository that is compliant
-    act: when all_ is called
+    act: when pull_request is called
     assert: then a pass report is returned.
     """
-    report = all_(
-        input_=Input(
+    report = pull_request(
+        input_=PullRequestInput(
             repository_name=github_repository_name,
             source_repository_name=github_repository_name,
             target_branch_name=github_branch.name,
