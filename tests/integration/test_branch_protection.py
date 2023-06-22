@@ -89,7 +89,8 @@ def fixture_branch_for_commit_not_signed_fail(
         "test.txt", "testing", "some content", branch=forked_github_branch.name
     )
 
-    # Change default branch
+    # Change default branch so that the commit is ignored by the check for unique commits being
+    # signed
     forked_github_repository.edit(default_branch=forked_github_branch.name)
 
     branch_with_protection = BranchWithProtection(
