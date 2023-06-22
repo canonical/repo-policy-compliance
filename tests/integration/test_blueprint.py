@@ -278,7 +278,7 @@ def test_policy_invalid(client: FlaskClient, charm_token: str):
     """
     response = client.post(
         blueprint.POLICY_ENDPOINT,
-        json={"invalid": {**policy.ENABLED_RULE}},
+        json={"invalid": "value"},
         headers={"Authorization": f"Bearer {charm_token}"},
     )
 
@@ -321,7 +321,11 @@ def test_check_run_fail_policy_disabled(
     # Disable branch protection policy
     policy_response = client.post(
         blueprint.POLICY_ENDPOINT,
-        json={policy.Property.TARGET_BRANCH_PROTECTION: {policy.ENABLED_KEY: False}},
+        json={
+            policy.JobType.PULL_REQUEST: {
+                policy.PullRequestProperty.TARGET_BRANCH_PROTECTION: {policy.ENABLED_KEY: False}
+            }
+        },
         headers={"Authorization": f"Bearer {charm_token}"},
     )
 

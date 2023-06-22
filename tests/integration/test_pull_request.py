@@ -66,7 +66,11 @@ def test_fail_target_branch(
     assert: then the expected report is returned.
     """
     policy_document = {
-        policy.Property.TARGET_BRANCH_PROTECTION: {policy.ENABLED_KEY: policy_enabled}
+        policy.JobType.PULL_REQUEST: {
+            policy.PullRequestProperty.TARGET_BRANCH_PROTECTION: {
+                policy.ENABLED_KEY: policy_enabled
+            }
+        }
     }
 
     report = pull_request(
@@ -120,7 +124,11 @@ def test_fail_source_branch(
     assert: then the expected report is returned.
     """
     policy_document = {
-        policy.Property.SOURCE_BRANCH_PROTECTION: {policy.ENABLED_KEY: policy_enabled}
+        policy.JobType.PULL_REQUEST: {
+            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION: {
+                policy.ENABLED_KEY: policy_enabled
+            }
+        }
     }
 
     report = pull_request(
@@ -173,7 +181,11 @@ def test_fail_collaborators(
     act: when pull_request is called with the policy
     assert: then the expected report is returned.
     """
-    policy_document = {policy.Property.COLLABORATORS: {policy.ENABLED_KEY: policy_enabled}}
+    policy_document = {
+        policy.JobType.PULL_REQUEST: {
+            policy.PullRequestProperty.COLLABORATORS: {policy.ENABLED_KEY: policy_enabled}
+        }
+    }
 
     report = pull_request(
         input_=PullRequestInput(
@@ -228,7 +240,11 @@ def test_fail_execute_job(  # pylint: disable=too-many-arguments
     act: when pull_request is called with the policy
     assert: then the expected report is returned.
     """
-    policy_document = {policy.Property.EXECUTE_JOB: {policy.ENABLED_KEY: policy_enabled}}
+    policy_document = {
+        policy.JobType.PULL_REQUEST: {
+            policy.PullRequestProperty.EXECUTE_JOB: {policy.ENABLED_KEY: policy_enabled}
+        }
+    }
 
     report = pull_request(
         input_=PullRequestInput(

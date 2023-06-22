@@ -3,14 +3,26 @@
 
 type: object
 properties:
-  target_branch_protection:
-    $ref: "#/$defs/rule"
-  source_branch_protection:
-    $ref: "#/$defs/rule"
-  collaborators:
-    $ref: "#/$defs/rule"
-  execute_job:
-    $ref: "#/$defs/rule"
+  pull_request:
+    type: object
+    properties:
+      target_branch_protection:
+        $ref: "#/$defs/rule"
+      source_branch_protection:
+        $ref: "#/$defs/rule"
+      collaborators:
+        $ref: "#/$defs/rule"
+      execute_job:
+        $ref: "#/$defs/rule"
+    additionalProperties: false
+  workflow_dispatch:
+    type: object
+    properties:
+      branch_protection:
+        $ref: "#/$defs/rule"
+      collaborators:
+        $ref: "#/$defs/rule"
+    additionalProperties: false
 additionalProperties: false
 $defs:
   rule:

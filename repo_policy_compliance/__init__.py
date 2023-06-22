@@ -184,7 +184,9 @@ def pull_request(
     # pylint: disable=no-value-for-parameter
     if (
         policy.enabled(
-            name=policy.Property.TARGET_BRANCH_PROTECTION, policy_document=used_policy_document
+            job_type=policy.JobType.PULL_REQUEST,
+            name=policy.PullRequestProperty.TARGET_BRANCH_PROTECTION,
+            policy_document=used_policy_document,
         )
         and (
             target_branch_report := target_branch_protection(
@@ -197,7 +199,9 @@ def pull_request(
 
     if (
         policy.enabled(
-            name=policy.Property.SOURCE_BRANCH_PROTECTION, policy_document=used_policy_document
+            job_type=policy.JobType.PULL_REQUEST,
+            name=policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION,
+            policy_document=used_policy_document,
         )
         and (
             source_branch_report := source_branch_protection(
@@ -212,14 +216,22 @@ def pull_request(
         return source_branch_report
 
     if (
-        policy.enabled(name=policy.Property.COLLABORATORS, policy_document=used_policy_document)
+        policy.enabled(
+            job_type=policy.JobType.PULL_REQUEST,
+            name=policy.PullRequestProperty.COLLABORATORS,
+            policy_document=used_policy_document,
+        )
         and (collaborators_report := collaborators(repository_name=input_.repository_name)).result
         == Result.FAIL
     ):
         return collaborators_report
 
     if (
-        policy.enabled(name=policy.Property.EXECUTE_JOB, policy_document=used_policy_document)
+        policy.enabled(
+            job_type=policy.JobType.PULL_REQUEST,
+            name=policy.PullRequestProperty.EXECUTE_JOB,
+            policy_document=used_policy_document,
+        )
         and (
             execute_job_report := execute_job(
                 repository_name=input_.repository_name,

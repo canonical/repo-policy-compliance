@@ -3,6 +3,8 @@
 
 """Tests for the policy module."""
 
+from itertools import chain, repeat
+
 import pytest
 
 from repo_policy_compliance import policy
@@ -15,29 +17,57 @@ from .. import assert_
     [
         pytest.param({}, True, None, id="empty"),
         pytest.param(
-            {"invalid": {**policy.ENABLED_RULE}}, False, ("invalid", "additional"), id="invalid"
-        ),
-        pytest.param(
-            {prop: {**policy.ENABLED_RULE} for prop in policy.Property}, True, None, id="all"
-        ),
-    ]
-    + [
-        pytest.param(
-            {prop: {}},
+            {"invalid": "value"},
             False,
-            ("invalid", policy.ENABLED_KEY, "required"),
-            id=f"{prop} invalid",
-        )
-        for prop in policy.Property
-    ]
-    + [
+            ("invalid", "additional"),
+            id="invalid top level",
+        ),
         pytest.param(
-            {prop: {**policy.ENABLED_RULE}},
+            {
+                policy.JobType.PULL_REQUEST: {
+                    name: {**policy.ENABLED_RULE} for name in policy.PullRequestProperty
+                },
+                policy.JobType.WORKFLOW_DISPATCH: {
+                    name: {**policy.ENABLED_RULE} for name in policy.WorkflowDispatchProperty
+                },
+            },
             True,
             None,
-            id=f"{prop} valid",
+            id="all",
+        ),
+    ]
+    + [
+        pytest.param(
+            {job_type: {"invalid": {**policy.ENABLED_RULE}}},
+            False,
+            ("invalid", "additional"),
+            id=f"invalid {job_type} level",
         )
-        for prop in policy.Property
+        for job_type in policy.JobType
+    ]
+    + [
+        pytest.param(
+            {job_type: {name: {}}},
+            False,
+            ("invalid", policy.ENABLED_KEY, "required"),
+            id=f"{job_type} {name} invalid",
+        )
+        for job_type, name in chain(
+            zip(repeat(policy.JobType.PULL_REQUEST), policy.PullRequestProperty),
+            zip(repeat(policy.JobType.WORKFLOW_DISPATCH), policy.WorkflowDispatchProperty),
+        )
+    ]
+    + [
+        pytest.param(
+            {job_type: {name: {**policy.ENABLED_RULE}}},
+            True,
+            None,
+            id=f"{job_type} {name} valid",
+        )
+        for job_type, name in chain(
+            zip(repeat(policy.JobType.PULL_REQUEST), policy.PullRequestProperty),
+            zip(repeat(policy.JobType.WORKFLOW_DISPATCH), policy.WorkflowDispatchProperty),
+        )
     ],
 )
 def test_check(document: dict, expected_result: bool, expected_reason: tuple[str, ...] | None):
