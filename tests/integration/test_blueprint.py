@@ -472,8 +472,8 @@ def test_workflow_dispatch_check_run_fail_policy_disabled(
     """
     arrange: given flask application with the blueprint registered and the charm token environment
         variable set
-    act: when workflow dispatch check run is requested with a runner token and an invalid run and with
-        the policy enabled and then disabled
+    act: when workflow dispatch check run is requested with a runner token and an invalid run and
+        with the policy enabled and then disabled
     assert: then 403 and 204 is returned, respectively.
     """
     fail_response = client.post(

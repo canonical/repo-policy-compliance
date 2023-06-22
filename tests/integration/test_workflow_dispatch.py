@@ -7,7 +7,6 @@ from uuid import uuid4
 
 import pytest
 from github.Branch import Branch
-from github.Repository import Repository
 
 from repo_policy_compliance import Result, WorkflowDispatchInput, policy, workflow_dispatch
 

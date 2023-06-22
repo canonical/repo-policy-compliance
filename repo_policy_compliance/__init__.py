@@ -98,13 +98,13 @@ def _check_signed_commits_required(branch: Branch) -> Report:
 
 
 def _check_unique_commits_signed(
-    branch_name: Branch, other_branch_name: Branch, repository: Repository
+    branch_name: str, other_branch_name: str, repository: Repository
 ) -> Report:
     """Check that the commits unique to a branch are signed.
 
     Args:
-        branch: The name of the branch to check.
-        branch_name: The name of the branch which will be used to exclude commits.
+        branch_name: The name of the branch to check.
+        other_branch_name: The name of the branch which will be used to exclude commits.
         repository: The repository the branches are on.
 
     Returns:
@@ -443,7 +443,6 @@ def branch_protection(
     Returns:
         Whether the branch has appropriate protections.
     """
-
     branch = _get_branch(
         github_client=github_client, repository_name=repository_name, branch_name=branch_name
     )

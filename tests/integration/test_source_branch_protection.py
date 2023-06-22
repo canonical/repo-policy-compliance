@@ -13,7 +13,6 @@ from github.Repository import Repository
 from repo_policy_compliance import Result, source_branch_protection
 
 from .. import assert_
-from . import branch_protection
 from .types_ import BranchWithProtection
 
 
@@ -77,38 +76,14 @@ def test_fail(
     )
 
 
-@pytest.fixture(name="source_branch_for_test_pass")
-def fixture_source_branch_for_test_pass(
-    github_branch: Branch, ci_github_repository: Repository | None
-):
-    """Create branch for the test_pass test."""
-    # Use the CI GitHub token to create a signed commit only in CI
-    if ci_github_repository:
-        ci_github_repository.create_file(
-            "test.txt", "testing", "some content", branch=github_branch.name
-        )
-
-    branch_with_protection = BranchWithProtection(
-        require_code_owner_reviews=False,
-        dismiss_stale_reviews_enabled=False,
-        bypass_pull_request_allowance_disabled=True,
-    )
-
-    branch_protection.edit(branch=github_branch, branch_with_protection=branch_with_protection)
-
-    yield github_branch
-
-    github_branch.remove_protection()
-
-
 @pytest.mark.parametrize(
-    "github_branch",
-    [f"test-branch/source-branch/protected/{uuid4()}"],
-    indirect=True,
+    "github_branch, protected_github_branch",
+    [(f"test-branch/source-branch/protected/{uuid4()}", BranchWithProtection())],
+    indirect=["github_branch", "protected_github_branch"],
 )
 def test_pass(
     github_repository: Repository,
-    source_branch_for_test_pass: Branch,
+    protected_github_branch_with_commit_in_ci: Branch,
     github_repository_name: str,
 ):
     """
@@ -122,7 +97,7 @@ def test_pass(
     report = source_branch_protection(  # pylint: disable=no-value-for-parameter
         repository_name=github_repository_name,
         source_repository_name=github_repository_name,
-        branch_name=source_branch_for_test_pass.name,
+        branch_name=protected_github_branch_with_commit_in_ci.name,
         target_branch_name=github_repository.default_branch,
     )
 

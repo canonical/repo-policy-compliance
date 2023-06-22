@@ -141,37 +141,12 @@ def test_commit_not_signed_fail(
     )
 
 
-@pytest.fixture(name="branch_for_test_pass")
-def fixture_branch_for_test_pass(github_branch: Branch, ci_github_repository: Repository | None):
-    """Create branch for the test_pass test."""
-    # Use the CI GitHub token to create a signed commit only in CI
-    if ci_github_repository:
-        ci_github_repository.create_file(
-            "test.txt", "testing", "some content", branch=github_branch.name
-        )
-
-    branch_with_protection = BranchWithProtection(
-        require_code_owner_reviews=False,
-        dismiss_stale_reviews_enabled=False,
-        bypass_pull_request_allowance_disabled=True,
-    )
-
-    test_branch_protection.edit(
-        branch=github_branch, branch_with_protection=branch_with_protection
-    )
-
-    yield github_branch
-
-    github_branch.remove_protection()
-
-
 @pytest.mark.parametrize(
-    "github_branch", [f"test-branch/branch/protected/{uuid4()}"], indirect=True
+    "github_branch, protected_github_branch",
+    [(f"test-branch/branch/protected/{uuid4()}", BranchWithProtection())],
+    indirect=["github_branch", "protected_github_branch"],
 )
-def test_pass(
-    branch_for_test_pass: Branch,
-    github_repository_name: str,
-):
+def test_pass(protected_github_branch_with_commit_in_ci: Branch, github_repository_name: str):
     """
     arrange: given a branch that is compliant including a signed commit only in CI (on local runs
         the branch has no unique commits and hence the check for unsigned commits will pass).
@@ -181,8 +156,8 @@ def test_pass(
     # The github_client is injected
     report = branch_protection(  # pylint: disable=no-value-for-parameter
         repository_name=github_repository_name,
-        branch_name=branch_for_test_pass.name,
-        commit_sha=branch_for_test_pass.commit.sha,
+        branch_name=protected_github_branch_with_commit_in_ci.name,
+        commit_sha=protected_github_branch_with_commit_in_ci.commit.sha,
     )
 
     assert report.reason is None
