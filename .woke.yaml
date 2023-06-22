@@ -1,0 +1,3 @@
+rules:
+  # Ignore "whitelist" - this is used in pylint configuration.
+  - name: whitelist

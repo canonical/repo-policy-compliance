@@ -20,6 +20,7 @@ from typing import cast
 
 from flask import Blueprint, Response, request
 from flask_httpauth import HTTPTokenAuth
+from flask_pydantic import validate
 
 from . import Input, Result, UsedPolicy, all_, policy
 
@@ -150,23 +151,21 @@ def policy_endpoint() -> Response:
 
 @repo_policy_compliance.route(CHECK_RUN_ENDPOINT, methods=["POST"])
 @auth.login_required(role=RUNNER_ROLE)
-def check_run() -> Response:
+@validate()
+def check_run(body: Input) -> Response:
     """Check whether a run should proceed.
+
+    Args:
+        body: The request body after it is validated.
 
     Returns:
         Either to proceed with the run or an error not to proceed with a reason why.
     """
-    data = cast(dict[str, str], request.json)
-    missing_keys = EXPECTED_KEYS - data.keys()
-    if missing_keys:
-        return Response(response=f"missing data, {missing_keys=}, {EXPECTED_KEYS=}", status=400)
-
     policy_document: dict | UsedPolicy = UsedPolicy.ALL
     if stored_policy_document_contents := policy_document_path.read_text(encoding="utf-8"):
         policy_document = json.loads(stored_policy_document_contents)
 
-    input_ = Input(**data)
-    if (report := all_(input_=input_, policy_document=policy_document)).result == Result.FAIL:
+    if (report := all_(input_=body, policy_document=policy_document)).result == Result.FAIL:
         return Response(response=report.reason, status=403)
 
     return Response(status=204)
