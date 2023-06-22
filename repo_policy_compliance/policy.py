@@ -48,7 +48,7 @@ class WorkflowDispatchProperty(str, Enum):
         COLLABORATORS: Particupants on a repository.
     """
 
-    RANCH_PROTECTION = "branch_protection"
+    BRANCH_PROTECTION = "branch_protection"
     COLLABORATORS = "collaborators"
 
 

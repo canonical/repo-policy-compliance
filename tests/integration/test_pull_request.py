@@ -1,7 +1,7 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Tests for the all_ function."""
+"""Tests for the pull_request function."""
 
 from uuid import uuid4
 
@@ -20,7 +20,7 @@ def test_invalid_policy():
     act: when pull_request is called with the policy
     assert: then a fail report is returned.
     """
-    policy_document = {"invalid": {**policy.ENABLED_RULE}}
+    policy_document = {"invalid": "value"}
 
     report = pull_request(
         input_=PullRequestInput(
@@ -40,13 +40,13 @@ def test_invalid_policy():
     "github_branch, policy_enabled, expected_result",
     [
         pytest.param(
-            f"test-branch/all/target-branch-fail-enabled/{uuid4()}",
+            f"test-branch/pull_request/target-branch-fail-enabled/{uuid4()}",
             True,
             Result.FAIL,
             id="policy enabled",
         ),
         pytest.param(
-            f"test-branch/all/target-branch-fail-disabled/{uuid4()}",
+            f"test-branch/pull_request/target-branch-fail-disabled/{uuid4()}",
             False,
             Result.PASS,
             id="policy disabled",
@@ -92,17 +92,17 @@ def test_fail_target_branch(
     "expected_result",
     [
         pytest.param(
-            f"test-branch/all/source-branch-fail-enabled/target/{uuid4()}",
+            f"test-branch/pull_request/source-branch-fail-enabled/target/{uuid4()}",
             BranchWithProtection(),
-            f"test-branch/all/source-branch-fail-enabled/source/{uuid4()}",
+            f"test-branch/pull_request/source-branch-fail-enabled/source/{uuid4()}",
             True,
             Result.FAIL,
             id="policy enabled",
         ),
         pytest.param(
-            f"test-branch/all/source-branch-fail-disabled/target/{uuid4()}",
+            f"test-branch/pull_request/source-branch-fail-disabled/target/{uuid4()}",
             BranchWithProtection(),
-            f"test-branch/all/source-branch-fail-disabled/source/{uuid4()}",
+            f"test-branch/pull_request/source-branch-fail-disabled/source/{uuid4()}",
             False,
             Result.PASS,
             id="policy disabled",
@@ -150,7 +150,7 @@ def test_fail_source_branch(
     "expected_result",
     [
         pytest.param(
-            f"test-branch/all/collaborators-fail-enabled/{uuid4()}",
+            f"test-branch/pull_request/collaborators-fail-enabled/{uuid4()}",
             BranchWithProtection(),
             RequestedCollaborator("admin", "admin"),
             True,
@@ -158,7 +158,7 @@ def test_fail_source_branch(
             id="policy enabled",
         ),
         pytest.param(
-            f"test-branch/all/collaborators-fail-disabled/{uuid4()}",
+            f"test-branch/pull_request/collaborators-fail-disabled/{uuid4()}",
             BranchWithProtection(),
             RequestedCollaborator("admin", "admin"),
             False,
@@ -206,17 +206,17 @@ def test_fail_collaborators(
     "expected_result",
     [
         pytest.param(
-            f"test-branch/all/execute-job-fail/target/{uuid4()}",
+            f"test-branch/pull_request/execute-job-fail/target/{uuid4()}",
             BranchWithProtection(),
-            f"test-branch/all/execute-job-fail/source/{uuid4()}",
+            f"test-branch/pull_request/execute-job-fail/source/{uuid4()}",
             True,
             Result.FAIL,
             id="policy enabled",
         ),
         pytest.param(
-            f"test-branch/all/execute-job-fail/target/{uuid4()}",
+            f"test-branch/pull_request/execute-job-fail/target/{uuid4()}",
             BranchWithProtection(),
-            f"test-branch/all/execute-job-fail/source/{uuid4()}",
+            f"test-branch/pull_request/execute-job-fail/source/{uuid4()}",
             False,
             Result.PASS,
             id="policy disabled",
@@ -262,7 +262,7 @@ def test_fail_execute_job(  # pylint: disable=too-many-arguments
 
 @pytest.mark.parametrize(
     "github_branch, protected_github_branch",
-    [(f"test-branch/all/pass/{uuid4()}", BranchWithProtection())],
+    [(f"test-branch/pull_request/pass/{uuid4()}", BranchWithProtection())],
     indirect=True,
 )
 @pytest.mark.usefixtures("protected_github_branch")
