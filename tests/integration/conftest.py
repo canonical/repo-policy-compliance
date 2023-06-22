@@ -213,19 +213,29 @@ def fixture_protected_github_branch(
         github_branch.remove_protection()
 
 
-# Need the protected_github_branch to get the fixture to trigger
 @pytest.fixture
 def protected_github_branch_with_commit_in_ci(
-    protected_github_branch: BranchWithProtection,  # pylint: disable=unused-argument
-    github_branch: Branch,
-    ci_github_repository: Repository | None,
-) -> Branch:
+    github_branch: Branch, ci_github_repository: Repository | None
+) -> Iterator[Branch]:
     """Add a signed commit if running in CI to a protected branch."""
     if ci_github_repository:
         ci_github_repository.create_file(
             "test.txt", "testing", "some content", branch=github_branch.name
         )
-    return github_branch
+
+    # Can't use protected_github_branch since the commit needs to be done before the branch
+    # protections are applied
+    branch_with_protection = BranchWithProtection(
+        require_code_owner_reviews=False,
+        dismiss_stale_reviews_enabled=False,
+        bypass_pull_request_allowance_disabled=True,
+    )
+
+    branch_protection.edit(branch=github_branch, branch_with_protection=branch_with_protection)
+
+    yield github_branch
+
+    github_branch.remove_protection()
 
 
 @pytest.fixture(name="collaborators_with_permission")

@@ -77,9 +77,7 @@ def test_fail(
 
 
 @pytest.mark.parametrize(
-    "github_branch, protected_github_branch",
-    [(f"test-branch/source-branch/protected/{uuid4()}", BranchWithProtection())],
-    indirect=["github_branch", "protected_github_branch"],
+    "github_branch", [f"test-branch/source-branch/protected/{uuid4()}"], indirect=["github_branch"]
 )
 def test_pass(
     github_repository: Repository,

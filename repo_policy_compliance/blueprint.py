@@ -173,9 +173,6 @@ def pull_request_check_run(body: PullRequestInput) -> Response:
     Args:
         body: The request body after it is validated.
 
-    Args:
-        body: The request body after it is validated.
-
     Returns:
         Either to proceed with the run or an error not to proceed with a reason why.
     """

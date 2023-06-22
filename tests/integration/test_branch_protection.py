@@ -142,9 +142,7 @@ def test_commit_not_signed_fail(
 
 
 @pytest.mark.parametrize(
-    "github_branch, protected_github_branch",
-    [(f"test-branch/branch/protected/{uuid4()}", BranchWithProtection())],
-    indirect=["github_branch", "protected_github_branch"],
+    "github_branch", [f"test-branch/branch/protected/{uuid4()}"], indirect=["github_branch"]
 )
 def test_pass(protected_github_branch_with_commit_in_ci: Branch, github_repository_name: str):
     """
