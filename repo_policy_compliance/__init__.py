@@ -159,6 +159,11 @@ class PullRequestInput(BaseModel):
     commit_sha: str = Field(min_length=1)
 
 
+EXPECTED_PULL_REQUEST_KEYS = tuple(
+    key for key in PullRequestInput.__dict__.keys() if not key.startswith("_")
+)
+
+
 def pull_request(
     input_: PullRequestInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
 ) -> Report:
@@ -259,6 +264,11 @@ class WorkflowDispatchInput(BaseModel):
     repository_name: str = Field(min_length=1)
     branch_name: str = Field(min_length=1)
     commit_sha: str = Field(min_length=1)
+
+
+EXPECTED_WORKFLOW_DISPATCH_KEYS = tuple(
+    key for key in PullRequestInput.__dict__.keys() if not key.startswith("_")
+)
 
 
 def workflow_dispatch(

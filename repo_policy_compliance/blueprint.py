@@ -22,7 +22,15 @@ from flask import Blueprint, Response, request
 from flask_httpauth import HTTPTokenAuth
 from flask_pydantic import validate
 
-from . import PullRequestInput, Result, UsedPolicy, policy, pull_request
+from . import (
+    PullRequestInput,
+    Result,
+    UsedPolicy,
+    WorkflowDispatchInput,
+    policy,
+    pull_request,
+    workflow_dispatch,
+)
 
 repo_policy_compliance = Blueprint("repo_policy_compliance", __name__)
 auth = HTTPTokenAuth(scheme="Bearer")
@@ -42,6 +50,7 @@ ONE_TIME_TOKEN_ENDPOINT = "/one-time-token"  # nosec
 POLICY_ENDPOINT = "/policy"
 CHECK_RUN_ENDPOINT = "/check-run"
 PULL_REQUEST_CHECK_RUN_ENDPOINT = "/pull_request/check-run"
+WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT = "/workflow_dispatch/check-run"
 
 
 class Users(str, Enum):
@@ -58,14 +67,6 @@ class Users(str, Enum):
 
 CHARM_ROLE = Users.CHARM
 RUNNER_ROLE = Users.RUNNER
-
-EXPECTED_KEYS = {
-    "repository_name",
-    "source_repository_name",
-    "target_branch_name",
-    "source_branch_name",
-    "commit_sha",
-}
 
 
 @auth.verify_token
@@ -150,13 +151,24 @@ def policy_endpoint() -> Response:
     return Response(status=204)
 
 
+def _get_policy_document() -> dict | UsedPolicy:
+    """Get the current policy document.
+
+    Returns:
+        The current policy document if set or that all policies should be used.
+    """
+    if stored_policy_document_contents := policy_document_path.read_text(encoding="utf-8"):
+        return cast(dict, json.loads(stored_policy_document_contents))
+    return UsedPolicy.ALL
+
+
 # Keeping /check-run pointing to this for backwards compatibility
 @repo_policy_compliance.route(CHECK_RUN_ENDPOINT, methods=["POST"])
 @repo_policy_compliance.route(PULL_REQUEST_CHECK_RUN_ENDPOINT, methods=["POST"])
 @auth.login_required(role=RUNNER_ROLE)
 @validate()
 def pull_request_check_run(body: PullRequestInput) -> Response:
-    """Check whether a run should proceed.
+    """Check whether a pull request run should proceed.
 
     Args:
         body: The request body after it is validated.
@@ -164,12 +176,32 @@ def pull_request_check_run(body: PullRequestInput) -> Response:
     Returns:
         Either to proceed with the run or an error not to proceed with a reason why.
     """
-    policy_document: dict | UsedPolicy = UsedPolicy.ALL
-    if stored_policy_document_contents := policy_document_path.read_text(encoding="utf-8"):
-        policy_document = json.loads(stored_policy_document_contents)
+    policy_document = _get_policy_document()
 
     if (
         report := pull_request(input_=body, policy_document=policy_document)
+    ).result == Result.FAIL:
+        return Response(response=report.reason, status=403)
+
+    return Response(status=204)
+
+
+@repo_policy_compliance.route(WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT, methods=["POST"])
+@auth.login_required(role=RUNNER_ROLE)
+@validate()
+def workflow_dispatch_check_run(body: WorkflowDispatchInput) -> Response:
+    """Check whether a workflow dispatch run should proceed.
+
+    Args:
+        body: The request body after it is validated.
+
+    Returns:
+        Either to proceed with the run or an error not to proceed with a reason why.
+    """
+    policy_document = _get_policy_document()
+
+    if (
+        report := workflow_dispatch(input_=body, policy_document=policy_document)
     ).result == Result.FAIL:
         return Response(response=report.reason, status=403)
 
