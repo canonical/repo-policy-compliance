@@ -72,7 +72,71 @@ def test_fail(
     assert report.result == Result.FAIL
     assert report.reason, "expected a reason along with the fail result"
     assert_.substrings_in_string(
-        itertools.chain(reason_string_array, github_branch.name), report.reason
+        itertools.chain(reason_string_array, (github_branch.name,)), report.reason
+    )
+
+
+@pytest.fixture(name="branch_for_commit_not_signed_fail")
+def fixture_branch_for_commit_not_signed_fail(
+    forked_github_branch: Branch, forked_github_repository: Repository
+):
+    """Create branch for the test_commit_not_signed_fail test.
+
+    Makes the branch the default branch for the repository and makes the latest commit unsigned.
+    """
+    # Make an unsigned commit
+    forked_github_repository.create_file(
+        "test.txt", "testing", "some content", branch=forked_github_branch.name
+    )
+
+    # Change default branch
+    forked_github_repository.edit(default_branch=forked_github_branch.name)
+
+    branch_with_protection = BranchWithProtection(
+        require_code_owner_reviews=False,
+        dismiss_stale_reviews_enabled=False,
+        bypass_pull_request_allowance_disabled=True,
+    )
+
+    test_branch_protection.edit(
+        branch=forked_github_branch, branch_with_protection=branch_with_protection
+    )
+
+    yield forked_github_branch
+
+    forked_github_branch.remove_protection()
+
+
+@pytest.mark.parametrize(
+    "forked_github_branch", [f"test-branch/branch/unsigned-commit/{uuid4()}"], indirect=True
+)
+def test_commit_not_signed_fail(
+    branch_for_commit_not_signed_fail: Branch,
+    forked_github_repository: Repository,
+):
+    """
+    arrange: given a branch that is compliant including a signed commit only in CI (on local runs
+        the branch has no unique commits and hence the check for unsigned commits will pass).
+    act: when branch_protection is called with the name of the branch.
+    assert: then a fail report is returned.
+    """
+    # Can't use branch_for_commit_not_signed_fail branch since it doesn't know about the latest
+    # commit
+    commit_sha = forked_github_repository.get_commit(
+        sha=branch_for_commit_not_signed_fail.name
+    ).sha
+
+    # The github_client is injected
+    report = branch_protection(  # pylint: disable=no-value-for-parameter
+        repository_name=forked_github_repository.full_name,
+        branch_name=branch_for_commit_not_signed_fail.name,
+        commit_sha=commit_sha,
+    )
+
+    assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
+    assert_.substrings_in_string(
+        ("commit", "not signed", commit_sha, branch_for_commit_not_signed_fail.name), report.reason
     )
 
 
