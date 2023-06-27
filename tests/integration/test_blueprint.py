@@ -14,14 +14,16 @@ from flask.testing import FlaskClient
 from github.Branch import Branch
 from github.Repository import Repository
 
-from repo_policy_compliance import (
-    EXPECTED_PULL_REQUEST_KEYS,
-    EXPECTED_WORKFLOW_DISPATCH_KEYS,
-    blueprint,
-    policy,
-)
+from repo_policy_compliance import PullRequestInput, WorkflowDispatchInput, blueprint, policy
 
 from .. import assert_
+
+EXPECTED_PULL_REQUEST_KEYS = tuple(
+    key for key in PullRequestInput.__dict__.keys() if not key.startswith("_")
+)
+EXPECTED_WORKFLOW_DISPATCH_KEYS = tuple(
+    key for key in WorkflowDispatchInput.__dict__.keys() if not key.startswith("_")
+)
 
 
 @pytest.fixture(name="app")

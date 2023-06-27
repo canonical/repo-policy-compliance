@@ -114,13 +114,11 @@ def _check_unique_commits_signed(
         commit.sha for commit in repository.get_commits(sha=other_branch_name)
     }
     branch_commits = repository.get_commits(sha=branch_name)
-    unique_branch_commits = (
-        commit for commit in branch_commits if commit.sha not in other_branch_commit_shas
-    )
     unsigned_unique_branch_commits = (
         commit
-        for commit in unique_branch_commits
-        if not commit.commit.raw_data["verification"]["verified"]
+        for commit in branch_commits
+        if commit.sha not in other_branch_commit_shas
+        and not commit.commit.raw_data["verification"]["verified"]
     )
     if first_unsigned_commit := next(unsigned_unique_branch_commits, None):
         return Report(
@@ -157,11 +155,6 @@ class PullRequestInput(BaseModel):
     target_branch_name: str = Field(min_length=1)
     source_branch_name: str = Field(min_length=1)
     commit_sha: str = Field(min_length=1)
-
-
-EXPECTED_PULL_REQUEST_KEYS = tuple(
-    key for key in PullRequestInput.__dict__.keys() if not key.startswith("_")
-)
 
 
 def pull_request(
@@ -264,11 +257,6 @@ class WorkflowDispatchInput(BaseModel):
     repository_name: str = Field(min_length=1)
     branch_name: str = Field(min_length=1)
     commit_sha: str = Field(min_length=1)
-
-
-EXPECTED_WORKFLOW_DISPATCH_KEYS = tuple(
-    key for key in PullRequestInput.__dict__.keys() if not key.startswith("_")
-)
 
 
 def workflow_dispatch(
@@ -470,7 +458,9 @@ def branch_protection(
     if not commit.commit.raw_data["verification"]["verified"]:
         return Report(
             result=Result.FAIL,
-            reason=f"commit is not signed, {branch_name=!r}, {commit_sha=!r}",
+            reason=(
+                f"commit the job is running on is not signed, {branch_name=!r}, {commit_sha=!r}"
+            ),
         )
 
     return Report(result=Result.PASS, reason=None)

@@ -116,8 +116,7 @@ def test_commit_not_signed_fail(
     forked_github_repository: Repository,
 ):
     """
-    arrange: given a branch that is compliant including a signed commit only in CI (on local runs
-        the branch has no unique commits and hence the check for unsigned commits will pass).
+    arrange: given a default branch where the last commit is not signed.
     act: when branch_protection is called with the name of the branch.
     assert: then a fail report is returned.
     """
