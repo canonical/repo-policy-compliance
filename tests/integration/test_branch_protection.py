@@ -114,12 +114,8 @@ def fixture_branch_for_commit_not_signed_fail(
         headers={"Accept": Consts.mediaTypeRequireMultipleApprovingReviews},
         input=post_parameters,
     )
-    forked_github_branch._requester.requestJsonAndCheck(  # type: ignore
-        "POST",
-        url=f"{forked_github_branch.protection_url}/required_signatures",
-        headers={"Accept": Consts.signaturesProtectedBranchesPreview},
-    )
     # pylint: enable=protected-access
+    forked_github_branch.add_required_signatures()
 
     yield forked_github_branch
 

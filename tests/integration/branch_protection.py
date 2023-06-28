@@ -41,11 +41,4 @@ def edit(branch: Branch, branch_with_protection: BranchWithProtection) -> None:
         )
 
     if branch_with_protection.required_signatures_enabled:
-        # This API endpoint is not supported by the library, we call it ourselves
-        # pylint: disable=protected-access
-        branch._requester.requestJsonAndCheck(  # type: ignore
-            "POST",
-            url=f"{branch.protection_url}/required_signatures",
-            headers={"Accept": Consts.signaturesProtectedBranchesPreview},
-        )
-        # pylint: enable=protected-access
+        branch.add_required_signatures()
