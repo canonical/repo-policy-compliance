@@ -9,6 +9,7 @@ from typing import Iterator, cast
 
 import pytest
 from github import Github
+from github.Auth import Token
 from github.Branch import Branch
 from github.Commit import Commit
 from github.GithubException import GithubException
@@ -58,7 +59,7 @@ def fixture_ci_github_repository(
     if not ci_github_token:
         return None
 
-    github_client = Github(login_or_token=ci_github_token)
+    github_client = Github(auth=Token(ci_github_token))
     return github_client.get_repo(github_repository_name)
 
 

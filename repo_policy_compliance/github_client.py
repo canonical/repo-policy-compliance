@@ -9,6 +9,7 @@ from typing import Callable, Concatenate, Literal, ParamSpec, TypeVar
 from urllib import parse
 
 from github import BadCredentialsException, Github, GithubException, RateLimitExceededException
+from github.Auth import Token
 from github.Repository import Repository
 
 from .exceptions import GithubClientError, InputError
@@ -35,7 +36,7 @@ def get() -> Github:
             f"The {GITHUB_TOKEN_ENV_NAME} environment variable was not provided or empty, "
             f"it is needed for interactions with GitHub, got: {github_token!r}"
         )
-    return Github(login_or_token=github_token)
+    return Github(auth=Token(github_token))
 
 
 def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:

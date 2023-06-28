@@ -7,6 +7,7 @@ import itertools
 from uuid import uuid4
 
 import pytest
+from github import Consts
 from github.Branch import Branch
 from github.Repository import Repository
 
@@ -93,15 +94,33 @@ def fixture_branch_for_commit_not_signed_fail(
     # signed
     forked_github_repository.edit(default_branch=forked_github_branch.name)
 
-    branch_with_protection = BranchWithProtection(
-        require_code_owner_reviews=False,
-        dismiss_stale_reviews_enabled=False,
-        bypass_pull_request_allowance_disabled=True,
+    # forked_github_branch.edit_protection seems to be broken as of version 1.59 of PyGithub.
+    # Without passing the users_bypass_pull_request_allowances the API returns a 422 indicating
+    # that None is not a valid value for bypass pull request allowances, with it there is a 422 for
+    # forks indicating that users and teams allowances can only be set on organisation
+    # repositories.
+    post_parameters = {
+        "required_status_checks": None,
+        "enforce_admins": None,
+        "required_pull_request_reviews": {
+            "dismiss_stale_reviews": False,
+            "require_code_owner_reviews": False,
+        },
+        "restrictions": None,
+    }
+    # pylint: disable=protected-access
+    forked_github_branch._requester.requestJsonAndCheck(  # type: ignore
+        "PUT",
+        forked_github_branch.protection_url,
+        headers={"Accept": Consts.mediaTypeRequireMultipleApprovingReviews},
+        input=post_parameters,
     )
-
-    test_branch_protection.edit(
-        branch=forked_github_branch, branch_with_protection=branch_with_protection
+    forked_github_branch._requester.requestJsonAndCheck(  # type: ignore
+        "POST",
+        url=f"{forked_github_branch.protection_url}/required_signatures",
+        headers={"Accept": Consts.signaturesProtectedBranchesPreview},
     )
+    # pylint: enable=protected-access
 
     yield forked_github_branch
 

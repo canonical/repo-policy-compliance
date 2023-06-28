@@ -19,12 +19,12 @@ GITHUB_BRANCH_NAME = "arbitrary"
     "raised_exception, expected_message",
     [
         pytest.param(
-            RateLimitExceededException("", "", {}),
+            RateLimitExceededException(0, "", {}),
             "Rate Limit Exceeded error",
             id="github_client rate limit error",
         ),
         pytest.param(
-            GithubException("", "", {}), "encountered an error", id="git_client other error"
+            GithubException(0, "", {}), "encountered an error", id="git_client other error"
         ),
     ],
 )
