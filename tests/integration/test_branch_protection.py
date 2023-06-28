@@ -14,7 +14,6 @@ from github.Repository import Repository
 from repo_policy_compliance import Result, branch_protection
 
 from .. import assert_
-from . import branch_protection as test_branch_protection
 from .types_ import BranchWithProtection
 
 

@@ -23,16 +23,21 @@ def edit(branch: Branch, branch_with_protection: BranchWithProtection) -> None:
             dismiss_stale_reviews=branch_with_protection.dismiss_stale_reviews_enabled,
             # This seems to be required as of version 1.59 of PyGithub, without it the API returns
             # an error indicating that None is not a valid value for bypass pull request
-            # allowances.
-            users_bypass_pull_request_allowances=[],
+            # allowances. Mypy also seems to be finding the wrong argument name
+            # user_bypass_pull_request_allowances which is not a valid argument. Reported here:
+            # https://github.com/PyGithub/PyGithub/issues/2578
+            users_bypass_pull_request_allowances=[],  # type: ignore
         )
     else:
         branch.edit_protection(
             require_code_owner_reviews=branch_with_protection.require_code_owner_reviews,
             dismiss_stale_reviews=branch_with_protection.dismiss_stale_reviews_enabled,
-            users_bypass_pull_request_allowances=["gregory-schiano", "jdkanderson"],
-            teams_bypass_pull_request_allowances=["is-charms"],
-            apps_bypass_pull_request_allowances=["test"],
+            users_bypass_pull_request_allowances=[  # type: ignore
+                "gregory-schiano",
+                "jdkanderson",
+            ],
+            teams_bypass_pull_request_allowances=["is-charms"],  # type: ignore
+            apps_bypass_pull_request_allowances=["test"],  # type: ignore
         )
 
     if branch_with_protection.required_signatures_enabled:
