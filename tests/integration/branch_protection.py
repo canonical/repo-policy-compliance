@@ -4,7 +4,6 @@
 """Functions that help with branch protection."""
 
 
-from github import Consts
 from github.Branch import Branch
 
 from .types_ import BranchWithProtection
