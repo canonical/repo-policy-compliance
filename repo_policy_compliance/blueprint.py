@@ -214,6 +214,6 @@ def health() -> Response:
     """Health check endpoint.
 
     Returns:
-        204 responsey.
+        204 response.
     """
     return Response(status=204)
