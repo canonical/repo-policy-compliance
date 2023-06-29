@@ -51,6 +51,7 @@ POLICY_ENDPOINT = "/policy"
 CHECK_RUN_ENDPOINT = "/check-run"
 PULL_REQUEST_CHECK_RUN_ENDPOINT = "/pull_request/check-run"
 WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT = "/workflow_dispatch/check-run"
+HEALTH_ENDPOINT = "/health"
 
 
 class Users(str, Enum):
@@ -205,4 +206,14 @@ def workflow_dispatch_check_run(body: WorkflowDispatchInput) -> Response:
     ).result == Result.FAIL:
         return Response(response=report.reason, status=403)
 
+    return Response(status=204)
+
+
+@repo_policy_compliance.route(HEALTH_ENDPOINT, methods=["GET"])
+def health() -> Response:
+    """Health check endpoint.
+
+    Returns:
+        204 responsey.
+    """
     return Response(status=204)

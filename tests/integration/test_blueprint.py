@@ -516,3 +516,14 @@ def test_workflow_dispatch_check_run_fail_policy_disabled(
     )
 
     assert disabled_response.status_code == 204, disabled_response.data
+
+
+def test_health(client: FlaskClient):
+    """
+    arrange: given flask application with the blueprint registered
+    act: when the health check endpoint is requested
+    assert: then 204 is returned.
+    """
+    response = client.get(blueprint.HEALTH_ENDPOINT)
+
+    assert response.status_code == 204, response.data
