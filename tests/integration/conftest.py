@@ -9,6 +9,7 @@ from typing import Iterator, cast
 
 import pytest
 from github import Github
+from github.Auth import Token
 from github.Branch import Branch
 from github.Commit import Commit
 from github.GithubException import GithubException
@@ -58,7 +59,7 @@ def fixture_ci_github_repository(
     if not ci_github_token:
         return None
 
-    github_client = Github(login_or_token=ci_github_token)
+    github_client = Github(auth=Token(ci_github_token))
     return github_client.get_repo(github_repository_name)
 
 
@@ -197,8 +198,8 @@ def pr_from_forked_github_branch(
     base_branch_ref.delete()
 
 
-@pytest.fixture
-def protected_github_branch(
+@pytest.fixture(name="protected_github_branch")
+def fixture_protected_github_branch(
     github_branch: Branch, request: pytest.FixtureRequest
 ) -> Iterator[BranchWithProtection]:
     """Add protection to a branch."""
@@ -211,6 +212,31 @@ def protected_github_branch(
 
     if branch_with_protection.branch_protection_enabled:
         github_branch.remove_protection()
+
+
+@pytest.fixture
+def protected_github_branch_with_commit_in_ci(
+    github_branch: Branch, ci_github_repository: Repository | None
+) -> Iterator[Branch]:
+    """Add a signed commit if running in CI to a protected branch."""
+    if ci_github_repository:
+        ci_github_repository.create_file(
+            "test.txt", "testing", "some content", branch=github_branch.name
+        )
+
+    # Can't use protected_github_branch since the commit needs to be done before the branch
+    # protections are applied
+    branch_with_protection = BranchWithProtection(
+        require_code_owner_reviews=False,
+        dismiss_stale_reviews_enabled=False,
+        bypass_pull_request_allowance_disabled=True,
+    )
+
+    branch_protection.edit(branch=github_branch, branch_with_protection=branch_with_protection)
+
+    yield github_branch
+
+    github_branch.remove_protection()
 
 
 @pytest.fixture(name="collaborators_with_permission")

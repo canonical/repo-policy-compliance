@@ -1,7 +1,7 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Tests for the all_ function."""
+"""Tests for the pull_request function."""
 
 from uuid import uuid4
 
@@ -9,7 +9,7 @@ import pytest
 from github.Branch import Branch
 from github.Repository import Repository
 
-from repo_policy_compliance import Input, Result, all_, policy
+from repo_policy_compliance import PullRequestInput, Result, policy, pull_request
 
 from .types_ import BranchWithProtection, RequestedCollaborator
 
@@ -17,13 +17,13 @@ from .types_ import BranchWithProtection, RequestedCollaborator
 def test_invalid_policy():
     """
     arrange: given invalid policy
-    act: when all_ is called with the policy
+    act: when pull_request is called with the policy
     assert: then a fail report is returned.
     """
-    policy_document = {"invalid": {**policy.ENABLED_RULE}}
+    policy_document = {"invalid": "value"}
 
-    report = all_(
-        input_=Input(
+    report = pull_request(
+        input_=PullRequestInput(
             repository_name="repository 1",
             source_repository_name="repository 2",
             target_branch_name="branch 1",
@@ -40,13 +40,13 @@ def test_invalid_policy():
     "github_branch, policy_enabled, expected_result",
     [
         pytest.param(
-            f"test-branch/all/target-branch-fail-enabled/{uuid4()}",
+            f"test-branch/pull_request/target-branch-fail-enabled/{uuid4()}",
             True,
             Result.FAIL,
             id="policy enabled",
         ),
         pytest.param(
-            f"test-branch/all/target-branch-fail-disabled/{uuid4()}",
+            f"test-branch/pull_request/target-branch-fail-disabled/{uuid4()}",
             False,
             Result.PASS,
             id="policy disabled",
@@ -62,15 +62,19 @@ def test_fail_target_branch(
 ):
     """
     arrange: given a target branch that is not compliant and whether the policy is enabled
-    act: when all_ is called with the policy
+    act: when pull_request is called with the policy
     assert: then the expected report is returned.
     """
     policy_document = {
-        policy.Property.TARGET_BRANCH_PROTECTION: {policy.ENABLED_KEY: policy_enabled}
+        policy.JobType.PULL_REQUEST: {
+            policy.PullRequestProperty.TARGET_BRANCH_PROTECTION: {
+                policy.ENABLED_KEY: policy_enabled
+            }
+        }
     }
 
-    report = all_(
-        input_=Input(
+    report = pull_request(
+        input_=PullRequestInput(
             repository_name=github_repository_name,
             source_repository_name=github_repository_name,
             target_branch_name=github_branch.name,
@@ -88,17 +92,17 @@ def test_fail_target_branch(
     "expected_result",
     [
         pytest.param(
-            f"test-branch/all/source-branch-fail-enabled/target/{uuid4()}",
+            f"test-branch/pull_request/source-branch-fail-enabled/target/{uuid4()}",
             BranchWithProtection(),
-            f"test-branch/all/source-branch-fail-enabled/source/{uuid4()}",
+            f"test-branch/pull_request/source-branch-fail-enabled/source/{uuid4()}",
             True,
             Result.FAIL,
             id="policy enabled",
         ),
         pytest.param(
-            f"test-branch/all/source-branch-fail-disabled/target/{uuid4()}",
+            f"test-branch/pull_request/source-branch-fail-disabled/target/{uuid4()}",
             BranchWithProtection(),
-            f"test-branch/all/source-branch-fail-disabled/source/{uuid4()}",
+            f"test-branch/pull_request/source-branch-fail-disabled/source/{uuid4()}",
             False,
             Result.PASS,
             id="policy disabled",
@@ -116,15 +120,19 @@ def test_fail_source_branch(
 ):
     """
     arrange: given a source branch that is not compliant and whether the policy is enabled
-    act: when all_ is called with the policy
+    act: when pull_request is called with the policy
     assert: then the expected report is returned.
     """
     policy_document = {
-        policy.Property.SOURCE_BRANCH_PROTECTION: {policy.ENABLED_KEY: policy_enabled}
+        policy.JobType.PULL_REQUEST: {
+            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION: {
+                policy.ENABLED_KEY: policy_enabled
+            }
+        }
     }
 
-    report = all_(
-        input_=Input(
+    report = pull_request(
+        input_=PullRequestInput(
             repository_name=github_repository_name,
             source_repository_name=github_repository_name,
             target_branch_name=github_branch.name,
@@ -142,7 +150,7 @@ def test_fail_source_branch(
     "expected_result",
     [
         pytest.param(
-            f"test-branch/all/collaborators-fail-enabled/{uuid4()}",
+            f"test-branch/pull_request/collaborators-fail-enabled/{uuid4()}",
             BranchWithProtection(),
             RequestedCollaborator("admin", "admin"),
             True,
@@ -150,7 +158,7 @@ def test_fail_source_branch(
             id="policy enabled",
         ),
         pytest.param(
-            f"test-branch/all/collaborators-fail-disabled/{uuid4()}",
+            f"test-branch/pull_request/collaborators-fail-disabled/{uuid4()}",
             BranchWithProtection(),
             RequestedCollaborator("admin", "admin"),
             False,
@@ -170,13 +178,17 @@ def test_fail_collaborators(
     """
     arrange: given a source and target branch that are compliant and outside collaborators with
         more than read permission and whether the policy is enabled
-    act: when all_ is called with the policy
+    act: when pull_request is called with the policy
     assert: then the expected report is returned.
     """
-    policy_document = {policy.Property.COLLABORATORS: {policy.ENABLED_KEY: policy_enabled}}
+    policy_document = {
+        policy.JobType.PULL_REQUEST: {
+            policy.PullRequestProperty.COLLABORATORS: {policy.ENABLED_KEY: policy_enabled}
+        }
+    }
 
-    report = all_(
-        input_=Input(
+    report = pull_request(
+        input_=PullRequestInput(
             repository_name=github_repository_name,
             source_repository_name=github_repository_name,
             target_branch_name=github_branch.name,
@@ -194,17 +206,17 @@ def test_fail_collaborators(
     "expected_result",
     [
         pytest.param(
-            f"test-branch/all/execute-job-fail/target/{uuid4()}",
+            f"test-branch/pull_request/execute-job-fail/target/{uuid4()}",
             BranchWithProtection(),
-            f"test-branch/all/execute-job-fail/source/{uuid4()}",
+            f"test-branch/pull_request/execute-job-fail/source/{uuid4()}",
             True,
             Result.FAIL,
             id="policy enabled",
         ),
         pytest.param(
-            f"test-branch/all/execute-job-fail/target/{uuid4()}",
+            f"test-branch/pull_request/execute-job-fail/target/{uuid4()}",
             BranchWithProtection(),
-            f"test-branch/all/execute-job-fail/source/{uuid4()}",
+            f"test-branch/pull_request/execute-job-fail/source/{uuid4()}",
             False,
             Result.PASS,
             id="policy disabled",
@@ -225,13 +237,17 @@ def test_fail_execute_job(  # pylint: disable=too-many-arguments
     """
     arrange: given a target and repository that is compliant and a source branch that is a fork and
         whether the policy is enabled
-    act: when all_ is called with the policy
+    act: when pull_request is called with the policy
     assert: then the expected report is returned.
     """
-    policy_document = {policy.Property.EXECUTE_JOB: {policy.ENABLED_KEY: policy_enabled}}
+    policy_document = {
+        policy.JobType.PULL_REQUEST: {
+            policy.PullRequestProperty.EXECUTE_JOB: {policy.ENABLED_KEY: policy_enabled}
+        }
+    }
 
-    report = all_(
-        input_=Input(
+    report = pull_request(
+        input_=PullRequestInput(
             repository_name=github_repository_name,
             source_repository_name=forked_github_repository.full_name,
             target_branch_name=github_branch.name,
@@ -246,18 +262,18 @@ def test_fail_execute_job(  # pylint: disable=too-many-arguments
 
 @pytest.mark.parametrize(
     "github_branch, protected_github_branch",
-    [(f"test-branch/all/pass/{uuid4()}", BranchWithProtection())],
+    [(f"test-branch/pull_request/pass/{uuid4()}", BranchWithProtection())],
     indirect=True,
 )
 @pytest.mark.usefixtures("protected_github_branch")
 def test_pass(github_branch: Branch, github_repository_name: str):
     """
     arrange: given a source and target branch and repository that is compliant
-    act: when all_ is called
+    act: when pull_request is called
     assert: then a pass report is returned.
     """
-    report = all_(
-        input_=Input(
+    report = pull_request(
+        input_=PullRequestInput(
             repository_name=github_repository_name,
             source_repository_name=github_repository_name,
             target_branch_name=github_branch.name,

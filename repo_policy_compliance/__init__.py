@@ -9,6 +9,7 @@ from typing import NamedTuple, cast
 
 from github import Github
 from github.Branch import Branch
+from github.Repository import Repository
 from pydantic import BaseModel, Field
 
 from . import policy
@@ -96,6 +97,38 @@ def _check_signed_commits_required(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
+def _check_unique_commits_signed(
+    branch_name: str, other_branch_name: str, repository: Repository
+) -> Report:
+    """Check that the commits unique to a branch are signed.
+
+    Args:
+        branch_name: The name of the branch to check.
+        other_branch_name: The name of the branch which will be used to exclude commits.
+        repository: The repository the branches are on.
+
+    Returns:
+        Whether the unique commits on the branch are signed.
+    """
+    other_branch_commit_shas = {
+        commit.sha for commit in repository.get_commits(sha=other_branch_name)
+    }
+    branch_commits = repository.get_commits(sha=branch_name)
+    unsigned_unique_branch_commits = (
+        commit
+        for commit in branch_commits
+        if commit.sha not in other_branch_commit_shas
+        and not commit.commit.raw_data["verification"]["verified"]
+    )
+    if first_unsigned_commit := next(unsigned_unique_branch_commits, None):
+        return Report(
+            result=Result.FAIL,
+            reason=f"commit is not signed, {branch_name=!r}, {first_unsigned_commit.sha=!r}",
+        )
+
+    return Report(result=Result.PASS, reason=None)
+
+
 class UsedPolicy(Enum):
     """Sentinel to indicate which policy to use.
 
@@ -106,15 +139,15 @@ class UsedPolicy(Enum):
     ALL = 1
 
 
-class Input(BaseModel):
-    """Input arguments for checks.
+class PullRequestInput(BaseModel):
+    """Input arguments for pull request checks.
 
     Attrs:
         repository_name: The name of the repository to run the check on.
         source_repository_name: The name of the repository that has the source branch.
         target_branch_name: The name of the branch that is targeted by the PR.
         source_branch_name: The name of the branch that contains the commits to be merged.
-        commit_sha: The SHA of the commit that the workflow run is on.
+        commit_sha: The SHA of the commit that the job is running on.
     """
 
     repository_name: str = Field(min_length=1)
@@ -124,8 +157,10 @@ class Input(BaseModel):
     commit_sha: str = Field(min_length=1)
 
 
-def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> Report:
-    """Run all the checks.
+def pull_request(
+    input_: PullRequestInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
+) -> Report:
+    """Run all the checks for pull request jobs.
 
     Args:
         input_: Data required for executing checks.
@@ -147,7 +182,9 @@ def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> 
     # pylint: disable=no-value-for-parameter
     if (
         policy.enabled(
-            name=policy.Property.TARGET_BRANCH_PROTECTION, policy_document=used_policy_document
+            job_type=policy.JobType.PULL_REQUEST,
+            name=policy.PullRequestProperty.TARGET_BRANCH_PROTECTION,
+            policy_document=used_policy_document,
         )
         and (
             target_branch_report := target_branch_protection(
@@ -160,7 +197,9 @@ def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> 
 
     if (
         policy.enabled(
-            name=policy.Property.SOURCE_BRANCH_PROTECTION, policy_document=used_policy_document
+            job_type=policy.JobType.PULL_REQUEST,
+            name=policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION,
+            policy_document=used_policy_document,
         )
         and (
             source_branch_report := source_branch_protection(
@@ -175,14 +214,22 @@ def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> 
         return source_branch_report
 
     if (
-        policy.enabled(name=policy.Property.COLLABORATORS, policy_document=used_policy_document)
+        policy.enabled(
+            job_type=policy.JobType.PULL_REQUEST,
+            name=policy.PullRequestProperty.COLLABORATORS,
+            policy_document=used_policy_document,
+        )
         and (collaborators_report := collaborators(repository_name=input_.repository_name)).result
         == Result.FAIL
     ):
         return collaborators_report
 
     if (
-        policy.enabled(name=policy.Property.EXECUTE_JOB, policy_document=used_policy_document)
+        policy.enabled(
+            job_type=policy.JobType.PULL_REQUEST,
+            name=policy.PullRequestProperty.EXECUTE_JOB,
+            policy_document=used_policy_document,
+        )
         and (
             execute_job_report := execute_job(
                 repository_name=input_.repository_name,
@@ -194,6 +241,74 @@ def all_(input_: Input, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> 
         == Result.FAIL
     ):
         return execute_job_report
+
+    return Report(result=Result.PASS, reason=None)
+
+
+class WorkflowDispatchInput(BaseModel):
+    """Input arguments for workflow dispatch checks.
+
+    Attrs:
+        repository_name: The name of the repository to run the check on.
+        branch_name: The name of the branch that the job is running on.
+        commit_sha: The SHA of the commit that the job is running on.
+    """
+
+    repository_name: str = Field(min_length=1)
+    branch_name: str = Field(min_length=1)
+    commit_sha: str = Field(min_length=1)
+
+
+def workflow_dispatch(
+    input_: WorkflowDispatchInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
+) -> Report:
+    """Run all the checks for workflow dispatch jobs.
+
+    Args:
+        input_: Data required for executing checks.
+        policy_document: Describes the policies that should be run.
+
+    Returns:
+        Whether the run is authorized based on all the checks.
+    """
+    if policy_document == UsedPolicy.ALL:
+        used_policy_document: MappingProxyType = policy.ALL
+    else:
+        # Guaranteed to be a dict due to initial if
+        policy_document = cast(dict, policy_document)
+        if not (policy_report := policy.check(document=policy_document)).result:
+            return Report(result=Result.FAIL, reason=policy_report.reason)
+        used_policy_document = MappingProxyType(policy_document)
+
+    # The github_client argument is injected, disabling missing arguments check for this function
+    # pylint: disable=no-value-for-parameter
+    if (
+        policy.enabled(
+            job_type=policy.JobType.WORKFLOW_DISPATCH,
+            name=policy.WorkflowDispatchProperty.BRANCH_PROTECTION,
+            policy_document=used_policy_document,
+        )
+        and (
+            branch_report := branch_protection(
+                repository_name=input_.repository_name,
+                branch_name=input_.branch_name,
+                commit_sha=input_.commit_sha,
+            )
+        ).result
+        == Result.FAIL
+    ):
+        return branch_report
+
+    if (
+        policy.enabled(
+            job_type=policy.JobType.WORKFLOW_DISPATCH,
+            name=policy.WorkflowDispatchProperty.COLLABORATORS,
+            policy_document=used_policy_document,
+        )
+        and (collaborators_report := collaborators(repository_name=input_.repository_name)).result
+        == Result.FAIL
+    ):
+        return collaborators_report
 
     return Report(result=Result.PASS, reason=None)
 
@@ -285,24 +400,67 @@ def source_branch_protection(
     ).result == Result.FAIL:
         return signed_commits_report
 
-    # Check that all commits unique to the source branch are signed
     repository = github_client.get_repo(repository_name)
-    target_branch_commit_shas = {
-        commit.sha for commit in repository.get_commits(sha=target_branch_name)
-    }
-    source_branch_commits = repository.get_commits(sha=branch_name)
-    unique_source_branch_commits = (
-        commit for commit in source_branch_commits if commit.sha not in target_branch_commit_shas
+    if (
+        unique_commits_signed_report := _check_unique_commits_signed(
+            branch_name=branch_name,
+            other_branch_name=target_branch_name,
+            repository=repository,
+        )
+    ).result == Result.FAIL:
+        return unique_commits_signed_report
+
+    return Report(result=Result.PASS, reason=None)
+
+
+@inject_github_client
+def branch_protection(
+    github_client: Github,
+    repository_name: str,
+    branch_name: str,
+    commit_sha: str,
+) -> Report:
+    """Check that the branch has appropriate protections.
+
+    Args:
+        github_client: The client to be used for GitHub API interactions.
+        repository_name: The name of the repository to run the check on.
+        branch_name: The name of the branch to check.
+        commit_sha: The SHA of the commit that the workflow run is on.
+
+    Returns:
+        Whether the branch has appropriate protections.
+    """
+    branch = _get_branch(
+        github_client=github_client, repository_name=repository_name, branch_name=branch_name
     )
-    unsigned_unique_source_branch_commits = (
-        commit
-        for commit in unique_source_branch_commits
-        if not commit.commit.raw_data["verification"]["verified"]
-    )
-    if first_unsigned_commit := next(unsigned_unique_source_branch_commits, None):
+
+    if (protected_report := _check_branch_protected(branch=branch)).result == Result.FAIL:
+        return protected_report
+
+    if (
+        signed_commits_report := _check_signed_commits_required(branch=branch)
+    ).result == Result.FAIL:
+        return signed_commits_report
+
+    repository = github_client.get_repo(repository_name)
+    if (
+        unique_commits_signed_report := _check_unique_commits_signed(
+            branch_name=branch_name,
+            other_branch_name=repository.default_branch,
+            repository=repository,
+        )
+    ).result == Result.FAIL:
+        return unique_commits_signed_report
+
+    # Check that the commit the job is running on is signed
+    commit = repository.get_commit(sha=commit_sha)
+    if not commit.commit.raw_data["verification"]["verified"]:
         return Report(
             result=Result.FAIL,
-            reason=f"commit is not signed, {branch.name=!r}, {first_unsigned_commit.sha=!r}",
+            reason=(
+                f"commit the job is running on is not signed, {branch_name=!r}, {commit_sha=!r}"
+            ),
         )
 
     return Report(result=Result.PASS, reason=None)

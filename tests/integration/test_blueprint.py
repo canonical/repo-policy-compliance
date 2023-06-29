@@ -5,6 +5,7 @@
 
 import itertools
 import secrets
+from collections.abc import Iterable, Iterator
 from uuid import uuid4
 
 import pytest
@@ -13,19 +14,29 @@ from flask.testing import FlaskClient
 from github.Branch import Branch
 from github.Repository import Repository
 
-from repo_policy_compliance import blueprint, policy
+from repo_policy_compliance import PullRequestInput, WorkflowDispatchInput, blueprint, policy
 
 from .. import assert_
 
+EXPECTED_PULL_REQUEST_KEYS = tuple(
+    key for key in PullRequestInput.__dict__.keys() if not key.startswith("_")
+)
+EXPECTED_WORKFLOW_DISPATCH_KEYS = tuple(
+    key for key in WorkflowDispatchInput.__dict__.keys() if not key.startswith("_")
+)
+
 
 @pytest.fixture(name="app")
-def fixture_app() -> Flask:
+def fixture_app() -> Iterator[Flask]:
     """Provides a flask app with the blueprint."""
     app = Flask("test app for blueprint")
     app.register_blueprint(blueprint.repo_policy_compliance)
     app.config.update({"TESTING": True})
 
-    return app
+    yield app
+
+    # Clean up policy
+    blueprint.policy_document_path.write_text("", encoding="utf-8")
 
 
 @pytest.fixture(name="client")
@@ -130,58 +141,74 @@ def test_check_run_twice_same_token(
     assert second_response.status_code == 401, second_response.data
 
 
-def test_check_run_not_json(client: FlaskClient, runner_token: str):
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        pytest.param(blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT, id="pull request"),
+        pytest.param(blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT, id="workflow dispatch"),
+    ],
+)
+def test_check_run_not_json(endpoint: str, client: FlaskClient, runner_token: str):
     """
     arrange: given flask application with the blueprint registered and the charm token environment
-        variable set
-    act: when check run is requested with a runner token and an data that isn't JSON
+        variable set and an endpoint
+    act: when check run endpoint is requested with a runner token and an data that isn't JSON
     assert: then 415 is returned.
     """
-    response = client.post(
-        blueprint.CHECK_RUN_ENDPOINT,
-        data="",
-        headers={"Authorization": f"Bearer {runner_token}"},
-    )
+    response = client.post(endpoint, data="", headers={"Authorization": f"Bearer {runner_token}"})
 
     assert response.status_code == 415, response.data
     assert_.substrings_in_string(("Content-Type", "JSON"), response.data.decode("utf-8"))
 
 
-def test_check_run_missing_data(client: FlaskClient, runner_token: str):
+@pytest.mark.parametrize(
+    "endpoint, expected_keys",
+    [
+        pytest.param(
+            blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
+            EXPECTED_PULL_REQUEST_KEYS,
+            id="pull request",
+        ),
+        pytest.param(
+            blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT,
+            EXPECTED_WORKFLOW_DISPATCH_KEYS,
+            id="workflow dispatch",
+        ),
+    ],
+)
+def test_check_run_missing_data(
+    endpoint: str, expected_keys: Iterable[str], client: FlaskClient, runner_token: str
+):
     """
     arrange: given flask application with the blueprint registered and the charm token environment
-        variable set
-    act: when check run is requested with a runner token and an not all required data
+        variable set and an endpoint
+    act: when check run endpoint is requested with a runner token and an not all required data
     assert: then 400 is returned.
     """
-    response = client.post(
-        blueprint.CHECK_RUN_ENDPOINT,
-        json={},
-        headers={"Authorization": f"Bearer {runner_token}"},
-    )
+    response = client.post(endpoint, json={}, headers={"Authorization": f"Bearer {runner_token}"})
 
     assert response.status_code == 400, response.data
     assert_.substrings_in_string(
-        itertools.chain(("missing data"), blueprint.EXPECTED_KEYS), response.data.decode("utf-8")
+        itertools.chain(("missing",), expected_keys), response.data.decode("utf-8")
     )
 
 
 @pytest.mark.parametrize(
     "github_branch",
-    [f"test-branch/blueprint/fail/{uuid4()}"],
+    [f"test-branch/blueprint/pull-request/fail/{uuid4()}"],
     indirect=True,
 )
-def test_check_run_fail(
+def test_pull_request_check_run_fail(
     client: FlaskClient, runner_token: str, github_repository: Repository, github_branch: Branch
 ):
     """
     arrange: given flask application with the blueprint registered and the charm token environment
         variable set
-    act: when check run is requested with a runner token and an invalid run
+    act: when pull request check run is requested with a runner token and an invalid run
     assert: then 403 is returned.
     """
     response = client.post(
-        blueprint.CHECK_RUN_ENDPOINT,
+        blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
         json={
             "repository_name": github_repository.full_name,
             "source_repository_name": github_repository.full_name,
@@ -198,44 +225,118 @@ def test_check_run_fail(
     )
 
 
-def test_check_run_empty_values(client: FlaskClient, runner_token: str):
+@pytest.mark.parametrize(
+    "github_branch",
+    [f"test-branch/blueprint/workflow-dispatch/fail/{uuid4()}"],
+    indirect=True,
+)
+def test_workflow_dispatch_check_run_fail(
+    client: FlaskClient, runner_token: str, github_repository: Repository, github_branch: Branch
+):
     """
     arrange: given flask application with the blueprint registered and the charm token environment
         variable set
-    act: when check run is requested with a runner token and a run with empty values
+    act: when workflow dispatch check run is requested with a runner token and an invalid run
+    assert: then 403 is returned.
+    """
+    response = client.post(
+        blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT,
+        json={
+            "repository_name": github_repository.full_name,
+            "branch_name": github_branch.name,
+            "commit_sha": github_branch.commit.sha,
+        },
+        headers={"Authorization": f"Bearer {runner_token}"},
+    )
+
+    assert response.status_code == 403, response.data
+    assert_.substrings_in_string(
+        ("branch protection", "not enabled"), response.data.decode("utf-8")
+    )
+
+
+@pytest.mark.parametrize(
+    "endpoint, props",
+    [
+        pytest.param(
+            blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
+            EXPECTED_PULL_REQUEST_KEYS,
+            id="pull request",
+        ),
+        pytest.param(
+            blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT,
+            EXPECTED_WORKFLOW_DISPATCH_KEYS,
+            id="workflow dispatch",
+        ),
+    ],
+)
+def test_check_run_empty_values(
+    endpoint: str, props: Iterable[str], client: FlaskClient, runner_token: str
+):
+    """
+    arrange: given flask application with the blueprint registered and the charm token environment
+        variable set and an endpoint
+    act: when check run endpoint is requested with a runner token and a run with empty values
     assert: then 400 is returned.
     """
     response = client.post(
-        blueprint.CHECK_RUN_ENDPOINT,
-        json={
-            "repository_name": "",
-            "source_repository_name": "",
-            "target_branch_name": "",
-            "source_branch_name": "",
-            "commit_sha": "",
-        },
+        endpoint,
+        json={prop: "" for prop in props},
         headers={"Authorization": f"Bearer {runner_token}"},
     )
 
     assert response.status_code == 400, response.data
 
 
-def test_check_run_pass(client: FlaskClient, runner_token: str, github_repository: Repository):
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        pytest.param(blueprint.CHECK_RUN_ENDPOINT, id="check run"),
+        pytest.param(blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT, id="pull request"),
+    ],
+)
+def test_pull_request_check_run_pass(
+    endpoint: str, client: FlaskClient, runner_token: str, github_repository: Repository
+):
     """
     arrange: given flask application with the blueprint registered and the charm token environment
         variable set
-    act: when check run is requested with a runner token and a valid run
+    act: when pull request check run is requested with a runner token and a valid run
     assert: then 204 is returned.
     """
     main_branch = github_repository.get_branch(github_repository.default_branch)
 
     response = client.post(
-        blueprint.CHECK_RUN_ENDPOINT,
+        endpoint,
         json={
             "repository_name": github_repository.full_name,
             "source_repository_name": github_repository.full_name,
             "target_branch_name": github_repository.default_branch,
             "source_branch_name": github_repository.default_branch,
+            "commit_sha": main_branch.commit.sha,
+        },
+        headers={"Authorization": f"Bearer {runner_token}"},
+    )
+
+    assert response.status_code == 204, response.data
+
+
+def test_workflow_dispatch_check_run_pass(
+    client: FlaskClient, runner_token: str, github_repository: Repository
+):
+    """
+    arrange: given flask application with the blueprint registered and the charm token environment
+        variable set
+    act: when workflow dispatch check run is requested with a runner token and a valid run
+    assert: then 204 is returned.
+    """
+    main_branch = github_repository.get_branch(github_repository.default_branch)
+
+    response = client.post(
+        blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT,
+        json={
+            "repository_name": github_repository.full_name,
+            "branch_name": github_repository.default_branch,
             "commit_sha": main_branch.commit.sha,
         },
         headers={"Authorization": f"Bearer {runner_token}"},
@@ -252,6 +353,16 @@ def test_check_run_pass(client: FlaskClient, runner_token: str, github_repositor
         ),
         pytest.param(blueprint.POLICY_ENDPOINT, "post", id=blueprint.POLICY_ENDPOINT),
         pytest.param(blueprint.CHECK_RUN_ENDPOINT, "post", id=blueprint.CHECK_RUN_ENDPOINT),
+        pytest.param(
+            blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
+            "post",
+            id=blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
+        ),
+        pytest.param(
+            blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT,
+            "post",
+            id=blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT,
+        ),
     ],
 )
 def test_endpoint_method_unauth(endpoint: str, method: str, client: FlaskClient):
@@ -278,7 +389,7 @@ def test_policy_invalid(client: FlaskClient, charm_token: str):
     """
     response = client.post(
         blueprint.POLICY_ENDPOINT,
-        json={"invalid": {**policy.ENABLED_RULE}},
+        json={"invalid": "value"},
         headers={"Authorization": f"Bearer {charm_token}"},
     )
 
@@ -287,10 +398,10 @@ def test_policy_invalid(client: FlaskClient, charm_token: str):
 
 @pytest.mark.parametrize(
     "github_branch",
-    [f"test-branch/blueprint/fail/{uuid4()}"],
+    [f"test-branch/blueprint/pull-request/fail-policy/{uuid4()}"],
     indirect=True,
 )
-def test_check_run_fail_policy_disabled(
+def test_pull_request_check_run_fail_policy_disabled(
     client: FlaskClient,
     runner_token: str,
     charm_token: str,
@@ -300,12 +411,12 @@ def test_check_run_fail_policy_disabled(
     """
     arrange: given flask application with the blueprint registered and the charm token environment
         variable set
-    act: when check run is requested with a runner token and an invalid run and with the policy
-        enabled and then disabled
+    act: when pull request check run is requested with a runner token and an invalid run and with
+        the policy enabled and then disabled
     assert: then 403 and 204 is returned, respectively.
     """
     fail_response = client.post(
-        blueprint.CHECK_RUN_ENDPOINT,
+        blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
         json={
             "repository_name": github_repository.full_name,
             "source_repository_name": github_repository.full_name,
@@ -321,19 +432,82 @@ def test_check_run_fail_policy_disabled(
     # Disable branch protection policy
     policy_response = client.post(
         blueprint.POLICY_ENDPOINT,
-        json={policy.Property.TARGET_BRANCH_PROTECTION: {policy.ENABLED_KEY: False}},
+        json={
+            policy.JobType.PULL_REQUEST: {
+                policy.PullRequestProperty.TARGET_BRANCH_PROTECTION: {policy.ENABLED_KEY: False}
+            }
+        },
         headers={"Authorization": f"Bearer {charm_token}"},
     )
 
     assert policy_response.status_code == 204, policy_response.data
 
     disabled_response = client.post(
-        blueprint.CHECK_RUN_ENDPOINT,
+        blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
         json={
             "repository_name": github_repository.full_name,
             "source_repository_name": github_repository.full_name,
             "target_branch_name": github_repository.default_branch,
             "source_branch_name": github_branch.name,
+            "commit_sha": github_branch.commit.sha,
+        },
+        headers={
+            "Authorization": f"Bearer {get_runner_token(client=client, charm_token=charm_token)}"
+        },
+    )
+
+    assert disabled_response.status_code == 204, disabled_response.data
+
+
+@pytest.mark.parametrize(
+    "github_branch",
+    [f"test-branch/blueprint/workflow-dispatch/fail-policy/{uuid4()}"],
+    indirect=True,
+)
+def test_workflow_dispatch_check_run_fail_policy_disabled(
+    client: FlaskClient,
+    runner_token: str,
+    charm_token: str,
+    github_repository: Repository,
+    github_branch: Branch,
+):
+    """
+    arrange: given flask application with the blueprint registered and the charm token environment
+        variable set
+    act: when workflow dispatch check run is requested with a runner token and an invalid run and
+        with the policy enabled and then disabled
+    assert: then 403 and 204 is returned, respectively.
+    """
+    fail_response = client.post(
+        blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT,
+        json={
+            "repository_name": github_repository.full_name,
+            "branch_name": github_branch.name,
+            "commit_sha": github_branch.commit.sha,
+        },
+        headers={"Authorization": f"Bearer {runner_token}"},
+    )
+
+    assert fail_response.status_code == 403, fail_response.data
+
+    # Disable branch protection policy
+    policy_response = client.post(
+        blueprint.POLICY_ENDPOINT,
+        json={
+            policy.JobType.WORKFLOW_DISPATCH: {
+                policy.WorkflowDispatchProperty.BRANCH_PROTECTION: {policy.ENABLED_KEY: False}
+            }
+        },
+        headers={"Authorization": f"Bearer {charm_token}"},
+    )
+
+    assert policy_response.status_code == 204, policy_response.data
+
+    disabled_response = client.post(
+        blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT,
+        json={
+            "repository_name": github_repository.full_name,
+            "branch_name": github_branch.name,
             "commit_sha": github_branch.commit.sha,
         },
         headers={
