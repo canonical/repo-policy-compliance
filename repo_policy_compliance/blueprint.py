@@ -21,12 +21,15 @@ from typing import cast
 from flask import Blueprint, Response, request
 from flask_httpauth import HTTPTokenAuth
 from flask_pydantic import validate
+from github import GithubException
 
 from . import (
     PullRequestInput,
     Result,
     UsedPolicy,
     WorkflowDispatchInput,
+    exceptions,
+    github_client,
     policy,
     pull_request,
     workflow_dispatch,
@@ -214,6 +217,14 @@ def health() -> Response:
     """Health check endpoint.
 
     Returns:
-        204 response.
+        500 response if GitHGub connectivity is not correctly configured, 204 response otherwise.
     """
+    try:
+        client = github_client.get()
+        client.get_repo("canonical/repo-policy-compliance")
+    except exceptions.InputError as exc:
+        return Response(response=str(exc), status=500)
+    except GithubException as exc:
+        return Response(response=f"could not communicate with GitHub, {exc}", status=500)
+
     return Response(status=204)
