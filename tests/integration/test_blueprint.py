@@ -14,7 +14,6 @@ from flask.testing import FlaskClient
 from github.Branch import Branch
 from github.Repository import Repository
 
-
 from repo_policy_compliance import blueprint, github_client, policy
 
 from .. import assert_
