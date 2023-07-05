@@ -14,7 +14,13 @@ from flask.testing import FlaskClient
 from github.Branch import Branch
 from github.Repository import Repository
 
-from repo_policy_compliance import PullRequestInput, WorkflowDispatchInput, blueprint, policy
+from repo_policy_compliance import (
+    PullRequestInput,
+    WorkflowDispatchInput,
+    blueprint,
+    github_client,
+    policy,
+)
 
 from .. import assert_
 
@@ -516,3 +522,31 @@ def test_workflow_dispatch_check_run_fail_policy_disabled(
     )
 
     assert disabled_response.status_code == 204, disabled_response.data
+
+
+@pytest.mark.parametrize(
+    "invalid_token", [pytest.param("", id="empty"), pytest.param("invalid", id="invalid")]
+)
+def test_health_fail(client: FlaskClient, invalid_token: str, monkeypatch: pytest.MonkeyPatch):
+    """
+    arrange: given flask application with the blueprint registered and invalid token set in
+        GITHUB_TOKEN environment variable
+    act: when the health check endpoint is requested
+    assert: then 500 is returned.
+    """
+    monkeypatch.setenv(github_client.GITHUB_TOKEN_ENV_NAME, invalid_token)
+
+    response = client.get(blueprint.HEALTH_ENDPOINT)
+
+    assert response.status_code == 500, response.data
+
+
+def test_health(client: FlaskClient):
+    """
+    arrange: given flask application with the blueprint registered
+    act: when the health check endpoint is requested
+    assert: then 204 is returned.
+    """
+    response = client.get(blueprint.HEALTH_ENDPOINT)
+
+    assert response.status_code == 204, response.data
