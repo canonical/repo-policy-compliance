@@ -369,9 +369,7 @@ def target_branch_protection(
     if any(bypass_allowances.get(key, []) for key in ("users", "teams", "apps")):
         return Report(
             result=Result.FAIL,
-            reason=(
-                f"{FAILURE_MESSAGE}pull request reviews can be bypassed, {branch_name=!r}"
-            ),
+            reason=(f"{FAILURE_MESSAGE}pull request reviews can be bypassed, {branch_name=!r}"),
         )
 
     if (
