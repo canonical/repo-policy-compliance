@@ -86,10 +86,7 @@ def _check_branch_protected(branch: Branch) -> Report:
     if not branch.protected:
         return Report(
             result=Result.FAIL,
-            reason=(
-                f"{FAILURE_MESSAGE}"
-                f"branch protection not enabled, {branch.name=!r}"
-            ),
+            reason=(f"{FAILURE_MESSAGE}" f"branch protection not enabled, {branch.name=!r}"),
         )
     return Report(result=Result.PASS, reason=None)
 
@@ -106,10 +103,7 @@ def _check_signed_commits_required(branch: Branch) -> Report:
     if not branch.get_required_signatures():
         return Report(
             result=Result.FAIL,
-            reason=(
-                f"{FAILURE_MESSAGE}"
-                f"signed commits not required, {branch.name=!r}"
-            ),
+            reason=(f"{FAILURE_MESSAGE}" f"signed commits not required, {branch.name=!r}"),
         )
     return Report(result=Result.PASS, reason=None)
 
@@ -368,10 +362,7 @@ def target_branch_protection(
     if not pull_request_reviews.dismiss_stale_reviews:
         return Report(
             result=Result.FAIL,
-            reason=(
-                f"{FAILURE_MESSAGE}"
-                f"stale reviews are not dismissed, {branch_name=!r}"
-            ),
+            reason=(f"{FAILURE_MESSAGE}" f"stale reviews are not dismissed, {branch_name=!r}"),
         )
     # Check for bypass allowances
     bypass_allowances = pull_request_reviews.raw_data.get(BYPASS_ALLOWANCES_KEY, {})
@@ -379,8 +370,7 @@ def target_branch_protection(
         return Report(
             result=Result.FAIL,
             reason=(
-                f"{FAILURE_MESSAGE}"
-                f"pull request reviews can be bypassed, {branch_name=!r}"
+                f"{FAILURE_MESSAGE}" f"pull request reviews can be bypassed, {branch_name=!r}"
             ),
         )
 
@@ -562,10 +552,7 @@ def execute_job(
     if not pull_for_branch:
         return Report(
             result=Result.FAIL,
-            reason=(
-                f"{FAILURE_MESSAGE}"
-                f"no open pull requests for branch {branch_name}"
-            ),
+            reason=(f"{FAILURE_MESSAGE}" f"no open pull requests for branch {branch_name}"),
         )
 
     # Retrieve comments on the PR
