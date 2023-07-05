@@ -19,10 +19,10 @@ from repo_policy_compliance import PullRequestInput, WorkflowDispatchInput, blue
 from .. import assert_
 
 EXPECTED_PULL_REQUEST_KEYS = tuple(
-    key for key in PullRequestInput.__dict__.keys() if not key.startswith("_")
+    key for key in PullRequestInput.__dict__ if not key.startswith("_")
 )
 EXPECTED_WORKFLOW_DISPATCH_KEYS = tuple(
-    key for key in WorkflowDispatchInput.__dict__.keys() if not key.startswith("_")
+    key for key in WorkflowDispatchInput.__dict__ if not key.startswith("_")
 )
 
 
