@@ -564,7 +564,7 @@ def execute_job(
             result=Result.FAIL,
             reason=(
                 f"{FAILURE_MESSAGE}"
-                f"no open pull requests for branch {branch_name}")
+                f"no open pull requests for branch {branch_name}"
             ),
         )
 
