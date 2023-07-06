@@ -25,6 +25,13 @@ EXECUTE_JOB_MESSAGE = (
     f"'{AUTHORIZATION_STRING_PREFIX} <commit SHA>' where the commit SHA is the SHA of the latest "
     "commit on the branch"
 )
+FAILURE_MESSAGE = (
+    "\n"
+    "This job has failed to pass a repository policy compliance check as defined in "
+    "https://github.com/canonical/repo-policy-compliance. The specific failure is listed "
+    "below. Please update the settings on this project to fix the relevant policy."
+    "\n"
+)
 
 
 class Result(str, Enum):
@@ -78,7 +85,8 @@ def _check_branch_protected(branch: Branch) -> Report:
     """
     if not branch.protected:
         return Report(
-            result=Result.FAIL, reason=f"branch protection not enabled, {branch.name=!r}"
+            result=Result.FAIL,
+            reason=(f"{FAILURE_MESSAGE}branch protection not enabled, {branch.name=!r}"),
         )
     return Report(result=Result.PASS, reason=None)
 
@@ -93,7 +101,10 @@ def _check_signed_commits_required(branch: Branch) -> Report:
         Whether the branch requires signed commits.
     """
     if not branch.get_required_signatures():
-        return Report(result=Result.FAIL, reason=f"signed commits not required, {branch.name=!r}")
+        return Report(
+            result=Result.FAIL,
+            reason=(f"{FAILURE_MESSAGE}signed commits not required, {branch.name=!r}"),
+        )
     return Report(result=Result.PASS, reason=None)
 
 
@@ -123,7 +134,10 @@ def _check_unique_commits_signed(
     if first_unsigned_commit := next(unsigned_unique_branch_commits, None):
         return Report(
             result=Result.FAIL,
-            reason=f"commit is not signed, {branch_name=!r}, {first_unsigned_commit.sha=!r}",
+            reason=(
+                f"{FAILURE_MESSAGE}"
+                f"commit is not signed, {branch_name=!r}, {first_unsigned_commit.sha=!r}"
+            ),
         )
 
     return Report(result=Result.PASS, reason=None)
@@ -340,19 +354,22 @@ def target_branch_protection(
     if not pull_request_reviews.require_code_owner_reviews:
         return Report(
             result=Result.FAIL,
-            reason=f"codeowner pull request reviews are not required, {branch_name=!r}",
+            reason=(
+                f"{FAILURE_MESSAGE}"
+                f"codeowner pull request reviews are not required, {branch_name=!r}"
+            ),
         )
     if not pull_request_reviews.dismiss_stale_reviews:
         return Report(
             result=Result.FAIL,
-            reason=f"stale reviews are not dismissed, {branch_name=!r}",
+            reason=(f"{FAILURE_MESSAGE}stale reviews are not dismissed, {branch_name=!r}"),
         )
     # Check for bypass allowances
     bypass_allowances = pull_request_reviews.raw_data.get(BYPASS_ALLOWANCES_KEY, {})
     if any(bypass_allowances.get(key, []) for key in ("users", "teams", "apps")):
         return Report(
             result=Result.FAIL,
-            reason=f"pull request reviews can be bypassed, {branch_name=!r}",
+            reason=(f"{FAILURE_MESSAGE}pull request reviews can be bypassed, {branch_name=!r}"),
         )
 
     if (
@@ -459,6 +476,7 @@ def branch_protection(
         return Report(
             result=Result.FAIL,
             reason=(
+                f"{FAILURE_MESSAGE}"
                 f"commit the job is running on is not signed, {branch_name=!r}, {commit_sha=!r}"
             ),
         )
@@ -492,6 +510,7 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
         return Report(
             result=Result.FAIL,
             reason=(
+                f"{FAILURE_MESSAGE}"
                 "the repository includes outside collaborators with higher permissions than read,"
                 f"{higher_permission_logins=!r}"
             ),
@@ -529,7 +548,10 @@ def execute_job(
     pulls = repository.get_pulls(state="open")
     pull_for_branch = next((pull for pull in pulls if pull.head.ref == branch_name), None)
     if not pull_for_branch:
-        return Report(result=Result.FAIL, reason=f"no open pull requests for branch {branch_name}")
+        return Report(
+            result=Result.FAIL,
+            reason=(f"{FAILURE_MESSAGE}no open pull requests for branch {branch_name}"),
+        )
 
     # Retrieve comments on the PR
     comments = pull_for_branch.get_issue_comments()
@@ -537,6 +559,7 @@ def execute_job(
         return Report(
             result=Result.FAIL,
             reason=(
+                f"{FAILURE_MESSAGE}"
                 f"no comment found on PR - {EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=} "
                 f"{pull_for_branch.number=}"
             ),
@@ -551,6 +574,7 @@ def execute_job(
         return Report(
             result=Result.FAIL,
             reason=(
+                f"{FAILURE_MESSAGE}"
                 f"authorization comment not found on PR, expected: {authorization_string} - "
                 f"{EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=}, {pull_for_branch.number=}"
             ),
@@ -567,7 +591,8 @@ def execute_job(
         return Report(
             result=Result.FAIL,
             reason=(
-                f"authorization comment from a user that is not a maintainer or above - "
+                f"{FAILURE_MESSAGE}"
+                "authorization comment from a user that is not a maintainer or above - "
                 f"{EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=}, {pull_for_branch.number=}"
             ),
         )

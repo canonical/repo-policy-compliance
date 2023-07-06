@@ -14,22 +14,19 @@ from flask.testing import FlaskClient
 from github.Branch import Branch
 from github.Repository import Repository
 
-from repo_policy_compliance import (
-    PullRequestInput,
-    WorkflowDispatchInput,
-    blueprint,
-    github_client,
-    policy,
-)
+from repo_policy_compliance import blueprint, github_client, policy
 
 from .. import assert_
 
-EXPECTED_PULL_REQUEST_KEYS = tuple(
-    key for key in PullRequestInput.__dict__.keys() if not key.startswith("_")
+EXPECTED_PULL_REQUEST_KEYS = (
+    "repository_name",
+    "source_repository_name",
+    "target_branch_name",
+    "source_branch_name",
+    "commit_sha",
 )
-EXPECTED_WORKFLOW_DISPATCH_KEYS = tuple(
-    key for key in WorkflowDispatchInput.__dict__.keys() if not key.startswith("_")
-)
+
+EXPECTED_WORKFLOW_DISPATCH_KEYS = ("repository_name", "branch_name", "commit_sha")
 
 
 @pytest.fixture(name="app")
