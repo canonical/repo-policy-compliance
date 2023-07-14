@@ -76,6 +76,15 @@ def log_check(func: Callable[P, R]) -> Callable[P, R]:
     check_name = func.__name__
 
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+        """Replace function.
+
+        Args:
+            args: The positional arguments passed to the method
+            kwargs: The keywords arguments passed to the method
+
+        Returns:
+            The return value after calling the wrapped function.
+        """
         logging.info("start check '%s'", check_name)
         result = func(*args, **kwargs)
         logging.info("check '%s' finished, result: %s", check_name, result)
@@ -84,8 +93,8 @@ def log_check(func: Callable[P, R]) -> Callable[P, R]:
     return wrapper
 
 
-def _setup_logging():
-    """Setup logging for check execution."""
+def _setup_logging() -> None:
+    """Initialise logging for check execution."""
     handler = logging.FileHandler(filename="/dev/stdout")
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s - %(message)s")
