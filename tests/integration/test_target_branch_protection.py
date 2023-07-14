@@ -76,7 +76,9 @@ def test_fail(github_branch: Branch, reason_string_array: tuple[str], github_rep
     indirect=["github_branch", "protected_github_branch"],
 )
 @pytest.mark.usefixtures("protected_github_branch")
-def test_pass(github_branch: Branch, github_repository_name: str):
+def test_pass(
+    github_branch: Branch, github_repository_name: str, caplog: pytest.LogCaptureFixture
+):
     """
     arrange: given a branch that is compliant.
     act: when target_branch_protection is called with the name of the branch.
@@ -89,3 +91,5 @@ def test_pass(github_branch: Branch, github_repository_name: str):
 
     assert report.reason is None
     assert report.result == Result.PASS
+    assert repr("target_branch_protection") in caplog.text
+    assert repr(report) in caplog.text

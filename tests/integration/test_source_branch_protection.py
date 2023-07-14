@@ -83,6 +83,7 @@ def test_pass(
     github_repository: Repository,
     protected_github_branch_with_commit_in_ci: Branch,
     github_repository_name: str,
+    caplog: pytest.LogCaptureFixture,
 ):
     """
     arrange: given a branch that is compliant including a signed commit only in CI (on local runs
@@ -101,6 +102,8 @@ def test_pass(
 
     assert report.reason is None
     assert report.result == Result.PASS
+    assert repr("source_branch_protection") in caplog.text
+    assert repr(report) in caplog.text
 
 
 @pytest.mark.parametrize(
