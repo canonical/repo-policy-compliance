@@ -233,7 +233,10 @@ def test_fail_forked_comment_from_wrong_user_on_pr(
     indirect=True,
 )
 def test_pass_main_repo(
-    github_repository: Repository, github_branch: Branch, github_repository_name: str
+    github_repository: Repository,
+    github_branch: Branch,
+    github_repository_name: str,
+    caplog: pytest.LogCaptureFixture,
 ):
     """
     arrange: given a branch from the repository
@@ -252,6 +255,8 @@ def test_pass_main_repo(
 
     assert report.reason is None
     assert report.result == Result.PASS
+    assert repr("execute_job") in caplog.text
+    assert repr(report) in caplog.text
 
 
 @pytest.mark.parametrize(

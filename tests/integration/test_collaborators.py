@@ -57,7 +57,7 @@ def test_pass_inject_collaborators(github_repository_name: str):
     assert report.result == Result.PASS
 
 
-def test_pass(github_repository_name: str):
+def test_pass(github_repository_name: str, caplog: pytest.LogCaptureFixture):
     """
     arrange: given a repository with no outside collaborators
     act: when collaborators is called with the name of the repository
@@ -70,3 +70,5 @@ def test_pass(github_repository_name: str):
 
     assert report.reason is None
     assert report.result == Result.PASS
+    assert repr("collaborators") in caplog.text
+    assert repr(report) in caplog.text

@@ -266,7 +266,9 @@ def test_fail_execute_job(  # pylint: disable=too-many-arguments
     indirect=True,
 )
 @pytest.mark.usefixtures("protected_github_branch")
-def test_pass(github_branch: Branch, github_repository_name: str):
+def test_pass(
+    github_branch: Branch, github_repository_name: str, caplog: pytest.LogCaptureFixture
+):
     """
     arrange: given a source and target branch and repository that is compliant
     act: when pull_request is called
@@ -283,3 +285,5 @@ def test_pass(github_branch: Branch, github_repository_name: str):
     )
 
     assert report.result == Result.PASS
+    assert repr("pull_request") in caplog.text
+    assert repr(report) in caplog.text

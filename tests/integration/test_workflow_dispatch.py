@@ -140,7 +140,9 @@ def test_fail_collaborators(
     indirect=True,
 )
 @pytest.mark.usefixtures("protected_github_branch")
-def test_pass(github_branch: Branch, github_repository_name: str):
+def test_pass(
+    github_branch: Branch, github_repository_name: str, caplog: pytest.LogCaptureFixture
+):
     """
     arrange: given a branch and repository that is compliant
     act: when workflow_dispatch is called
@@ -155,3 +157,5 @@ def test_pass(github_branch: Branch, github_repository_name: str):
     )
 
     assert report.result == Result.PASS
+    assert repr("workflow_dispatch") in caplog.text
+    assert repr(report) in caplog.text

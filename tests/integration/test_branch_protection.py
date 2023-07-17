@@ -157,7 +157,11 @@ def test_commit_not_signed_fail(
 @pytest.mark.parametrize(
     "github_branch", [f"test-branch/branch/protected/{uuid4()}"], indirect=["github_branch"]
 )
-def test_pass(protected_github_branch_with_commit_in_ci: Branch, github_repository_name: str):
+def test_pass(
+    protected_github_branch_with_commit_in_ci: Branch,
+    github_repository_name: str,
+    caplog: pytest.LogCaptureFixture,
+):
     """
     arrange: given a branch that is compliant including a signed commit only in CI (on local runs
         the branch has no unique commits and hence the check for unsigned commits will pass).
@@ -173,3 +177,5 @@ def test_pass(protected_github_branch_with_commit_in_ci: Branch, github_reposito
 
     assert report.reason is None
     assert report.result == Result.PASS
+    assert repr("branch_protection") in caplog.text
+    assert repr(report) in caplog.text
