@@ -4,6 +4,7 @@
 """Library for checking that GitHub repos comply with policy."""
 
 import logging
+import sys
 from enum import Enum
 from types import MappingProxyType
 from typing import Callable, NamedTuple, ParamSpec, TypeVar, cast
@@ -95,7 +96,7 @@ def log_check(func: Callable[P, R]) -> Callable[P, R]:
 
 def _setup_logging() -> None:
     """Initialise logging for check execution."""
-    handler = logging.FileHandler(filename="/dev/stdout")
+    handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.DEBUG)
     formatter = logging.Formatter("%(asctime)s - %(message)s")
     handler.setFormatter(formatter)
