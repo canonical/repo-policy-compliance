@@ -27,7 +27,6 @@ from github import GithubException
 from . import (
     PullRequestInput,
     PushInput,
-    Result,
     UsedPolicy,
     WorkflowDispatchInput,
     exceptions,
@@ -37,6 +36,7 @@ from . import (
     push,
     workflow_dispatch,
 )
+from .check import Result
 
 repo_policy_compliance = Blueprint("repo_policy_compliance", __name__)
 auth = HTTPTokenAuth(scheme="Bearer")

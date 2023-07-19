@@ -11,16 +11,16 @@ P = ParamSpec("P")
 R = TypeVar("R")
 
 
-def check(func: Callable[P, R]) -> Callable[P, R]:
-    """Log before check and result of check.
+def func(func: Callable[P, R]) -> Callable[P, R]:
+    """Log before func and result of func.
 
     Args:
-        func: The function that executes a check.
+        func: The function that executes a func.
 
     Returns:
-        The function where the check is logged before it starts and the results are logged.
+        The function where the func is logged before it starts and the results are logged.
     """
-    check_name = func.__name__
+    func_name = func.__name__
 
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
         """Replace function.
@@ -32,9 +32,9 @@ def check(func: Callable[P, R]) -> Callable[P, R]:
         Returns:
             The return value after calling the wrapped function.
         """
-        logging.info("start check '%s'", check_name)
+        logging.info("start func '%s'", func_name)
         result = func(*args, **kwargs)
-        logging.info("check '%s' finished, result: %s", check_name, result)
+        logging.info("func '%s' finished, result: %s", func_name, result)
         return result
 
     return wrapper

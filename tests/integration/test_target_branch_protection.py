@@ -9,7 +9,7 @@ from uuid import uuid4
 import pytest
 from github.Branch import Branch
 
-from repo_policy_compliance import Result, target_branch_protection
+from repo_policy_compliance.check import Result, target_branch_protection
 
 from .. import assert_
 from .types_ import BranchWithProtection

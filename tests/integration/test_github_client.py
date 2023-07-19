@@ -7,7 +7,7 @@ import typing
 
 import pytest
 
-from repo_policy_compliance import target_branch_protection
+from repo_policy_compliance.check import target_branch_protection
 from repo_policy_compliance.exceptions import GithubClientError, InputError
 from repo_policy_compliance.github_client import GITHUB_TOKEN_ENV_NAME
 

@@ -8,7 +8,8 @@ from uuid import uuid4
 import pytest
 from github.Branch import Branch
 
-from repo_policy_compliance import Result, WorkflowDispatchInput, policy, workflow_dispatch
+from repo_policy_compliance import WorkflowDispatchInput, policy, workflow_dispatch
+from repo_policy_compliance.check import Result
 
 from .types_ import BranchWithProtection, RequestedCollaborator
 

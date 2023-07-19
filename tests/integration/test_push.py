@@ -12,7 +12,8 @@ from uuid import uuid4
 import pytest
 from github.Branch import Branch
 
-from repo_policy_compliance import PushInput, Result, policy, push
+from repo_policy_compliance import PushInput, policy, push
+from repo_policy_compliance.check import Result
 
 from .types_ import BranchWithProtection, RequestedCollaborator
 

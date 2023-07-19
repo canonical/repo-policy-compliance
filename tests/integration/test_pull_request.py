@@ -9,7 +9,8 @@ import pytest
 from github.Branch import Branch
 from github.Repository import Repository
 
-from repo_policy_compliance import PullRequestInput, Result, policy, pull_request
+from repo_policy_compliance import PullRequestInput, policy, pull_request
+from repo_policy_compliance.check import Result
 
 from .types_ import BranchWithProtection, RequestedCollaborator
 

@@ -11,7 +11,7 @@ from github import Consts
 from github.Branch import Branch
 from github.Repository import Repository
 
-from repo_policy_compliance import Result, branch_protection
+from repo_policy_compliance.check import Result, branch_protection
 
 from .. import assert_
 from .types_ import BranchWithProtection
