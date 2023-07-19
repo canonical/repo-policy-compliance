@@ -40,7 +40,7 @@ class PullRequestInput(BaseModel):
     commit_sha: str = Field(min_length=1)
 
 
-@log.func
+@log.call
 def pull_request(
     input_: PullRequestInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
 ) -> check.Report:
@@ -148,7 +148,7 @@ class BranchInput(BaseModel):
 WorkflowDispatchInput = BranchInput
 
 
-@log.func
+@log.call
 def workflow_dispatch(
     input_: WorkflowDispatchInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
 ) -> check.Report:
@@ -208,7 +208,7 @@ def workflow_dispatch(
 PushInput = BranchInput
 
 
-@log.func
+@log.call
 def push(input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> check.Report:
     """Run all the checks for on push jobs.
 

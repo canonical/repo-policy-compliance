@@ -11,7 +11,7 @@ P = ParamSpec("P")
 R = TypeVar("R")
 
 
-def func(func: Callable[P, R]) -> Callable[P, R]:
+def call(func: Callable[P, R]) -> Callable[P, R]:
     """Log before func and result of func.
 
     Args:

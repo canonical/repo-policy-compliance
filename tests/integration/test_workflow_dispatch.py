@@ -52,7 +52,7 @@ def test_invalid_policy():
     ],
     indirect=["github_branch"],
 )
-def test_fail_branch(
+def test_branch(
     github_branch: Branch,
     policy_enabled: bool,
     expected_result: Result,
@@ -105,7 +105,7 @@ def test_fail_branch(
     indirect=["github_branch", "protected_github_branch", "collaborators_with_permission"],
 )
 @pytest.mark.usefixtures("protected_github_branch", "collaborators_with_permission")
-def test_fail_collaborators(
+def test_collaborators(
     github_branch: Branch,
     github_repository_name: str,
     policy_enabled: bool,

@@ -55,7 +55,7 @@ def test_invalid_policy():
     ],
     indirect=["github_branch"],
 )
-def test_fail_target_branch(
+def test_target_branch(
     github_branch: Branch,
     policy_enabled: bool,
     expected_result: Result,
@@ -112,7 +112,7 @@ def test_fail_target_branch(
     indirect=["github_branch", "protected_github_branch", "another_github_branch"],
 )
 @pytest.mark.usefixtures("protected_github_branch")
-def test_fail_source_branch(
+def test_source_branch(
     github_branch: Branch,
     github_repository_name: str,
     another_github_branch: Branch,
@@ -170,7 +170,7 @@ def test_fail_source_branch(
     indirect=["github_branch", "protected_github_branch", "collaborators_with_permission"],
 )
 @pytest.mark.usefixtures("protected_github_branch", "collaborators_with_permission")
-def test_fail_collaborators(
+def test_collaborators(
     github_branch: Branch,
     github_repository_name: str,
     policy_enabled: bool,
@@ -227,7 +227,7 @@ def test_fail_collaborators(
 )
 @pytest.mark.usefixtures("protected_github_branch")
 # All the arguments are required for the test
-def test_fail_execute_job(  # pylint: disable=too-many-arguments
+def test_execute_job(  # pylint: disable=too-many-arguments
     github_branch: Branch,
     github_repository_name: str,
     forked_github_branch: Branch,

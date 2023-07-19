@@ -571,7 +571,7 @@ def test_workflow_dispatch_check_run_fail_policy_disabled(
     [f"test-branch/blueprint/push/fail-policy/{uuid4()}"],
     indirect=True,
 )
-def test_push_check_run_fail_policy_disabled(
+def test_push_check_run_policy_disabled(
     client: FlaskClient,
     runner_token: str,
     charm_token: str,

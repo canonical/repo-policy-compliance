@@ -10,7 +10,7 @@ from github import Github
 from github.Branch import Branch
 from github.Repository import Repository
 
-from . import check, log
+from . import log
 from .comment import remove_quote_lines
 from .github_client import get_branch, get_collaborators
 from .github_client import inject as inject_github_client
@@ -60,7 +60,7 @@ class Report(NamedTuple):
 log.setup()
 
 
-@log.func
+@log.call
 def branch_protected(branch: Branch) -> Report:
     """Check that the branch has protections enabled.
 
@@ -78,7 +78,7 @@ def branch_protected(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
-@log.func
+@log.call
 def signed_commits_required(branch: Branch) -> Report:
     """Check that the branch requires signed commits.
 
@@ -96,7 +96,7 @@ def signed_commits_required(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
-@log.func
+@log.call
 def unique_commits_signed(
     branch_name: str, other_branch_name: str, repository: Repository
 ) -> Report:
@@ -133,10 +133,10 @@ def unique_commits_signed(
 
 
 @inject_github_client
-@log.func
+@log.call
 def target_branch_protection(
     github_client: Github, repository_name: str, branch_name: str
-) -> check.Report:
+) -> Report:
     """Check that the target branch has appropriate protections.
 
     Args:
@@ -151,50 +151,48 @@ def target_branch_protection(
         github_client=github_client, repository_name=repository_name, branch_name=branch_name
     )
 
-    if (protected_report := branch_protected(branch=branch)).result == check.Result.FAIL:
+    if (protected_report := branch_protected(branch=branch)).result == Result.FAIL:
         return protected_report
 
     protection = branch.get_protection()
 
     pull_request_reviews = protection.required_pull_request_reviews
     if not pull_request_reviews.require_code_owner_reviews:
-        return check.Report(
-            result=check.Result.FAIL,
+        return Report(
+            result=Result.FAIL,
             reason=(
                 f"{FAILURE_MESSAGE}"
                 f"codeowner pull request reviews are not required, {branch_name=!r}"
             ),
         )
     if not pull_request_reviews.dismiss_stale_reviews:
-        return check.Report(
-            result=check.Result.FAIL,
+        return Report(
+            result=Result.FAIL,
             reason=(f"{FAILURE_MESSAGE}stale reviews are not dismissed, {branch_name=!r}"),
         )
     # Check for bypass allowances
     bypass_allowances = pull_request_reviews.raw_data.get(BYPASS_ALLOWANCES_KEY, {})
     if any(bypass_allowances.get(key, []) for key in ("users", "teams", "apps")):
-        return check.Report(
-            result=check.Result.FAIL,
+        return Report(
+            result=Result.FAIL,
             reason=(f"{FAILURE_MESSAGE}pull request reviews can be bypassed, {branch_name=!r}"),
         )
 
-    if (
-        signed_commits_report := signed_commits_required(branch=branch)
-    ).result == check.Result.FAIL:
+    if (signed_commits_report := signed_commits_required(branch=branch)).result == Result.FAIL:
         return signed_commits_report
 
-    return check.Report(result=check.Result.PASS, reason=None)
+    return Report(result=Result.PASS, reason=None)
 
 
 @inject_github_client
-@log.func
+@log.call
 def source_branch_protection(
     github_client: Github,
     repository_name: str,
     source_repository_name: str,
     branch_name: str,
     target_branch_name: str,
-) -> check.Report:
+) -> Report:
     """Check that the source branch has appropriate protections.
 
     Args:
@@ -210,18 +208,16 @@ def source_branch_protection(
     """
     # Check for fork
     if source_repository_name != repository_name:
-        return check.Report(result=check.Result.PASS, reason=None)
+        return Report(result=Result.PASS, reason=None)
 
     branch = get_branch(
         github_client=github_client, repository_name=repository_name, branch_name=branch_name
     )
 
-    if (protected_report := branch_protected(branch=branch)).result == check.Result.FAIL:
+    if (protected_report := branch_protected(branch=branch)).result == Result.FAIL:
         return protected_report
 
-    if (
-        signed_commits_report := signed_commits_required(branch=branch)
-    ).result == check.Result.FAIL:
+    if (signed_commits_report := signed_commits_required(branch=branch)).result == Result.FAIL:
         return signed_commits_report
 
     repository = github_client.get_repo(repository_name)
@@ -231,20 +227,20 @@ def source_branch_protection(
             other_branch_name=target_branch_name,
             repository=repository,
         )
-    ).result == check.Result.FAIL:
+    ).result == Result.FAIL:
         return unique_commits_signed_report
 
-    return check.Report(result=check.Result.PASS, reason=None)
+    return Report(result=Result.PASS, reason=None)
 
 
 @inject_github_client
-@log.func
+@log.call
 def branch_protection(
     github_client: Github,
     repository_name: str,
     branch_name: str,
     commit_sha: str,
-) -> check.Report:
+) -> Report:
     """Check that the branch has appropriate protections.
 
     Args:
@@ -260,12 +256,10 @@ def branch_protection(
         github_client=github_client, repository_name=repository_name, branch_name=branch_name
     )
 
-    if (protected_report := branch_protected(branch=branch)).result == check.Result.FAIL:
+    if (protected_report := branch_protected(branch=branch)).result == Result.FAIL:
         return protected_report
 
-    if (
-        signed_commits_report := signed_commits_required(branch=branch)
-    ).result == check.Result.FAIL:
+    if (signed_commits_report := signed_commits_required(branch=branch)).result == Result.FAIL:
         return signed_commits_report
 
     repository = github_client.get_repo(repository_name)
@@ -275,26 +269,26 @@ def branch_protection(
             other_branch_name=repository.default_branch,
             repository=repository,
         )
-    ).result == check.Result.FAIL:
+    ).result == Result.FAIL:
         return unique_commits_signed_report
 
     # Check that the commit the job is running on is signed
     commit = repository.get_commit(sha=commit_sha)
     if not commit.commit.raw_data["verification"]["verified"]:
-        return check.Report(
-            result=check.Result.FAIL,
+        return Report(
+            result=Result.FAIL,
             reason=(
                 f"{FAILURE_MESSAGE}"
                 f"commit the job is running on is not signed, {branch_name=!r}, {commit_sha=!r}"
             ),
         )
 
-    return check.Report(result=check.Result.PASS, reason=None)
+    return Report(result=Result.PASS, reason=None)
 
 
 @inject_github_client
-@log.func
-def collaborators(github_client: Github, repository_name: str) -> check.Report:
+@log.call
+def collaborators(github_client: Github, repository_name: str) -> Report:
     """Check that no outside contributors have higher access than read.
 
     Args:
@@ -316,8 +310,8 @@ def collaborators(github_client: Github, repository_name: str) -> check.Report:
     )
 
     if higher_permission_logins:
-        return check.Report(
-            result=check.Result.FAIL,
+        return Report(
+            result=Result.FAIL,
             reason=(
                 f"{FAILURE_MESSAGE}"
                 "the repository includes outside collaborators with higher permissions than read,"
@@ -325,18 +319,18 @@ def collaborators(github_client: Github, repository_name: str) -> check.Report:
             ),
         )
 
-    return check.Report(result=check.Result.PASS, reason=None)
+    return Report(result=Result.PASS, reason=None)
 
 
 @inject_github_client
-@log.func
+@log.call
 def execute_job(
     github_client: Github,
     repository_name: str,
     source_repository_name: str,
     branch_name: str,
     commit_sha: str,
-) -> check.Report:
+) -> Report:
     """Check that the execution of the workflow for a SHA has been granted for a PR from a fork.
 
     Args:
@@ -351,23 +345,23 @@ def execute_job(
     """
     # Not from a forked repository
     if repository_name == source_repository_name:
-        return check.Report(result=check.Result.PASS, reason=None)
+        return Report(result=Result.PASS, reason=None)
 
     # Retrieve PR for the branch
     repository = github_client.get_repo(repository_name)
     pulls = repository.get_pulls(state="open")
     pull_for_branch = next((pull for pull in pulls if pull.head.ref == branch_name), None)
     if not pull_for_branch:
-        return check.Report(
-            result=check.Result.FAIL,
+        return Report(
+            result=Result.FAIL,
             reason=(f"{FAILURE_MESSAGE}no open pull requests for branch {branch_name}"),
         )
 
     # Retrieve comments on the PR
     comments = pull_for_branch.get_issue_comments()
     if not comments.totalCount:
-        return check.Report(
-            result=check.Result.FAIL,
+        return Report(
+            result=Result.FAIL,
             reason=(
                 f"{FAILURE_MESSAGE}"
                 f"no comment found on PR - {EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=} "
@@ -381,8 +375,8 @@ def execute_job(
         comment for comment in comments if authorization_string in remove_quote_lines(comment.body)
     )
     if not authorization_comments:
-        return check.Report(
-            result=check.Result.FAIL,
+        return Report(
+            result=Result.FAIL,
             reason=(
                 f"{FAILURE_MESSAGE}"
                 f"authorization comment not found on PR, expected: {authorization_string} - "
@@ -398,8 +392,8 @@ def execute_job(
         )
     }
     if not any(comment.user.login in maintain_logins for comment in authorization_comments):
-        return check.Report(
-            result=check.Result.FAIL,
+        return Report(
+            result=Result.FAIL,
             reason=(
                 f"{FAILURE_MESSAGE}"
                 "authorization comment from a user that is not a maintainer or above - "
@@ -407,4 +401,4 @@ def execute_job(
             ),
         )
 
-    return check.Report(result=check.Result.PASS, reason=None)
+    return Report(result=Result.PASS, reason=None)
