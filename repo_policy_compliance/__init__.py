@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 from . import log, policy
 from .comment import remove_quote_lines
-from .github_client import get_collaborators
+from .github_client import get_branch, get_collaborators
 from .github_client import inject as inject_github_client
 
 BYPASS_ALLOWANCES_KEY = "bypass_pull_request_allowances"
@@ -60,21 +60,6 @@ class Report(NamedTuple):
 
 
 log.setup()
-
-
-def _get_branch(github_client: Github, repository_name: str, branch_name: str) -> Branch:
-    """Get the branch for the check.
-
-    Args:
-        github_client: The client to be used for GitHub API interactions.
-        repository_name: The name of the repository to run the check on.
-        branch_name: The name of the branch to check.
-
-    Returns:
-        The requested branch.
-    """
-    repository = github_client.get_repo(repository_name)
-    return repository.get_branch(branch_name)
 
 
 @log.check
@@ -409,7 +394,7 @@ def target_branch_protection(
     Returns:
         Whether the branch has appropriate protections.
     """
-    branch = _get_branch(
+    branch = get_branch(
         github_client=github_client, repository_name=repository_name, branch_name=branch_name
     )
 
@@ -474,7 +459,7 @@ def source_branch_protection(
     if source_repository_name != repository_name:
         return Report(result=Result.PASS, reason=None)
 
-    branch = _get_branch(
+    branch = get_branch(
         github_client=github_client, repository_name=repository_name, branch_name=branch_name
     )
 
@@ -518,7 +503,7 @@ def branch_protection(
     Returns:
         Whether the branch has appropriate protections.
     """
-    branch = _get_branch(
+    branch = get_branch(
         github_client=github_client, repository_name=repository_name, branch_name=branch_name
     )
 

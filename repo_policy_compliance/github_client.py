@@ -10,6 +10,7 @@ from urllib import parse
 
 from github import BadCredentialsException, Github, GithubException, RateLimitExceededException
 from github.Auth import Token
+from github.Branch import Branch
 from github.Repository import Repository
 
 from .exceptions import GithubClientError, InputError
@@ -113,3 +114,18 @@ def get_collaborators(
     # pylint: enable=protected-access
 
     return outside_collaborators
+
+
+def get_branch(github_client: Github, repository_name: str, branch_name: str) -> Branch:
+    """Get the branch for the check.
+
+    Args:
+        github_client: The client to be used for GitHub API interactions.
+        repository_name: The name of the repository to run the check on.
+        branch_name: The name of the branch to check.
+
+    Returns:
+        The requested branch.
+    """
+    repository = github_client.get_repo(repository_name)
+    return repository.get_branch(branch_name)
