@@ -8,6 +8,7 @@ an in-memory set to store the one time tokens. This is done to reduce the comple
 as the alternative would be to require a database.
 """
 
+import http
 import json
 import logging
 import os
@@ -155,7 +156,7 @@ def policy_endpoint() -> Response:
         return Response(response=policy_report.reason, status=400)
 
     policy_document_path.write_text(json.dumps(data), encoding="utf-8")
-    return Response(status=204)
+    return Response(status=http.HTTPStatus.NO_CONTENT)
 
 
 def _get_policy_document() -> dict | UsedPolicy:
@@ -188,9 +189,9 @@ def pull_request_check_run(body: PullRequestInput) -> Response:
     if (
         report := pull_request(input_=body, policy_document=policy_document)
     ).result == Result.FAIL:
-        return Response(response=report.reason, status=403)
+        return Response(response=report.reason, status=http.HTTPStatus.FORBIDDEN)
 
-    return Response(status=204)
+    return Response(status=http.HTTPStatus.NO_CONTENT)
 
 
 @repo_policy_compliance.route(WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT, methods=["POST"])
@@ -210,9 +211,9 @@ def workflow_dispatch_check_run(body: WorkflowDispatchInput) -> Response:
     if (
         report := workflow_dispatch(input_=body, policy_document=policy_document)
     ).result == Result.FAIL:
-        return Response(response=report.reason, status=403)
+        return Response(response=report.reason, status=http.HTTPStatus.FORBIDDEN)
 
-    return Response(status=204)
+    return Response(status=http.HTTPStatus.NO_CONTENT)
 
 
 @repo_policy_compliance.route(PUSH_CHECK_RUN_ENDPOINT, methods=["POST"])
@@ -230,9 +231,9 @@ def push_check_run(body: PushInput) -> Response:
     policy_document = _get_policy_document()
 
     if (report := push(input_=body, policy_document=policy_document)).result == Result.FAIL:
-        return Response(response=report.reason, status=403)
+        return Response(response=report.reason, status=http.HTTPStatus.FORBIDDEN)
 
-    return Response(status=204)
+    return Response(status=http.HTTPStatus.NO_CONTENT)
 
 
 @repo_policy_compliance.route(HEALTH_ENDPOINT, methods=["GET"])
@@ -246,8 +247,8 @@ def health() -> Response:
         client = github_client.get()
         client.get_repo("canonical/repo-policy-compliance")
     except exceptions.InputError as exc:
-        return Response(response=str(exc), status=500)
+        return Response(response=str(exc), status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
     except GithubException as exc:
         return Response(response=f"could not communicate with GitHub, {exc}", status=500)
 
-    return Response(status=204)
+    return Response(status=http.HTTPStatus.NO_CONTENT)
