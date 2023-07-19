@@ -3,18 +3,16 @@
 
 """Library for checking that GitHub repos comply with policy."""
 
-import logging
-import sys
 from enum import Enum
 from types import MappingProxyType
-from typing import Callable, NamedTuple, ParamSpec, TypeVar, cast
+from typing import NamedTuple, cast
 
 from github import Github
 from github.Branch import Branch
 from github.Repository import Repository
 from pydantic import BaseModel, Field
 
-from . import policy
+from . import log, policy
 from .comment import remove_quote_lines
 from .github_client import get_collaborators
 from .github_client import inject as inject_github_client
@@ -61,58 +59,7 @@ class Report(NamedTuple):
     reason: str | None
 
 
-P = ParamSpec("P")
-R = TypeVar("R")
-
-
-def log_check(func: Callable[P, R]) -> Callable[P, R]:
-    """Log before check and result of check.
-
-    Args:
-        func: The function that executes a check.
-
-    Returns:
-        The function where the check is logged before it starts and the results are logged.
-    """
-    check_name = func.__name__
-
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-        """Replace function.
-
-        Args:
-            args: The positional arguments passed to the method
-            kwargs: The keywords arguments passed to the method
-
-        Returns:
-            The return value after calling the wrapped function.
-        """
-        logging.info("start check '%s'", check_name)
-        result = func(*args, **kwargs)
-        logging.info("check '%s' finished, result: %s", check_name, result)
-        return result
-
-    return wrapper
-
-
-def _setup_logging() -> None:
-    """Initialise logging for check execution."""
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(message)s")
-    handler.setFormatter(formatter)
-
-    # Setup local logging
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(handler)
-
-    # Setup urllib3 logging
-    urllib3_logger = logging.getLogger("urllib3")
-    urllib3_logger.setLevel(logging.DEBUG)
-    urllib3_logger.addHandler(handler)
-
-
-_setup_logging()
+log.setup()
 
 
 def _get_branch(github_client: Github, repository_name: str, branch_name: str) -> Branch:
@@ -130,7 +77,7 @@ def _get_branch(github_client: Github, repository_name: str, branch_name: str) -
     return repository.get_branch(branch_name)
 
 
-@log_check
+@log.check
 def _check_branch_protected(branch: Branch) -> Report:
     """Check that the branch has protections enabled.
 
@@ -148,7 +95,7 @@ def _check_branch_protected(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
-@log_check
+@log.check
 def _check_signed_commits_required(branch: Branch) -> Report:
     """Check that the branch requires signed commits.
 
@@ -166,7 +113,7 @@ def _check_signed_commits_required(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
-@log_check
+@log.check
 def _check_unique_commits_signed(
     branch_name: str, other_branch_name: str, repository: Repository
 ) -> Report:
@@ -230,7 +177,7 @@ class PullRequestInput(BaseModel):
     commit_sha: str = Field(min_length=1)
 
 
-@log_check
+@log.check
 def pull_request(
     input_: PullRequestInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
 ) -> Report:
@@ -336,7 +283,7 @@ class BranchInput(BaseModel):
 WorkflowDispatchInput = BranchInput
 
 
-@log_check
+@log.check
 def workflow_dispatch(
     input_: WorkflowDispatchInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
 ) -> Report:
@@ -394,7 +341,7 @@ def workflow_dispatch(
 PushInput = BranchInput
 
 
-@log_check
+@log.check
 def push(input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> Report:
     """Run all the checks for on push jobs.
 
@@ -448,7 +395,7 @@ def push(input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL)
 
 
 @inject_github_client
-@log_check
+@log.check
 def target_branch_protection(
     github_client: Github, repository_name: str, branch_name: str
 ) -> Report:
@@ -502,7 +449,7 @@ def target_branch_protection(
 
 
 @inject_github_client
-@log_check
+@log.check
 def source_branch_protection(
     github_client: Github,
     repository_name: str,
@@ -553,7 +500,7 @@ def source_branch_protection(
 
 
 @inject_github_client
-@log_check
+@log.check
 def branch_protection(
     github_client: Github,
     repository_name: str,
@@ -608,7 +555,7 @@ def branch_protection(
 
 
 @inject_github_client
-@log_check
+@log.check
 def collaborators(github_client: Github, repository_name: str) -> Report:
     """Check that no outside contributors have higher access than read.
 
@@ -644,7 +591,7 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
 
 
 @inject_github_client
-@log_check
+@log.check
 def execute_job(
     github_client: Github,
     repository_name: str,

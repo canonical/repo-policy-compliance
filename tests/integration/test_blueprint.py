@@ -94,7 +94,7 @@ def test_one_time_token_as_runner(client: FlaskClient, runner_token: str):
     )
 
     assert (
-        runner_token_response.status_code == http.HTTPStatus.FORBIDDEN[0]
+        runner_token_response.status_code == http.HTTPStatus.FORBIDDEN
     ), runner_token_response.data
 
 
@@ -109,7 +109,7 @@ def test_one_time_token(client: FlaskClient, charm_token: str):
         blueprint.ONE_TIME_TOKEN_ENDPOINT, headers={"Authorization": f"Bearer {charm_token}"}
     )
 
-    assert response.status_code == http.HTTPStatus.OK[0], response.data
+    assert response.status_code == http.HTTPStatus.OK, response.data
     assert response.data
 
 
@@ -137,7 +137,7 @@ def test_check_run_twice_same_token(
         headers={"Authorization": f"Bearer {runner_token}"},
     )
 
-    assert first_response.status_code == http.HTTPStatus.NO_CONTENT[0], first_response.data
+    assert first_response.status_code == http.HTTPStatus.NO_CONTENT, first_response.data
 
     second_response = client.post(
         blueprint.CHECK_RUN_ENDPOINT,
@@ -145,7 +145,7 @@ def test_check_run_twice_same_token(
         headers={"Authorization": f"Bearer {runner_token}"},
     )
 
-    assert second_response.status_code == http.HTTPStatus.UNAUTHORIZED[0], second_response.data
+    assert second_response.status_code == http.HTTPStatus.UNAUTHORIZED, second_response.data
 
 
 @pytest.mark.parametrize(
@@ -237,7 +237,7 @@ def test_pull_request_check_run_fail(
         headers={"Authorization": f"Bearer {runner_token}"},
     )
 
-    assert response.status_code == http.HTTPStatus.FORBIDDEN[0], response.data
+    assert response.status_code == http.HTTPStatus.FORBIDDEN, response.data
     assert_.substrings_in_string(
         ("branch protection", "not enabled"), response.data.decode("utf-8")
     )
@@ -282,7 +282,7 @@ def test_branch_check_run_fail(
         headers={"Authorization": f"Bearer {runner_token}"},
     )
 
-    assert response.status_code == http.HTTPStatus.FORBIDDEN[0], response.data
+    assert response.status_code == http.HTTPStatus.FORBIDDEN, response.data
     assert_.substrings_in_string(
         ("branch protection", "not enabled"), response.data.decode("utf-8")
     )
@@ -356,7 +356,7 @@ def test_pull_request_check_run_pass(
         headers={"Authorization": f"Bearer {runner_token}"},
     )
 
-    assert response.status_code == http.HTTPStatus.NO_CONTENT[0], response.data
+    assert response.status_code == http.HTTPStatus.NO_CONTENT, response.data
 
 
 @pytest.mark.parametrize(
@@ -387,7 +387,7 @@ def test_branch_check_run_pass(
         headers={"Authorization": f"Bearer {runner_token}"},
     )
 
-    assert response.status_code == http.HTTPStatus.NO_CONTENT[0], response.data
+    assert response.status_code == http.HTTPStatus.NO_CONTENT, response.data
 
 
 @pytest.mark.parametrize(
@@ -421,11 +421,11 @@ def test_endpoint_method_unauth(endpoint: str, method: str, client: FlaskClient)
     """
     response = getattr(client, method)(endpoint, headers={})
 
-    assert response.status_code == http.HTTPStatus.UNAUTHORIZED[0], response.data
+    assert response.status_code == http.HTTPStatus.UNAUTHORIZED, response.data
 
     response = getattr(client, method)(endpoint, headers={"Authorization": "Bearer invalid"})
 
-    assert response.status_code == http.HTTPStatus.UNAUTHORIZED[0], response.data
+    assert response.status_code == http.HTTPStatus.UNAUTHORIZED, response.data
 
 
 def test_policy_invalid(client: FlaskClient, charm_token: str):
@@ -475,7 +475,7 @@ def test_pull_request_check_run_fail_policy_disabled(
         headers={"Authorization": f"Bearer {runner_token}"},
     )
 
-    assert fail_response.status_code == http.HTTPStatus.FORBIDDEN[0], fail_response.data
+    assert fail_response.status_code == http.HTTPStatus.FORBIDDEN, fail_response.data
 
     # Disable branch protection policy
     policy_response = client.post(
@@ -488,7 +488,7 @@ def test_pull_request_check_run_fail_policy_disabled(
         headers={"Authorization": f"Bearer {charm_token}"},
     )
 
-    assert policy_response.status_code == http.HTTPStatus.NO_CONTENT[0], policy_response.data
+    assert policy_response.status_code == http.HTTPStatus.NO_CONTENT, policy_response.data
 
     disabled_response = client.post(
         blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
@@ -504,7 +504,7 @@ def test_pull_request_check_run_fail_policy_disabled(
         },
     )
 
-    assert disabled_response.status_code == http.HTTPStatus.NO_CONTENT[0], disabled_response.data
+    assert disabled_response.status_code == http.HTTPStatus.NO_CONTENT, disabled_response.data
 
 
 @pytest.mark.parametrize(
@@ -536,7 +536,7 @@ def test_workflow_dispatch_check_run_fail_policy_disabled(
         headers={"Authorization": f"Bearer {runner_token}"},
     )
 
-    assert fail_response.status_code == http.HTTPStatus.FORBIDDEN[0], fail_response.data
+    assert fail_response.status_code == http.HTTPStatus.FORBIDDEN, fail_response.data
 
     # Disable branch protection policy
     policy_response = client.post(
@@ -549,7 +549,7 @@ def test_workflow_dispatch_check_run_fail_policy_disabled(
         headers={"Authorization": f"Bearer {charm_token}"},
     )
 
-    assert policy_response.status_code == http.HTTPStatus.NO_CONTENT[0], policy_response.data
+    assert policy_response.status_code == http.HTTPStatus.NO_CONTENT, policy_response.data
 
     disabled_response = client.post(
         blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT,
@@ -563,7 +563,7 @@ def test_workflow_dispatch_check_run_fail_policy_disabled(
         },
     )
 
-    assert disabled_response.status_code == http.HTTPStatus.NO_CONTENT[0], disabled_response.data
+    assert disabled_response.status_code == http.HTTPStatus.NO_CONTENT, disabled_response.data
 
 
 @pytest.mark.parametrize(
@@ -595,7 +595,7 @@ def test_push_check_run_fail_policy_disabled(
         headers={"Authorization": f"Bearer {runner_token}"},
     )
 
-    assert fail_response.status_code == http.HTTPStatus.FORBIDDEN[0], fail_response.data
+    assert fail_response.status_code == http.HTTPStatus.FORBIDDEN, fail_response.data
 
     # Disable branch protection policy
     policy_response = client.post(
@@ -608,7 +608,7 @@ def test_push_check_run_fail_policy_disabled(
         headers={"Authorization": f"Bearer {charm_token}"},
     )
 
-    assert policy_response.status_code == http.HTTPStatus.NO_CONTENT[0], policy_response.data
+    assert policy_response.status_code == http.HTTPStatus.NO_CONTENT, policy_response.data
 
     disabled_response = client.post(
         blueprint.PUSH_CHECK_RUN_ENDPOINT,
@@ -622,7 +622,7 @@ def test_push_check_run_fail_policy_disabled(
         },
     )
 
-    assert disabled_response.status_code == http.HTTPStatus.NO_CONTENT[0], disabled_response.data
+    assert disabled_response.status_code == http.HTTPStatus.NO_CONTENT, disabled_response.data
 
 
 @pytest.mark.parametrize(
@@ -650,4 +650,4 @@ def test_health(client: FlaskClient):
     """
     response = client.get(blueprint.HEALTH_ENDPOINT)
 
-    assert response.status_code == http.HTTPStatus.NO_CONTENT[0], response.data
+    assert response.status_code == http.HTTPStatus.NO_CONTENT, response.data
