@@ -319,8 +319,8 @@ def pull_request(
     return Report(result=Result.PASS, reason=None)
 
 
-class WorkflowDispatchInput(BaseModel):
-    """Input arguments for workflow dispatch checks.
+class BranchInput(BaseModel):
+    """Input arguments for checks for jobs running on a branch.
 
     Attrs:
         repository_name: The name of the repository to run the check on.
@@ -331,6 +331,9 @@ class WorkflowDispatchInput(BaseModel):
     repository_name: str = Field(min_length=1)
     branch_name: str = Field(min_length=1)
     commit_sha: str = Field(min_length=1)
+
+
+WorkflowDispatchInput = BranchInput
 
 
 @log_check
@@ -378,6 +381,62 @@ def workflow_dispatch(
         policy.enabled(
             job_type=policy.JobType.WORKFLOW_DISPATCH,
             name=policy.WorkflowDispatchProperty.COLLABORATORS,
+            policy_document=used_policy_document,
+        )
+        and (collaborators_report := collaborators(repository_name=input_.repository_name)).result
+        == Result.FAIL
+    ):
+        return collaborators_report
+
+    return Report(result=Result.PASS, reason=None)
+
+
+PushInput = BranchInput
+
+
+@log_check
+def push(input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> Report:
+    """Run all the checks for on push jobs.
+
+    Args:
+        input_: Data required for executing checks.
+        policy_document: Describes the policies that should be run.
+
+    Returns:
+        Whether the run is authorized based on all the checks.
+    """
+    if policy_document == UsedPolicy.ALL:
+        used_policy_document: MappingProxyType = policy.ALL
+    else:
+        # Guaranteed to be a dict due to initial if
+        policy_document = cast(dict, policy_document)
+        if not (policy_report := policy.check(document=policy_document)).result:
+            return Report(result=Result.FAIL, reason=policy_report.reason)
+        used_policy_document = MappingProxyType(policy_document)
+
+    # The github_client argument is injected, disabling missing arguments check for this function
+    # pylint: disable=no-value-for-parameter
+    if (
+        policy.enabled(
+            job_type=policy.JobType.PUSH,
+            name=policy.PushProperty.BRANCH_PROTECTION,
+            policy_document=used_policy_document,
+        )
+        and (
+            branch_report := branch_protection(
+                repository_name=input_.repository_name,
+                branch_name=input_.branch_name,
+                commit_sha=input_.commit_sha,
+            )
+        ).result
+        == Result.FAIL
+    ):
+        return branch_report
+
+    if (
+        policy.enabled(
+            job_type=policy.JobType.PUSH,
+            name=policy.PushProperty.COLLABORATORS,
             policy_document=used_policy_document,
         )
         and (collaborators_report := collaborators(repository_name=input_.repository_name)).result

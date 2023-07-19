@@ -25,6 +25,7 @@ from github import GithubException
 
 from . import (
     PullRequestInput,
+    PushInput,
     Result,
     UsedPolicy,
     WorkflowDispatchInput,
@@ -32,6 +33,7 @@ from . import (
     github_client,
     policy,
     pull_request,
+    push,
     workflow_dispatch,
 )
 
@@ -54,6 +56,7 @@ POLICY_ENDPOINT = "/policy"
 CHECK_RUN_ENDPOINT = "/check-run"
 PULL_REQUEST_CHECK_RUN_ENDPOINT = "/pull_request/check-run"
 WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT = "/workflow_dispatch/check-run"
+PUSH_CHECK_RUN_ENDPOINT = "/push/check-run"
 HEALTH_ENDPOINT = "/health"
 
 
@@ -207,6 +210,26 @@ def workflow_dispatch_check_run(body: WorkflowDispatchInput) -> Response:
     if (
         report := workflow_dispatch(input_=body, policy_document=policy_document)
     ).result == Result.FAIL:
+        return Response(response=report.reason, status=403)
+
+    return Response(status=204)
+
+
+@repo_policy_compliance.route(PUSH_CHECK_RUN_ENDPOINT, methods=["POST"])
+@auth.login_required(role=RUNNER_ROLE)
+@validate()
+def push_check_run(body: PushInput) -> Response:
+    """Check whether a push run should proceed.
+
+    Args:
+        body: The request body after it is validated.
+
+    Returns:
+        Either to proceed with the run or an error not to proceed with a reason why.
+    """
+    policy_document = _get_policy_document()
+
+    if (report := push(input_=body, policy_document=policy_document)).result == Result.FAIL:
         return Response(response=report.reason, status=403)
 
     return Response(status=204)
