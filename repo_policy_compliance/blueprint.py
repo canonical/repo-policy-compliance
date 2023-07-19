@@ -249,6 +249,9 @@ def health() -> Response:
     except exceptions.InputError as exc:
         return Response(response=str(exc), status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
     except GithubException as exc:
-        return Response(response=f"could not communicate with GitHub, {exc}", status=500)
+        return Response(
+            response=f"could not communicate with GitHub, {exc}",
+            status=http.HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
 
     return Response(status=http.HTTPStatus.NO_CONTENT)

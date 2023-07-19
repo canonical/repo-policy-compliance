@@ -251,7 +251,7 @@ def test_pull_request_check_run_fail(
         pytest.param(
             f"test-branch/blueprint/workflow-dispatch/fail/{uuid4()}",
             blueprint.PUSH_CHECK_RUN_ENDPOINT,
-            id="pushh",
+            id="push",
         ),
     ],
     indirect=["github_branch"],

@@ -320,7 +320,7 @@ def pull_request(
 
 
 class BranchInput(BaseModel):
-    """Input arguments for checks for jobs running on a branch.
+    """Input arguments to check jobs running on a branch.
 
     Attrs:
         repository_name: The name of the repository to run the check on.
