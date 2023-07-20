@@ -482,7 +482,7 @@ def test_pull_request_check_run_fail_policy_disabled(
         blueprint.POLICY_ENDPOINT,
         json={
             policy.JobType.PULL_REQUEST: {
-                policy.PullRequestProperty.TARGET_BRANCH_PROTECTION: {policy.ENABLED_KEY: False}
+                prop: {policy.ENABLED_KEY: False} for prop in policy.PullRequestProperty
             }
         },
         headers={"Authorization": f"Bearer {charm_token}"},
@@ -543,7 +543,7 @@ def test_workflow_dispatch_check_run_fail_policy_disabled(
         blueprint.POLICY_ENDPOINT,
         json={
             policy.JobType.WORKFLOW_DISPATCH: {
-                policy.WorkflowDispatchProperty.BRANCH_PROTECTION: {policy.ENABLED_KEY: False}
+                prop: {policy.ENABLED_KEY: False} for prop in policy.WorkflowDispatchProperty
             }
         },
         headers={"Authorization": f"Bearer {charm_token}"},
@@ -602,7 +602,7 @@ def test_push_check_run_policy_disabled(
         blueprint.POLICY_ENDPOINT,
         json={
             policy.JobType.PUSH: {
-                policy.PushProperty.BRANCH_PROTECTION: {policy.ENABLED_KEY: False}
+                prop: {policy.ENABLED_KEY: False} for prop in policy.PushProperty
             }
         },
         headers={"Authorization": f"Bearer {charm_token}"},
