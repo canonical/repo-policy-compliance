@@ -3,8 +3,8 @@
 
 """Tests for the execute_job function."""
 
-# The tests in this file have to rely on many fixtures
-# pylint: disable=too-many-arguments
+# The tests in this file have to rely on many fixtures, need access to private function to test it
+# pylint: disable=too-many-arguments,protected-access
 
 from uuid import uuid4
 
