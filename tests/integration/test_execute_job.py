@@ -6,6 +6,7 @@
 # The tests in this file have to rely on many fixtures
 # pylint: disable=too-many-arguments
 
+import random
 from uuid import uuid4
 
 import pytest
@@ -16,6 +17,7 @@ from github.Repository import Repository
 
 import repo_policy_compliance
 from repo_policy_compliance.check import AUTHORIZATION_STRING_PREFIX, Result, execute_job
+from repo_policy_compliance.github_client import get_collaborators
 
 from .. import assert_
 
@@ -299,6 +301,46 @@ def test_pass_fork(
         source_repository_name=forked_github_repository.full_name,
         branch_name=forked_github_branch.name,
         commit_sha=commit_on_forked_github_branch.sha,
+    )
+
+    assert report.reason is None
+    assert report.result == Result.PASS
+
+
+def test_pass_fork_collaborator_no_comment(
+    github_repository_name: str,
+    github_repository: Repository,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """
+    arrange: given a mocked fork branch from a maintainer that has a PR without an authorization
+        comment from a maintainer
+    act: when execute_job is called
+    assert: then a pass report is returned.
+    """
+    # Create mock response for get collaborators
+    fork_owner = "user-1"
+    collaborators = get_collaborators(
+        repository=github_repository, permission="maintain", affiliation="all"
+    )
+    assert collaborators, "no collaborators on repo"
+    assert collaborators[0], "collaborator not valid"
+    assert "login" in collaborators[0], "collaborator not valid"
+    collaborators[0]["login"] = fork_owner
+    # Shuffle the list to ensure that the collaborator is not always the first one
+    random.shuffle(collaborators)
+    monkeypatch.setattr(
+        repo_policy_compliance.check,
+        "get_collaborators",
+        lambda *_args, **_kwargs: collaborators,
+    )
+
+    # The github_client is injected
+    report = execute_job(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name,
+        source_repository_name=fork_owner,
+        branch_name="branch-1",
+        commit_sha="sha-1",
     )
 
     assert report.reason is None

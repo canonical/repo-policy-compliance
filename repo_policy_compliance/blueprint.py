@@ -246,7 +246,7 @@ def health() -> Response:
     try:
         client = github_client.get()
         client.get_repo("canonical/repo-policy-compliance")
-    except exceptions.InputError as exc:
+    except exceptions.ConfigurationError as exc:
         return Response(response=str(exc), status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
     except GithubException as exc:
         return Response(

@@ -322,6 +322,32 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
+def _branch_external_fork(
+    repository_name: str, source_repository_name: str, maintain_logins: set[str]
+) -> bool:
+    """Check whether a branch is an external fork.
+
+    A external fork is a fork that is not owned by a user who is also a collaborator or above on
+    the repository.
+
+    Args:
+        repository_name: The name of the repository to run the check on.
+        source_repository_name: The name of the repository that contains the source branch.
+        maintain_logins: The logins from maintainer or above on the repository.
+
+    Returns:
+        Whether the branch is from a external fork.
+    """
+    if repository_name == source_repository_name:
+        return False
+
+    # Check if the owner of the fork is also a maintainer or above on the repo
+    if source_repository_name in maintain_logins:
+        return False
+
+    return True
+
+
 @inject_github_client
 @log.call
 def execute_job(
@@ -343,12 +369,21 @@ def execute_job(
     Returns:
         Whether the workflow run has been approved for the commit SHA.
     """
-    # Not from a forked repository
-    if repository_name == source_repository_name:
+    repository = github_client.get_repo(repository_name)
+    maintain_logins = {
+        collaborator["login"]
+        for collaborator in get_collaborators(
+            repository=repository, permission="maintain", affiliation="all"
+        )
+    }
+    if not _branch_external_fork(
+        repository_name=repository_name,
+        source_repository_name=source_repository_name,
+        maintain_logins=maintain_logins,
+    ):
         return Report(result=Result.PASS, reason=None)
 
     # Retrieve PR for the branch
-    repository = github_client.get_repo(repository_name)
     pulls = repository.get_pulls(state="open")
     pull_for_branch = next((pull for pull in pulls if pull.head.ref == branch_name), None)
     if not pull_for_branch:
@@ -385,12 +420,6 @@ def execute_job(
         )
 
     # Check that the commenter has maintain or above permissions
-    maintain_logins = {
-        collaborator["login"]
-        for collaborator in get_collaborators(
-            repository=repository, permission="maintain", affiliation="all"
-        )
-    }
     if not any(comment.user.login in maintain_logins for comment in authorization_comments):
         return Report(
             result=Result.FAIL,
