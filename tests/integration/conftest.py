@@ -274,8 +274,6 @@ def fixture_collaborators_with_permission(
 @pytest.fixture
 def make_fork_branch_external(monkeypatch: pytest.MonkeyPatch):
     """Make sure that _branch_external_fork returns True."""
-
-    # Change the collaborators request to return mixin collaborators
     monkeypatch.setattr(
         repo_policy_compliance.check,
         "_branch_external_fork",

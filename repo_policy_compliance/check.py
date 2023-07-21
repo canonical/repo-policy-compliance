@@ -327,7 +327,7 @@ def _branch_external_fork(
 ) -> bool:
     """Check whether a branch is an external fork.
 
-    A external fork is a fork that is not owned by a user who is also a collaborator or above on
+    A external fork is a fork that is not owned by a user who is also a maintainer or above on
     the repository.
 
     Args:
