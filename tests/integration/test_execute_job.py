@@ -15,7 +15,7 @@ from github.PullRequest import PullRequest
 from github.Repository import Repository
 
 import repo_policy_compliance
-from repo_policy_compliance import AUTHORIZATION_STRING_PREFIX, Result, execute_job
+from repo_policy_compliance.check import AUTHORIZATION_STRING_PREFIX, Result, execute_job
 
 from .. import assert_
 
@@ -211,7 +211,7 @@ def test_fail_forked_comment_from_wrong_user_on_pr(
 
         # Change the collaborators request to return no collaborators
         monkeypatch.setattr(
-            repo_policy_compliance, "get_collaborators", lambda *_args, **_kwargs: []
+            repo_policy_compliance.check, "get_collaborators", lambda *_args, **_kwargs: []
         )
 
     # The github_client is injected

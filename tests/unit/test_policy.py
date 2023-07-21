@@ -30,6 +30,9 @@ from .. import assert_
                 policy.JobType.WORKFLOW_DISPATCH: {
                     name: {**policy.ENABLED_RULE} for name in policy.WorkflowDispatchProperty
                 },
+                policy.JobType.PUSH: {
+                    name: {**policy.ENABLED_RULE} for name in policy.PushProperty
+                },
             },
             True,
             None,
@@ -55,6 +58,7 @@ from .. import assert_
         for job_type, name in chain(
             zip(repeat(policy.JobType.PULL_REQUEST), policy.PullRequestProperty),
             zip(repeat(policy.JobType.WORKFLOW_DISPATCH), policy.WorkflowDispatchProperty),
+            zip(repeat(policy.JobType.PUSH), policy.PushProperty),
         )
     ]
     + [
@@ -67,6 +71,7 @@ from .. import assert_
         for job_type, name in chain(
             zip(repeat(policy.JobType.PULL_REQUEST), policy.PullRequestProperty),
             zip(repeat(policy.JobType.WORKFLOW_DISPATCH), policy.WorkflowDispatchProperty),
+            zip(repeat(policy.JobType.PUSH), policy.PushProperty),
         )
     ],
 )

@@ -12,15 +12,35 @@ policies:
   merged has protections enabled and requires signed commits. Additionally, all
   commits on the branch and not on the target branch must be signed. Not
   applicable to forked source branches.
+* `branch_protection`: That the branch containing the commits has protections
+  enabled and requires signed commits. Additionally, all commits on the branch
+  and not on the default branch must be signed and the commit the job is running
+  on must be signed.
 * `collaborators`: Check that all outside collaborators of the project have at
   most `read` permissions.
 * `execute_job`: That a maintainer or above has left the comment
   `/canonical/self-hosted-runners/run-workflows <commit SHA>` approving a
   workflow run for a specific commit SHA. Only applicable to forked source
   branches.
-* `all_`: All of the above are checked.
+* `pull_request`: Runs `target_branch_protection`, `source_branch_protection`,
+  `collaborators` and `execute_job`.
+* `workflow_dispatch`: Runs `branch_protection` and `collaborators`.
+* `push`: Runs `branch_protection` and `collaborators`.
 
 These policies are designed for workflow runs in the context of a pull request.
+
+## Customizing Enabled Policies
+
+Each of `pull_request`, `workflow_dispatch` and `push` accept a
+`policy_document` argument which can be used to change which policies are
+enabled. If supplied, it should be a dictionary that complies with the
+[policy JSON schema](repo_policy_compliance/policy_schema.yaml)
+
+## Flask Blueprint
+
+The functions are made available via a
+[flask blueprint](repo_policy_compliance/blueprint.py). This is designed to run
+in a single thread for simplicity.
 
 ## Running the Tests
 

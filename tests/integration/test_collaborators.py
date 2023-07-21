@@ -7,7 +7,7 @@ import itertools
 
 import pytest
 
-from repo_policy_compliance import Result, collaborators
+from repo_policy_compliance.check import Result, collaborators
 
 from .. import assert_
 from .types_ import RequestedCollaborator

@@ -263,7 +263,7 @@ def fixture_collaborators_with_permission(
 
     # Change the collaborators request to return mixin collaborators
     monkeypatch.setattr(
-        repo_policy_compliance,
+        repo_policy_compliance.check,
         "get_collaborators",
         lambda *_args, **_kwargs: mixin_collabs_with_role_name,
     )

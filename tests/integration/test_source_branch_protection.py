@@ -10,7 +10,7 @@ import pytest
 from github.Branch import Branch
 from github.Repository import Repository
 
-from repo_policy_compliance import Result, source_branch_protection
+from repo_policy_compliance.check import Result, source_branch_protection
 
 from .. import assert_
 from .types_ import BranchWithProtection

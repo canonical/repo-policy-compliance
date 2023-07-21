@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 from github import Github, GithubException, RateLimitExceededException
 
-from repo_policy_compliance import target_branch_protection
+from repo_policy_compliance.check import target_branch_protection
 from repo_policy_compliance.exceptions import GithubClientError
 
 GITHUB_REPOSITORY_NAME = "test/repository"
