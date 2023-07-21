@@ -310,6 +310,7 @@ def test_pass_main_repo(
     [f"test-branch/execute-job/fork-branch/{uuid4()}"],
     indirect=True,
 )
+@pytest.mark.usefixtures("make_fork_branch_external")
 def test_pass_fork(
     forked_github_repository: Repository,
     github_repository: Repository,
