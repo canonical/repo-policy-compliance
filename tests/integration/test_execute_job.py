@@ -6,7 +6,6 @@
 # The tests in this file have to rely on many fixtures
 # pylint: disable=too-many-arguments
 
-import random
 from uuid import uuid4
 
 import pytest
@@ -17,7 +16,6 @@ from github.Repository import Repository
 
 import repo_policy_compliance
 from repo_policy_compliance.check import AUTHORIZATION_STRING_PREFIX, Result, execute_job
-from repo_policy_compliance.github_client import get_collaborators
 
 from .. import assert_
 
