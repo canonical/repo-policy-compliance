@@ -21,6 +21,47 @@ from .. import assert_
 
 
 @pytest.mark.parametrize(
+    "repository_name, source_repository_name, maintain_logins, expected_result",
+    [
+        pytest.param("repo-1/name-1", "repo-1/name-1", set(), False, id="repo names match"),
+        pytest.param(
+            "repo-1/name-1",
+            "user-1/name-1",
+            {"user-1"},
+            False,
+            id="repo names don't match, owner in maintain logins",
+        ),
+        pytest.param(
+            "repo-1/name-1",
+            "user-1/name-1",
+            set(),
+            True,
+            id="repo names don't match, owner not in maintain logins",
+        ),
+    ],
+)
+def test__branch_external_fork(
+    repository_name: str,
+    source_repository_name: str,
+    maintain_logins: set[str],
+    expected_result: bool,
+):
+    """
+    arrange: given repository name, source repository name and maintain logins
+    act: when repository name, source repository name and maintain logins are passed to
+        _branch_external_fork
+    assert: then the expected result is returned.
+    """
+    returned_result = repo_policy_compliance.check._branch_external_fork(
+        repository_name=repository_name,
+        source_repository_name=source_repository_name,
+        maintain_logins=maintain_logins,
+    )
+
+    assert returned_result == expected_result
+
+
+@pytest.mark.parametrize(
     "forked_github_branch",
     [f"test-branch/execute-job/no-pr/{uuid4()}"],
     indirect=True,
