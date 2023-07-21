@@ -185,6 +185,7 @@ def test_fail_forked_quoted_authorizationr(
     [f"test-branch/execute-job/comment-from-wrong-user-on-pr/{uuid4()}"],
     indirect=True,
 )
+@pytest.mark.usefixtures("make_fork_branch_external")
 def test_fail_forked_comment_from_wrong_user_on_pr(
     forked_github_repository: Repository,
     github_repository: Repository,
