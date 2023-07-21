@@ -27,6 +27,7 @@ from .. import assert_
     [f"test-branch/execute-job/no-pr/{uuid4()}"],
     indirect=True,
 )
+@pytest.mark.usefixtures("make_fork_branch_external")
 def test_fail_forked_no_pr(
     forked_github_repository: Repository, forked_github_branch: Branch, github_repository_name: str
 ):
@@ -53,7 +54,7 @@ def test_fail_forked_no_pr(
     [f"test-branch/execute-job/no-comment-on-pr/{uuid4()}"],
     indirect=True,
 )
-@pytest.mark.usefixtures("pr_from_forked_github_branch")
+@pytest.mark.usefixtures("pr_from_forked_github_branch", "make_fork_branch_external")
 def test_fail_forked_no_comment_on_pr(
     forked_github_repository: Repository, forked_github_branch: Branch, github_repository_name: str
 ):
@@ -80,6 +81,7 @@ def test_fail_forked_no_comment_on_pr(
     [f"test-branch/execute-job/wrong-comment-on-pr/{uuid4()}"],
     indirect=True,
 )
+@pytest.mark.usefixtures("make_fork_branch_external")
 def test_fail_forked_wrong_comment_on_pr(
     forked_github_repository: Repository,
     github_repository: Repository,
@@ -114,6 +116,7 @@ def test_fail_forked_wrong_comment_on_pr(
     [f"test-branch/execute-job/wrong-commit-sha-on-pr/{uuid4()}"],
     indirect=True,
 )
+@pytest.mark.usefixtures("make_fork_branch_external")
 def test_fail_forked_wrong_commit_sha_on_pr(
     forked_github_repository: Repository,
     github_repository: Repository,
@@ -149,6 +152,7 @@ def test_fail_forked_wrong_commit_sha_on_pr(
     [f"test-branch/execute-job/quoted-authorization/{uuid4()}"],
     indirect=True,
 )
+@pytest.mark.usefixtures("make_fork_branch_external")
 def test_fail_forked_quoted_authorizationr(
     forked_github_repository: Repository,
     github_repository: Repository,
@@ -307,40 +311,29 @@ def test_pass_fork(
     assert report.result == Result.PASS
 
 
+@pytest.mark.parametrize(
+    "forked_github_branch",
+    [f"test-branch/execute-job/maintainer-fork-branch/{uuid4()}"],
+    indirect=True,
+)
 def test_pass_fork_collaborator_no_comment(
+    forked_github_repository: Repository,
+    forked_github_branch: Branch,
     github_repository_name: str,
-    github_repository: Repository,
-    monkeypatch: pytest.MonkeyPatch,
+    commit_on_forked_github_branch: Commit,
 ):
     """
-    arrange: given a mocked fork branch from a maintainer that has a PR without an authorization
-        comment from a maintainer
+    arrange: given a fork branch from a maintainer that has a PR without an authorization comment
+        from a maintainer
     act: when execute_job is called
     assert: then a pass report is returned.
     """
-    # Create mock response for get collaborators
-    fork_owner = "user-1"
-    collaborators = get_collaborators(
-        repository=github_repository, permission="maintain", affiliation="all"
-    )
-    assert collaborators, "no collaborators on repo"
-    assert collaborators[0], "collaborator not valid"
-    assert "login" in collaborators[0], "collaborator not valid"
-    collaborators[0]["login"] = fork_owner
-    # Shuffle the list to ensure that the collaborator is not always the first one
-    random.shuffle(collaborators)
-    monkeypatch.setattr(
-        repo_policy_compliance.check,
-        "get_collaborators",
-        lambda *_args, **_kwargs: collaborators,
-    )
-
     # The github_client is injected
     report = execute_job(  # pylint: disable=no-value-for-parameter
         repository_name=github_repository_name,
-        source_repository_name=fork_owner,
-        branch_name="branch-1",
-        commit_sha="sha-1",
+        source_repository_name=forked_github_repository.full_name,
+        branch_name=forked_github_branch.name,
+        commit_sha=commit_on_forked_github_branch.sha,
     )
 
     assert report.reason is None

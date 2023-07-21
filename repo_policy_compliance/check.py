@@ -342,7 +342,7 @@ def _branch_external_fork(
         return False
 
     # Check if the owner of the fork is also a maintainer or above on the repo
-    if source_repository_name in maintain_logins:
+    if source_repository_name.split("/")[0] in maintain_logins:
         return False
 
     return True
