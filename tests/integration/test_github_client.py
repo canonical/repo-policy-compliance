@@ -8,7 +8,7 @@ import typing
 import pytest
 
 from repo_policy_compliance.check import target_branch_protection
-from repo_policy_compliance.exceptions import GithubClientError, InputError
+from repo_policy_compliance.exceptions import ConfigurationError, GithubClientError
 from repo_policy_compliance.github_client import GITHUB_TOKEN_ENV_NAME
 
 from .. import assert_
@@ -17,7 +17,9 @@ from .. import assert_
 @pytest.mark.parametrize(
     "github_token_value, exception_context, exception_message",
     [
-        pytest.param("", pytest.raises(InputError), "was not provided", id="github_token empty"),
+        pytest.param(
+            "", pytest.raises(ConfigurationError), "was not provided", id="github_token empty"
+        ),
         pytest.param(
             None, pytest.raises(GithubClientError), "Bad Credential error", id="github_token none"
         ),

@@ -12,5 +12,9 @@ class InputError(BaseError):
     """Input is missing or unexpected."""
 
 
+class ConfigurationError(BaseError):
+    """There is a problem with configuration."""
+
+
 class GithubClientError(BaseError):
     """Error occurred on Github API."""

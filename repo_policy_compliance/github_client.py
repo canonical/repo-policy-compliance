@@ -13,7 +13,7 @@ from github.Auth import Token
 from github.Branch import Branch
 from github.Repository import Repository
 
-from .exceptions import GithubClientError, InputError
+from .exceptions import ConfigurationError, GithubClientError
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -29,11 +29,11 @@ def get() -> Github:
         A GitHub client that is configured with a token from the environment.
 
     Raises:
-        InputError: If the GitHub token environment variable is not provided or empty.
+        ConfigurationError: If the GitHub token environment variable is not provided or empty.
     """
     github_token = os.getenv(GITHUB_TOKEN_ENV_NAME)
     if not github_token:
-        raise InputError(
+        raise ConfigurationError(
             f"The {GITHUB_TOKEN_ENV_NAME} environment variable was not provided or empty, "
             f"it is needed for interactions with GitHub, got: {github_token!r}"
         )

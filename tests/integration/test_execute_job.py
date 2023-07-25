@@ -3,8 +3,8 @@
 
 """Tests for the execute_job function."""
 
-# The tests in this file have to rely on many fixtures
-# pylint: disable=too-many-arguments
+# The tests in this file have to rely on many fixtures, need access to private function to test it
+# pylint: disable=too-many-arguments,protected-access
 
 from uuid import uuid4
 
@@ -21,10 +21,52 @@ from .. import assert_
 
 
 @pytest.mark.parametrize(
+    "repository_name, source_repository_name, maintain_logins, expected_result",
+    [
+        pytest.param("repo-1/name-1", "repo-1/name-1", set(), False, id="repo names match"),
+        pytest.param(
+            "repo-1/name-1",
+            "user-1/name-1",
+            {"user-1"},
+            False,
+            id="repo names don't match, owner in maintain logins",
+        ),
+        pytest.param(
+            "repo-1/name-1",
+            "user-1/name-1",
+            set(),
+            True,
+            id="repo names don't match, owner not in maintain logins",
+        ),
+    ],
+)
+def test__branch_external_fork(
+    repository_name: str,
+    source_repository_name: str,
+    maintain_logins: set[str],
+    expected_result: bool,
+):
+    """
+    arrange: given repository name, source repository name and maintain logins
+    act: when repository name, source repository name and maintain logins are passed to
+        _branch_external_fork
+    assert: then the expected result is returned.
+    """
+    returned_result = repo_policy_compliance.check._branch_external_fork(
+        repository_name=repository_name,
+        source_repository_name=source_repository_name,
+        maintain_logins=maintain_logins,
+    )
+
+    assert returned_result == expected_result
+
+
+@pytest.mark.parametrize(
     "forked_github_branch",
     [f"test-branch/execute-job/no-pr/{uuid4()}"],
     indirect=True,
 )
+@pytest.mark.usefixtures("make_fork_branch_external")
 def test_fail_forked_no_pr(
     forked_github_repository: Repository, forked_github_branch: Branch, github_repository_name: str
 ):
@@ -51,7 +93,7 @@ def test_fail_forked_no_pr(
     [f"test-branch/execute-job/no-comment-on-pr/{uuid4()}"],
     indirect=True,
 )
-@pytest.mark.usefixtures("pr_from_forked_github_branch")
+@pytest.mark.usefixtures("pr_from_forked_github_branch", "make_fork_branch_external")
 def test_fail_forked_no_comment_on_pr(
     forked_github_repository: Repository, forked_github_branch: Branch, github_repository_name: str
 ):
@@ -78,6 +120,7 @@ def test_fail_forked_no_comment_on_pr(
     [f"test-branch/execute-job/wrong-comment-on-pr/{uuid4()}"],
     indirect=True,
 )
+@pytest.mark.usefixtures("make_fork_branch_external")
 def test_fail_forked_wrong_comment_on_pr(
     forked_github_repository: Repository,
     github_repository: Repository,
@@ -112,6 +155,7 @@ def test_fail_forked_wrong_comment_on_pr(
     [f"test-branch/execute-job/wrong-commit-sha-on-pr/{uuid4()}"],
     indirect=True,
 )
+@pytest.mark.usefixtures("make_fork_branch_external")
 def test_fail_forked_wrong_commit_sha_on_pr(
     forked_github_repository: Repository,
     github_repository: Repository,
@@ -147,6 +191,7 @@ def test_fail_forked_wrong_commit_sha_on_pr(
     [f"test-branch/execute-job/quoted-authorization/{uuid4()}"],
     indirect=True,
 )
+@pytest.mark.usefixtures("make_fork_branch_external")
 def test_fail_forked_quoted_authorizationr(
     forked_github_repository: Repository,
     github_repository: Repository,
@@ -181,6 +226,7 @@ def test_fail_forked_quoted_authorizationr(
     [f"test-branch/execute-job/comment-from-wrong-user-on-pr/{uuid4()}"],
     indirect=True,
 )
+@pytest.mark.usefixtures("make_fork_branch_external")
 def test_fail_forked_comment_from_wrong_user_on_pr(
     forked_github_repository: Repository,
     github_repository: Repository,
@@ -264,6 +310,7 @@ def test_pass_main_repo(
     [f"test-branch/execute-job/fork-branch/{uuid4()}"],
     indirect=True,
 )
+@pytest.mark.usefixtures("make_fork_branch_external")
 def test_pass_fork(
     forked_github_repository: Repository,
     github_repository: Repository,
@@ -293,6 +340,35 @@ def test_pass_fork(
         f"padding {AUTHORIZATION_STRING_PREFIX} {commit_on_forked_github_branch.sha} padding"
     )
 
+    # The github_client is injected
+    report = execute_job(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name,
+        source_repository_name=forked_github_repository.full_name,
+        branch_name=forked_github_branch.name,
+        commit_sha=commit_on_forked_github_branch.sha,
+    )
+
+    assert report.reason is None
+    assert report.result == Result.PASS
+
+
+@pytest.mark.parametrize(
+    "forked_github_branch",
+    [f"test-branch/execute-job/maintainer-fork-branch/{uuid4()}"],
+    indirect=True,
+)
+def test_pass_fork_collaborator_no_comment(
+    forked_github_repository: Repository,
+    forked_github_branch: Branch,
+    github_repository_name: str,
+    commit_on_forked_github_branch: Commit,
+):
+    """
+    arrange: given a fork branch from a maintainer that has a PR without an authorization comment
+        from a maintainer
+    act: when execute_job is called
+    assert: then a pass report is returned.
+    """
     # The github_client is injected
     report = execute_job(  # pylint: disable=no-value-for-parameter
         repository_name=github_repository_name,
