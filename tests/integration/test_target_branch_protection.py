@@ -25,12 +25,6 @@ from .types_ import BranchWithProtection
             id="branch_protection disabled",
         ),
         pytest.param(
-            f"test-branch/target-branch/no-code-owner-review/{uuid4()}",
-            BranchWithProtection(require_code_owner_reviews=False),
-            ("codeowner", "pull request", "review", "not required"),
-            id="code-owner missing",
-        ),
-        pytest.param(
             f"test-branch/target-branch/stale-review-not-dismissed/{uuid4()}",
             BranchWithProtection(dismiss_stale_reviews_enabled=False),
             ("stale", "reviews", "not dismissed"),

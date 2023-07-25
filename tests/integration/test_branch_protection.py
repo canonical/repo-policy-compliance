@@ -101,10 +101,7 @@ def fixture_branch_for_commit_not_signed_fail(
     post_parameters = {
         "required_status_checks": None,
         "enforce_admins": None,
-        "required_pull_request_reviews": {
-            "dismiss_stale_reviews": False,
-            "require_code_owner_reviews": False,
-        },
+        "required_pull_request_reviews": {"dismiss_stale_reviews": False},
         "restrictions": None,
     }
     # pylint: disable=protected-access

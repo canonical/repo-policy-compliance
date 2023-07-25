@@ -5,9 +5,8 @@ The module exposes several functions to check for compliance with the following
 policies:
 
 * `target_branch_protection`: That the branch targeted by a pull request has
-  protection enabled, requires reviews by the code owner, stale reviews are
-  dismissed, that rules cannot be bypassed and that signed commits are
-  required.
+  protection enabled, stale reviews are dismissed, that rules cannot be bypassed
+  and that signed commits are required.
 * `source_branch_protection`: That the branch containing the commits to be
   merged has protections enabled and requires signed commits. Additionally, all
   commits on the branch and not on the target branch must be signed. Not
