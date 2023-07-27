@@ -33,7 +33,10 @@ These policies are designed for workflow runs in the context of a pull request.
 Each of `pull_request`, `workflow_dispatch` and `push` accept a
 `policy_document` argument which can be used to change which policies are
 enabled. If supplied, it should be a dictionary that complies with the
-[policy JSON schema](repo_policy_compliance/policy_schema.yaml)
+[policy JSON schema](repo_policy_compliance/policy_schema.yaml).
+
+If nothing is supplied for a particular policy (e.g.,
+`pull_request.target_branch_protection`) it is treated as enabled.
 
 ## Flask Blueprint
 

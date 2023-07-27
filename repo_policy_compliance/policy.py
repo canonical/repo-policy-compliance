@@ -117,6 +117,8 @@ def enabled(
     Returns:
         Whether the policy is enabled in the document.
     """
+    if job_type not in policy_document or name not in policy_document[job_type]:
+        return True
     return (
         job_type in policy_document
         and name in policy_document[job_type]

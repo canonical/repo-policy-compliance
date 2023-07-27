@@ -70,7 +70,10 @@ def test_target_branch(
         policy.JobType.PULL_REQUEST: {
             policy.PullRequestProperty.TARGET_BRANCH_PROTECTION: {
                 policy.ENABLED_KEY: policy_enabled
-            }
+            },
+            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION: {policy.ENABLED_KEY: False},
+            policy.PullRequestProperty.COLLABORATORS: {policy.ENABLED_KEY: False},
+            policy.PullRequestProperty.EXECUTE_JOB: {policy.ENABLED_KEY: False},
         }
     }
 
