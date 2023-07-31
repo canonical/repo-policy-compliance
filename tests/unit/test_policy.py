@@ -4,6 +4,7 @@
 """Tests for the policy module."""
 
 from itertools import chain, repeat
+from types import MappingProxyType
 
 import pytest
 
@@ -87,3 +88,79 @@ def test_check(document: dict, expected_result: bool, expected_reason: tuple[str
     if expected_reason is not None:
         assert returned_report.reason is not None
         assert_.substrings_in_string(expected_reason, returned_report.reason.lower())
+
+
+@pytest.mark.parametrize(
+    "job_type, name, document, expected_result",
+    [
+        pytest.param(
+            policy.JobType.PULL_REQUEST,
+            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION,
+            {},
+            True,
+            id="empty",
+        ),
+        pytest.param(
+            policy.JobType.PULL_REQUEST,
+            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION,
+            {
+                policy.JobType.WORKFLOW_DISPATCH: {
+                    policy.WorkflowDispatchProperty.BRANCH_PROTECTION: {policy.ENABLED_KEY: False}
+                }
+            },
+            True,
+            id="different job type in document",
+        ),
+        pytest.param(
+            policy.JobType.PULL_REQUEST,
+            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION,
+            {
+                policy.JobType.PULL_REQUEST: {
+                    policy.PullRequestProperty.TARGET_BRANCH_PROTECTION: {
+                        policy.ENABLED_KEY: False
+                    }
+                }
+            },
+            True,
+            id="different property in document",
+        ),
+        pytest.param(
+            policy.JobType.PULL_REQUEST,
+            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION,
+            {
+                policy.JobType.PULL_REQUEST: {
+                    policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION: {policy.ENABLED_KEY: True}
+                }
+            },
+            True,
+            id="property in document enabled",
+        ),
+        pytest.param(
+            policy.JobType.PULL_REQUEST,
+            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION,
+            {
+                policy.JobType.PULL_REQUEST: {
+                    policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION: {
+                        policy.ENABLED_KEY: False
+                    }
+                }
+            },
+            False,
+            id="property in document disabled",
+        ),
+    ],
+)
+def test_enabled(
+    job_type: policy.JobType,
+    name: policy.PullRequestProperty | policy.WorkflowDispatchProperty | policy.PushProperty,
+    document: MappingProxyType,
+    expected_result: bool,
+):
+    """
+    arrange: given policy document, job type and property name
+    act: when enabled is called with the policty document, job type and property name
+    assert: then the expected result is returned
+    """
+    returned_result = policy.enabled(job_type=job_type, name=name, policy_document=document)
+
+    assert returned_result == expected_result
