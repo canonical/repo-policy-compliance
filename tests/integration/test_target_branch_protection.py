@@ -65,6 +65,39 @@ def test_fail(github_branch: Branch, reason_string_array: tuple[str], github_rep
 
 
 @pytest.mark.parametrize(
+    "github_branch",
+    [
+        pytest.param(
+            f"test-branch/target-branch/review-not-required/{uuid4()}",
+            id="branch_protection disabled",
+        )
+    ],
+    indirect=["github_branch"],
+)
+def test_fail_pull_request_review_not_required(
+    pull_request_review_not_required: Branch, github_repository_name: str
+):
+    """
+    arrange: given a branch that has protections enabled but does not require reviews
+    act: when target_branch_protection is called with the name of the branch
+    assert: then a fail report is returned.
+    """
+    pull_request_review_not_required.edit_protection(allow_force_pushes=False)
+
+    # The github_client is injected
+    report = target_branch_protection(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name, branch_name=pull_request_review_not_required.name
+    )
+
+    assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
+    assert_.substrings_in_string(
+        ("pull request", "review", "not required", pull_request_review_not_required.name),
+        report.reason,
+    )
+
+
+@pytest.mark.parametrize(
     "github_branch, protected_github_branch",
     [(f"test-branch/target-branch/protected/{uuid4()}", BranchWithProtection())],
     indirect=["github_branch", "protected_github_branch"],

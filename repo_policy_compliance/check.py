@@ -157,6 +157,11 @@ def target_branch_protection(
     protection = branch.get_protection()
 
     pull_request_reviews = protection.required_pull_request_reviews
+    if pull_request_reviews is None:
+        return Report(
+            result=Result.FAIL,
+            reason=(f"{FAILURE_MESSAGE}pull request reviews are not required, {branch_name=!r}"),
+        )
     if not pull_request_reviews.dismiss_stale_reviews:
         return Report(
             result=Result.FAIL,
