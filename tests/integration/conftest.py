@@ -214,6 +214,18 @@ def fixture_protected_github_branch(
         github_branch.remove_protection()
 
 
+@pytest.fixture(name="force_push_allowed_github_branch")
+def fixture_force_push_allowed_github_branch(
+    github_branch: Branch,
+) -> Iterator[BranchWithProtection]:
+    """Add protection to a branch."""
+    github_branch.edit_protection(allow_force_pushes=False)
+
+    yield github_branch
+
+    github_branch.remove_protection()
+
+
 @pytest.fixture
 def protected_github_branch_with_commit_in_ci(
     github_branch: Branch, ci_github_repository: Repository | None
