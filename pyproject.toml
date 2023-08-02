@@ -3,7 +3,7 @@
 
 [tool.poetry]
 name = "repo-policy-compliance"
-version = "1.0.0"
+version = "1.1.0"
 description = "Checks GitHub repository settings for compliance with policy"
 authors = ["Canonical IS DevOps <launchpad.net/~canonical-is-devops>"]
 license = "Apache 2.0"

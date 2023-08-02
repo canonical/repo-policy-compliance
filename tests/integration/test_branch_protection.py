@@ -18,37 +18,26 @@ from .types_ import BranchWithProtection
 
 
 @pytest.mark.parametrize(
-    "github_branch, protected_github_branch, add_commit, reason_string_array",
+    "github_branch, protected_github_branch, reason_string_array",
     [
         pytest.param(
             f"test-branch/branch/not-protected/{uuid4()}",
             BranchWithProtection(branch_protection_enabled=False),
-            False,
             ("not enabled"),
             id="branch_protection disabled",
         ),
         pytest.param(
             f"test-branch/branch/requires-signature/{uuid4()}",
             BranchWithProtection(required_signatures_enabled=False),
-            False,
             ("signed", "commits", "not required"),
             id="required-signature disabled",
-        ),
-        pytest.param(
-            f"test-branch/branch/unsigned-commits/{uuid4()}",
-            BranchWithProtection(required_signatures_enabled=True),
-            True,
-            ("commit", "not signed"),
-            id="required-signature enabled branch has unsigned commits",
         ),
     ],
     indirect=["github_branch", "protected_github_branch"],
 )
 @pytest.mark.usefixtures("protected_github_branch")
 def test_fail(
-    github_repository: Repository,
     github_branch: Branch,
-    add_commit: bool,
     reason_string_array: tuple[str],
     github_repository_name: str,
 ):
@@ -57,11 +46,6 @@ def test_fail(
     act: when branch_protection is called with the name of the branch.
     assert: then a fail report is returned.
     """
-    if add_commit:
-        github_repository.create_file(
-            "test.txt", "testing", "some content", branch=github_branch.name
-        )
-
     # The github_client is injected
     report = branch_protection(  # pylint: disable=no-value-for-parameter
         repository_name=github_repository_name,
