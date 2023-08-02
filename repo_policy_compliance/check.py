@@ -155,8 +155,10 @@ def target_branch_protection(
     if (protected_report := branch_protected(branch=branch)).result == Result.FAIL:
         return protected_report
 
-    # Only check for whether reviews are required for PRs from a fork
-    if repository_name != source_repository_name:
+    # Only check for whether reviews are required for PRs from a fork or where the target branch is
+    # the default branch
+    repository = github_client.get_repo(repository_name)
+    if branch_name == repository.default_branch or repository_name != source_repository_name:
         protection = branch.get_protection()
         pull_request_reviews = protection.required_pull_request_reviews
         if pull_request_reviews is None:

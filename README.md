@@ -6,7 +6,9 @@ policies:
 
 * `target_branch_protection`: That the branch targeted by a pull request has
   protection enabled, stale reviews are dismissed, that rules cannot be bypassed
-  and that signed commits are required.
+  and that signed commits are required. The requirement for reviews is relaxed
+  for non-default branches where both the source and target branch are on the
+  repository.
 * `source_branch_protection`: That the branch containing the commits to be
   merged has protections enabled and requires signed commits. Additionally, all
   commits on the branch and not on the target branch must be signed. Not
