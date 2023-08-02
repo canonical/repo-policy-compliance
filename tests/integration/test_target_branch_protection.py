@@ -133,9 +133,9 @@ def test_fail_default_branch(
     forked_github_repository: Repository, caplog: pytest.LogCaptureFixture
 ):
     """
-    arrange: given a default branch branch that is compliant.
+    arrange: given a default branch branch that is not compliant.
     act: when target_branch_protection is called with the name of the branch.
-    assert: then a pass report is returned.
+    assert: then a fail report is returned.
     """
     default_branch = forked_github_repository.get_branch(forked_github_repository.default_branch)
     default_branch.edit_protection()
