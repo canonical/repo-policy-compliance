@@ -54,7 +54,9 @@ def test_fail(github_branch: Branch, reason_string_array: tuple[str], github_rep
     """
     # The github_client is injected
     report = target_branch_protection(  # pylint: disable=no-value-for-parameter
-        repository_name=github_repository_name, branch_name=github_branch.name
+        repository_name=github_repository_name,
+        branch_name=github_branch.name,
+        source_repository_name="other repo",
     )
 
     assert report.result == Result.FAIL
@@ -86,7 +88,9 @@ def test_fail_pull_request_review_not_required(
 
     # The github_client is injected
     report = target_branch_protection(  # pylint: disable=no-value-for-parameter
-        repository_name=github_repository_name, branch_name=pull_request_review_not_required.name
+        repository_name=github_repository_name,
+        branch_name=pull_request_review_not_required.name,
+        source_repository_name="other repository",
     )
 
     assert report.result == Result.FAIL
@@ -113,7 +117,49 @@ def test_pass(
     """
     # The github_client is injected
     report = target_branch_protection(  # pylint: disable=no-value-for-parameter
-        repository_name=github_repository_name, branch_name=github_branch.name
+        repository_name=github_repository_name,
+        branch_name=github_branch.name,
+        source_repository_name="other repository",
+    )
+
+    assert report.reason is None
+    assert report.result == Result.PASS
+    assert repr("target_branch_protection") in caplog.text
+    assert repr(report) in caplog.text
+
+
+@pytest.mark.parametrize(
+    "github_branch, protected_github_branch",
+    [
+        (
+            f"test-branch/target-branch/protected-on-repo/{uuid4()}",
+            BranchWithProtection(
+                required_signatures_enabled=True,
+                branch_protection_enabled=True,
+                dismiss_stale_reviews_enabled=False,
+                bypass_pull_request_allowance_disabled=False,
+            ),
+        )
+    ],
+    indirect=["github_branch", "protected_github_branch"],
+)
+@pytest.mark.usefixtures("protected_github_branch")
+def test_pass_branch_on_source_repo(
+    github_branch: Branch, github_repository_name: str, caplog: pytest.LogCaptureFixture
+):
+    """
+    arrange: given a branch that is compliant where both the source and destination branch are on
+        the same repo.
+    act: when target_branch_protection is called with the name of the branch.
+    assert: then a pass report is returned.
+    """
+    github_branch.remove_required_pull_request_reviews()
+
+    # The github_client is injected
+    report = target_branch_protection(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name,
+        branch_name=github_branch.name,
+        source_repository_name=github_repository_name,
     )
 
     assert report.reason is None

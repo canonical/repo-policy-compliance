@@ -47,6 +47,8 @@ def test_github_token(
     with exception_context as error:
         # The github_client is injected
         target_branch_protection(  # pylint: disable=no-value-for-parameter
-            repository_name=github_repository_name, branch_name="arbitrary"
+            repository_name=github_repository_name,
+            branch_name="arbitrary",
+            source_repository_name="arbitrary",
         )
     assert_.substrings_in_string([GITHUB_TOKEN_ENV_NAME, exception_message], str(error.value))

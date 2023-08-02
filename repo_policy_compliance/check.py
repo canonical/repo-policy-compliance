@@ -135,7 +135,7 @@ def unique_commits_signed(
 @inject_github_client
 @log.call
 def target_branch_protection(
-    github_client: Github, repository_name: str, branch_name: str
+    github_client: Github, repository_name: str, branch_name: str, source_repository_name: str
 ) -> Report:
     """Check that the target branch has appropriate protections.
 
@@ -143,6 +143,7 @@ def target_branch_protection(
         github_client: The client to be used for GitHub API interactions.
         repository_name: The name of the repository to run the check on.
         branch_name: The name of the branch to check.
+        source_repository_name: The name of the repository that contains the source branch.
 
     Returns:
         Whether the branch has appropriate protections.
@@ -154,26 +155,31 @@ def target_branch_protection(
     if (protected_report := branch_protected(branch=branch)).result == Result.FAIL:
         return protected_report
 
-    protection = branch.get_protection()
-
-    pull_request_reviews = protection.required_pull_request_reviews
-    if pull_request_reviews is None:
-        return Report(
-            result=Result.FAIL,
-            reason=(f"{FAILURE_MESSAGE}pull request reviews are not required, {branch_name=!r}"),
-        )
-    if not pull_request_reviews.dismiss_stale_reviews:
-        return Report(
-            result=Result.FAIL,
-            reason=(f"{FAILURE_MESSAGE}stale reviews are not dismissed, {branch_name=!r}"),
-        )
-    # Check for bypass allowances
-    bypass_allowances = pull_request_reviews.raw_data.get(BYPASS_ALLOWANCES_KEY, {})
-    if any(bypass_allowances.get(key, []) for key in ("users", "teams", "apps")):
-        return Report(
-            result=Result.FAIL,
-            reason=(f"{FAILURE_MESSAGE}pull request reviews can be bypassed, {branch_name=!r}"),
-        )
+    # Only check for whether reviews are required for PRs from a fork
+    if repository_name != source_repository_name:
+        protection = branch.get_protection()
+        pull_request_reviews = protection.required_pull_request_reviews
+        if pull_request_reviews is None:
+            return Report(
+                result=Result.FAIL,
+                reason=(
+                    f"{FAILURE_MESSAGE}pull request reviews are not required, {branch_name=!r}"
+                ),
+            )
+        if not pull_request_reviews.dismiss_stale_reviews:
+            return Report(
+                result=Result.FAIL,
+                reason=(f"{FAILURE_MESSAGE}stale reviews are not dismissed, {branch_name=!r}"),
+            )
+        # Check for bypass allowances
+        bypass_allowances = pull_request_reviews.raw_data.get(BYPASS_ALLOWANCES_KEY, {})
+        if any(bypass_allowances.get(key, []) for key in ("users", "teams", "apps")):
+            return Report(
+                result=Result.FAIL,
+                reason=(
+                    f"{FAILURE_MESSAGE}pull request reviews can be bypassed, {branch_name=!r}"
+                ),
+            )
 
     if (signed_commits_report := signed_commits_required(branch=branch)).result == Result.FAIL:
         return signed_commits_report
