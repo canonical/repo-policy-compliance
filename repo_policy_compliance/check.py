@@ -259,17 +259,8 @@ def branch_protection(
     if (signed_commits_report := signed_commits_required(branch=branch)).result == Result.FAIL:
         return signed_commits_report
 
-    repository = github_client.get_repo(repository_name)
-    if (
-        unique_commits_signed_report := unique_commits_signed(
-            branch_name=branch_name,
-            other_branch_name=repository.default_branch,
-            repository=repository,
-        )
-    ).result == Result.FAIL:
-        return unique_commits_signed_report
-
     # Check that the commit the job is running on is signed
+    repository = github_client.get_repo(repository_name)
     commit = repository.get_commit(sha=commit_sha)
     if not commit.commit.raw_data["verification"]["verified"]:
         return Report(
