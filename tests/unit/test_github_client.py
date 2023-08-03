@@ -46,6 +46,6 @@ def test_github_error(
     with pytest.raises(GithubClientError) as error:
         # The github_client is injected
         target_branch_protection(  # pylint: disable=no-value-for-parameter
-            GITHUB_REPOSITORY_NAME, GITHUB_BRANCH_NAME
+            GITHUB_REPOSITORY_NAME, GITHUB_BRANCH_NAME, GITHUB_REPOSITORY_NAME
         )
     assert expected_message in str(error.value)

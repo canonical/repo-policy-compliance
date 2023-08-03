@@ -72,7 +72,9 @@ def pull_request(
         )
         and (
             target_branch_report := check.target_branch_protection(
-                repository_name=input_.repository_name, branch_name=input_.target_branch_name
+                repository_name=input_.repository_name,
+                branch_name=input_.target_branch_name,
+                source_repository_name=input_.source_repository_name,
             )
         ).result
         == check.Result.FAIL
