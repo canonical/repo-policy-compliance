@@ -263,3 +263,63 @@ def push(input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL)
         return collaborators_report
 
     return check.Report(result=check.Result.PASS, reason=None)
+
+
+ScheduleInput = BranchInput
+
+
+@log.call
+def schedule(
+    input_: ScheduleInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
+) -> check.Report:
+    """Run all the checks for on schedule jobs.
+
+    Args:
+        input_: Data required for executing checks.
+        policy_document: Describes the policies that should be run.
+
+    Returns:
+        Whether the run is authorized based on all the checks.
+    """
+    if policy_document == UsedPolicy.ALL:
+        used_policy_document: MappingProxyType = policy.ALL
+    else:
+        # Guaranteed to be a dict due to initial if
+        policy_document = cast(dict, policy_document)
+        if not (policy_report := policy.check(document=policy_document)).result:
+            return check.Report(result=check.Result.FAIL, reason=policy_report.reason)
+        used_policy_document = MappingProxyType(policy_document)
+
+    # The github_client argument is injected, disabling missing arguments check for this function
+    # pylint: disable=no-value-for-parameter
+    if (
+        policy.enabled(
+            job_type=policy.JobType.SCHEDULE,
+            name=policy.ScheduleProperty.BRANCH_PROTECTION,
+            policy_document=used_policy_document,
+        )
+        and (
+            branch_report := check.branch_protection(
+                repository_name=input_.repository_name,
+                branch_name=input_.branch_name,
+                commit_sha=input_.commit_sha,
+            )
+        ).result
+        == check.Result.FAIL
+    ):
+        return branch_report
+
+    if (
+        policy.enabled(
+            job_type=policy.JobType.SCHEDULE,
+            name=policy.ScheduleProperty.COLLABORATORS,
+            policy_document=used_policy_document,
+        )
+        and (
+            collaborators_report := check.collaborators(repository_name=input_.repository_name)
+        ).result
+        == check.Result.FAIL
+    ):
+        return collaborators_report
+
+    return check.Report(result=check.Result.PASS, reason=None)

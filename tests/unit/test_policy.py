@@ -34,6 +34,9 @@ from .. import assert_
                 policy.JobType.PUSH: {
                     name: {**policy.ENABLED_RULE} for name in policy.PushProperty
                 },
+                policy.JobType.SCHEDULE: {
+                    name: {**policy.ENABLED_RULE} for name in policy.ScheduleProperty
+                },
             },
             True,
             None,
@@ -60,6 +63,7 @@ from .. import assert_
             zip(repeat(policy.JobType.PULL_REQUEST), policy.PullRequestProperty),
             zip(repeat(policy.JobType.WORKFLOW_DISPATCH), policy.WorkflowDispatchProperty),
             zip(repeat(policy.JobType.PUSH), policy.PushProperty),
+            zip(repeat(policy.JobType.SCHEDULE), policy.ScheduleProperty),
         )
     ]
     + [
@@ -73,6 +77,7 @@ from .. import assert_
             zip(repeat(policy.JobType.PULL_REQUEST), policy.PullRequestProperty),
             zip(repeat(policy.JobType.WORKFLOW_DISPATCH), policy.WorkflowDispatchProperty),
             zip(repeat(policy.JobType.PUSH), policy.PushProperty),
+            zip(repeat(policy.JobType.SCHEDULE), policy.ScheduleProperty),
         )
     ],
 )
@@ -152,7 +157,10 @@ def test_check(document: dict, expected_result: bool, expected_reason: tuple[str
 )
 def test_enabled(
     job_type: policy.JobType,
-    name: policy.PullRequestProperty | policy.WorkflowDispatchProperty | policy.PushProperty,
+    name: policy.PullRequestProperty
+    | policy.WorkflowDispatchProperty
+    | policy.PushProperty
+    | policy.ScheduleProperty,
     document: MappingProxyType,
     expected_result: bool,
 ):

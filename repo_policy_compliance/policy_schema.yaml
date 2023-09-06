@@ -31,6 +31,14 @@ properties:
       collaborators:
         $ref: "#/$defs/rule"
     additionalProperties: false
+  schedule:
+    type: object
+    properties:
+      branch_protection:
+        $ref: "#/$defs/rule"
+      collaborators:
+        $ref: "#/$defs/rule"
+    additionalProperties: false
 additionalProperties: false
 $defs:
   rule:
