@@ -27,12 +27,13 @@ policies:
   `collaborators` and `execute_job`.
 * `workflow_dispatch`: Runs `branch_protection` and `collaborators`.
 * `push`: Runs `branch_protection` and `collaborators`.
+* `schedule`: Runs `branch_protection` and `collaborators`.
 
 These policies are designed for workflow runs in the context of a pull request.
 
 ## Customizing Enabled Policies
 
-Each of `pull_request`, `workflow_dispatch` and `push` accept a
+Each of `pull_request`, `workflow_dispatch`, `schedule` and `push` accept a
 `policy_document` argument which can be used to change which policies are
 enabled. If supplied, it should be a dictionary that complies with the
 [policy JSON schema](repo_policy_compliance/policy_schema.yaml).

@@ -29,6 +29,7 @@ EXPECTED_PULL_REQUEST_KEYS = (
 
 EXPECTED_WORKFLOW_DISPATCH_KEYS = ("repository_name", "branch_name", "commit_sha")
 EXPECTED_PUSH_KEYS = ("repository_name", "branch_name", "commit_sha")
+EXPECTED_SCHEDULE_KEYS = ("repository_name", "branch_name", "commit_sha")
 
 
 @pytest.fixture(name="app")
@@ -159,6 +160,9 @@ def test_check_run_twice_same_token(
             id=blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT,
         ),
         pytest.param(blueprint.PUSH_CHECK_RUN_ENDPOINT, id=blueprint.PUSH_CHECK_RUN_ENDPOINT),
+        pytest.param(
+            blueprint.SCHEDULE_CHECK_RUN_ENDPOINT, id=blueprint.SCHEDULE_CHECK_RUN_ENDPOINT
+        ),
     ],
 )
 def test_check_run_not_json(endpoint: str, client: FlaskClient, runner_token: str):
@@ -191,6 +195,11 @@ def test_check_run_not_json(endpoint: str, client: FlaskClient, runner_token: st
             blueprint.PUSH_CHECK_RUN_ENDPOINT,
             EXPECTED_PUSH_KEYS,
             id=blueprint.PUSH_CHECK_RUN_ENDPOINT,
+        ),
+        pytest.param(
+            blueprint.SCHEDULE_CHECK_RUN_ENDPOINT,
+            EXPECTED_SCHEDULE_KEYS,
+            id=blueprint.SCHEDULE_CHECK_RUN_ENDPOINT,
         ),
     ],
 )
@@ -256,6 +265,11 @@ def test_pull_request_check_run_fail(
             blueprint.PUSH_CHECK_RUN_ENDPOINT,
             id="push",
         ),
+        pytest.param(
+            f"test-branch/blueprint/workflow-dispatch/fail/{uuid4()}",
+            blueprint.SCHEDULE_CHECK_RUN_ENDPOINT,
+            id="schedule",
+        ),
     ],
     indirect=["github_branch"],
 )
@@ -305,6 +319,11 @@ def test_branch_check_run_fail(
             blueprint.PUSH_CHECK_RUN_ENDPOINT,
             EXPECTED_PUSH_KEYS,
             id=blueprint.PUSH_CHECK_RUN_ENDPOINT,
+        ),
+        pytest.param(
+            blueprint.SCHEDULE_CHECK_RUN_ENDPOINT,
+            EXPECTED_SCHEDULE_KEYS,
+            id=blueprint.SCHEDULE_CHECK_RUN_ENDPOINT,
         ),
     ],
 )
@@ -364,6 +383,7 @@ def test_pull_request_check_run_pass(
     [
         pytest.param(blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT, id="workflow dispatch"),
         pytest.param(blueprint.PUSH_CHECK_RUN_ENDPOINT, id="push"),
+        pytest.param(blueprint.SCHEDULE_CHECK_RUN_ENDPOINT, id="schedule"),
     ],
 )
 def test_branch_check_run_pass(
@@ -410,6 +430,9 @@ def test_branch_check_run_pass(
         ),
         pytest.param(
             blueprint.PUSH_CHECK_RUN_ENDPOINT, "post", id=blueprint.PUSH_CHECK_RUN_ENDPOINT
+        ),
+        pytest.param(
+            blueprint.SCHEDULE_CHECK_RUN_ENDPOINT, "post", id=blueprint.SCHEDULE_CHECK_RUN_ENDPOINT
         ),
     ],
 )
@@ -612,6 +635,65 @@ def test_push_check_run_policy_disabled(
 
     disabled_response = client.post(
         blueprint.PUSH_CHECK_RUN_ENDPOINT,
+        json={
+            "repository_name": github_repository.full_name,
+            "branch_name": github_branch.name,
+            "commit_sha": github_branch.commit.sha,
+        },
+        headers={
+            "Authorization": f"Bearer {get_runner_token(client=client, charm_token=charm_token)}"
+        },
+    )
+
+    assert disabled_response.status_code == http.HTTPStatus.NO_CONTENT, disabled_response.data
+
+
+@pytest.mark.parametrize(
+    "github_branch",
+    [f"test-branch/blueprint/schedule/fail-policy/{uuid4()}"],
+    indirect=True,
+)
+def test_schedule_check_run_policy_disabled(
+    client: FlaskClient,
+    runner_token: str,
+    charm_token: str,
+    github_repository: Repository,
+    github_branch: Branch,
+):
+    """
+    arrange: given flask application with the blueprint registered and the charm token environment
+        variable set
+    act: when schedule check run is requested with a runner token, an invalid run and
+        with the policy enabled and then disabled
+    assert: then 403 and 204 is returned, respectively.
+    """
+    fail_response = client.post(
+        blueprint.SCHEDULE_CHECK_RUN_ENDPOINT,
+        json={
+            "repository_name": github_repository.full_name,
+            "branch_name": github_branch.name,
+            "commit_sha": github_branch.commit.sha,
+        },
+        headers={"Authorization": f"Bearer {runner_token}"},
+    )
+
+    assert fail_response.status_code == http.HTTPStatus.FORBIDDEN, fail_response.data
+
+    # Disable branch protection policy
+    policy_response = client.post(
+        blueprint.POLICY_ENDPOINT,
+        json={
+            policy.JobType.SCHEDULE: {
+                prop: {policy.ENABLED_KEY: False} for prop in policy.ScheduleProperty
+            }
+        },
+        headers={"Authorization": f"Bearer {charm_token}"},
+    )
+
+    assert policy_response.status_code == http.HTTPStatus.NO_CONTENT, policy_response.data
+
+    disabled_response = client.post(
+        blueprint.SCHEDULE_CHECK_RUN_ENDPOINT,
         json={
             "repository_name": github_repository.full_name,
             "branch_name": github_branch.name,

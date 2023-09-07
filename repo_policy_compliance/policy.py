@@ -19,11 +19,13 @@ class JobType(str, Enum):
         PULL_REQUEST: Policies for pull requests.
         WORKFLOW_DISPATCH: Policies for workflow dispatch jobs.
         PUSH: Policies for push jobs.
+        SCHEDULE: Policies for scheduled jobs.
     """
 
     PULL_REQUEST = "pull_request"
     WORKFLOW_DISPATCH = "workflow_dispatch"
     PUSH = "push"
+    SCHEDULE = "schedule"
 
 
 class PullRequestProperty(str, Enum):
@@ -56,6 +58,7 @@ class BranchJobProperty(str, Enum):
 
 WorkflowDispatchProperty = BranchJobProperty
 PushProperty = BranchJobProperty
+ScheduleProperty = BranchJobProperty
 
 
 # Using MappingProxyType to make these immutable
@@ -66,6 +69,7 @@ ALL = MappingProxyType(
         JobType.PULL_REQUEST: {prop: ENABLED_RULE for prop in PullRequestProperty},
         JobType.WORKFLOW_DISPATCH: {prop: ENABLED_RULE for prop in WorkflowDispatchProperty},
         JobType.PUSH: {prop: ENABLED_RULE for prop in PushProperty},
+        JobType.SCHEDULE: {prop: ENABLED_RULE for prop in ScheduleProperty},
     }
 )
 
@@ -104,7 +108,7 @@ def check(document: dict) -> Report:
 
 def enabled(
     job_type: JobType,
-    name: PullRequestProperty | WorkflowDispatchProperty | PushProperty,
+    name: PullRequestProperty | WorkflowDispatchProperty | PushProperty | ScheduleProperty,
     policy_document: MappingProxyType,
 ) -> bool:
     """Check whether a given policy is enabled.

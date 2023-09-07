@@ -27,6 +27,7 @@ from github import GithubException
 from . import (
     PullRequestInput,
     PushInput,
+    ScheduleInput,
     UsedPolicy,
     WorkflowDispatchInput,
     exceptions,
@@ -34,6 +35,7 @@ from . import (
     policy,
     pull_request,
     push,
+    schedule,
     workflow_dispatch,
 )
 from .check import Result
@@ -58,6 +60,7 @@ CHECK_RUN_ENDPOINT = "/check-run"
 PULL_REQUEST_CHECK_RUN_ENDPOINT = "/pull_request/check-run"
 WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT = "/workflow_dispatch/check-run"
 PUSH_CHECK_RUN_ENDPOINT = "/push/check-run"
+SCHEDULE_CHECK_RUN_ENDPOINT = "/schedule/check-run"
 HEALTH_ENDPOINT = "/health"
 
 
@@ -231,6 +234,26 @@ def push_check_run(body: PushInput) -> Response:
     policy_document = _get_policy_document()
 
     if (report := push(input_=body, policy_document=policy_document)).result == Result.FAIL:
+        return Response(response=report.reason, status=http.HTTPStatus.FORBIDDEN)
+
+    return Response(status=http.HTTPStatus.NO_CONTENT)
+
+
+@repo_policy_compliance.route(SCHEDULE_CHECK_RUN_ENDPOINT, methods=["POST"])
+@auth.login_required(role=RUNNER_ROLE)
+@validate()
+def schedule_check_run(body: ScheduleInput) -> Response:
+    """Check whether a schedule run should proceed.
+
+    Args:
+        body: The request body after it is validated.
+
+    Returns:
+        Either to proceed with the run or an error not to proceed with a reason why.
+    """
+    policy_document = _get_policy_document()
+
+    if (report := schedule(input_=body, policy_document=policy_document)).result == Result.FAIL:
         return Response(response=report.reason, status=http.HTTPStatus.FORBIDDEN)
 
     return Response(status=http.HTTPStatus.NO_CONTENT)
