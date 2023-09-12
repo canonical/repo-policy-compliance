@@ -13,7 +13,7 @@ from github.Auth import Token
 from github.Branch import Branch
 from github.Repository import Repository
 
-from .exceptions import ConfigurationError, GithubClientError
+from repo_policy_compliance.exceptions import ConfigurationError, GithubClientError
 
 P = ParamSpec("P")
 R = TypeVar("R")
