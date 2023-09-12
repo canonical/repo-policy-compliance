@@ -8,4 +8,5 @@ rm -rf src-docs
 # skip that file
 PYTHON_FILES=$(find repo_policy_compliance -name "*.py" -not -path "**/blueprint.py")
 # The word splitting is ententional here
-lazydocs --no-watermark --output-path src-docs $PYTHON_FILES  # shellcheck disable=SC2086
+# shellcheck disable=SC2086
+lazydocs --no-watermark --output-path src-docs $PYTHON_FILES
