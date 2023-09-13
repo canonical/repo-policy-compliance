@@ -66,7 +66,7 @@ Injects a GitHub client as the first argument to a function.
 ```python
 get_collaborators(
     affiliation: Literal['outside', 'all'],
-    permission: Literal['triage', 'maintain', 'admin', 'pull'],
+    permission: Literal['triage', 'maintain', 'admin', 'pull', 'push'],
     repository: Repository
 ) → list[dict]
 ```

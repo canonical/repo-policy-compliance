@@ -88,7 +88,7 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
 
 def get_collaborators(
     affiliation: Literal["outside", "all"],
-    permission: Literal["triage", "maintain", "admin", "pull"],
+    permission: Literal["triage", "maintain", "admin", "pull", "push"],
     repository: Repository,
 ) -> list[dict]:
     """Get collaborators with a given affiliation and permission.

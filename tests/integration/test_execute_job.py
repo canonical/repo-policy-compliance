@@ -21,7 +21,7 @@ from .. import assert_
 
 
 @pytest.mark.parametrize(
-    "repository_name, source_repository_name, maintain_logins, expected_result",
+    "repository_name, source_repository_name, push_logins, expected_result",
     [
         pytest.param("repo-1/name-1", "repo-1/name-1", set(), False, id="repo names match"),
         pytest.param(
@@ -29,33 +29,33 @@ from .. import assert_
             "user-1/name-1",
             {"user-1"},
             False,
-            id="repo names don't match, owner in maintain logins",
+            id="repo names don't match, owner in write logins",
         ),
         pytest.param(
             "repo-1/name-1",
             "user-1/name-1",
             set(),
             True,
-            id="repo names don't match, owner not in maintain logins",
+            id="repo names don't match, owner not in write logins",
         ),
     ],
 )
 def test__branch_external_fork(
     repository_name: str,
     source_repository_name: str,
-    maintain_logins: set[str],
+    push_logins: set[str],
     expected_result: bool,
 ):
     """
-    arrange: given repository name, source repository name and maintain logins
-    act: when repository name, source repository name and maintain logins are passed to
+    arrange: given repository name, source repository name and write logins
+    act: when repository name, source repository name and write logins are passed to
         _branch_external_fork
     assert: then the expected result is returned.
     """
     returned_result = repo_policy_compliance.check._branch_external_fork(
         repository_name=repository_name,
         source_repository_name=source_repository_name,
-        maintain_logins=maintain_logins,
+        push_logins=push_logins,
     )
 
     assert returned_result == expected_result
@@ -183,7 +183,7 @@ def test_fail_forked_wrong_commit_sha_on_pr(
 
     assert report.result == Result.FAIL
     assert report.reason, "expected a reason along with the fail result"
-    assert_.substrings_in_string(("not", "authorized", "maintainer"), report.reason)
+    assert_.substrings_in_string(("not", "authorized", "write"), report.reason)
 
 
 @pytest.mark.parametrize(
@@ -218,7 +218,7 @@ def test_fail_forked_quoted_authorizationr(
 
     assert report.result == Result.FAIL
     assert report.reason, "expected a reason along with the fail result"
-    assert_.substrings_in_string(("not", "authorized", "maintainer"), report.reason)
+    assert_.substrings_in_string(("not", "authorized", "write"), report.reason)
 
 
 @pytest.mark.parametrize(
@@ -238,8 +238,8 @@ def test_fail_forked_comment_from_wrong_user_on_pr(
     ci_github_repository: Repository | None,
 ):
     """
-    arrange: given a fork branch that has a PR with the right comment from a user that is not a
-        maintainer
+    arrange: given a fork branch that has a PR with the right comment from a user that does no
+        have write access
     act: when execute_job is called
     assert: then a fail report is returned.
     """
@@ -321,7 +321,8 @@ def test_pass_fork(
     ci_github_repository: Repository | None,
 ):
     """
-    arrange: given a fork branch that has a PR with an authorization comment from a maintainer
+    arrange: given a fork branch that has a PR with an authorization comment from a user with write
+        or above permission
     act: when execute_job is called
     assert: then a pass report is returned.
     """
@@ -354,7 +355,7 @@ def test_pass_fork(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"test-branch/execute-job/maintainer-fork-branch/{uuid4()}"],
+    [f"test-branch/execute-job/writer-fork-branch/{uuid4()}"],
     indirect=True,
 )
 def test_pass_fork_collaborator_no_comment(
@@ -364,8 +365,8 @@ def test_pass_fork_collaborator_no_comment(
     commit_on_forked_github_branch: Commit,
 ):
     """
-    arrange: given a fork branch from a maintainer that has a PR without an authorization comment
-        from a maintainer
+    arrange: given a fork branch from a writer that has a PR without an authorization comment
+        from a writer
     act: when execute_job is called
     assert: then a pass report is returned.
     """

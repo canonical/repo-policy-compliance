@@ -25,10 +25,10 @@ FAILURE_MESSAGE = (
 )
 AUTHORIZATION_STRING_PREFIX = "/canonical/self-hosted-runners/run-workflows"
 EXECUTE_JOB_MESSAGE = (
-    "execution not authorized, a comment from a maintainer or above on the repository approving "
-    "the workflow was not found on a PR from a fork, the comment should include the string "
-    f"'{AUTHORIZATION_STRING_PREFIX} <commit SHA>' where the commit SHA is the SHA of the latest "
-    "commit on the branch"
+    "execution not authorized, a comment from a user with write permission or above on the "
+    "repository approving the workflow was not found on a PR from a fork, the comment should "
+    f"include the string '{AUTHORIZATION_STRING_PREFIX} <commit SHA>' where the commit SHA is the "
+    "SHA of the latest commit on the branch"
 )
 
 
@@ -319,7 +319,7 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
 
 
 def _branch_external_fork(
-    repository_name: str, source_repository_name: str, maintain_logins: set[str]
+    repository_name: str, source_repository_name: str, push_logins: set[str]
 ) -> bool:
     """Check whether a branch is an external fork.
 
@@ -329,7 +329,7 @@ def _branch_external_fork(
     Args:
         repository_name: The name of the repository to run the check on.
         source_repository_name: The name of the repository that contains the source branch.
-        maintain_logins: The logins from maintainer or above on the repository.
+        push_logins: The logins from maintainer or above on the repository.
 
     Returns:
         Whether the branch is from a external fork.
@@ -338,7 +338,7 @@ def _branch_external_fork(
         return False
 
     # Check if the owner of the fork is also a maintainer or above on the repo
-    if source_repository_name.split("/")[0] in maintain_logins:
+    if source_repository_name.split("/")[0] in push_logins:
         return False
 
     return True
@@ -366,16 +366,16 @@ def execute_job(
         Whether the workflow run has been approved for the commit SHA.
     """
     repository = github_client.get_repo(repository_name)
-    maintain_logins = {
+    push_logins = {
         collaborator["login"]
         for collaborator in get_collaborators(
-            repository=repository, permission="maintain", affiliation="all"
+            repository=repository, permission="push", affiliation="all"
         )
     }
     if not _branch_external_fork(
         repository_name=repository_name,
         source_repository_name=source_repository_name,
-        maintain_logins=maintain_logins,
+        push_logins=push_logins,
     ):
         return Report(result=Result.PASS, reason=None)
 
@@ -415,13 +415,13 @@ def execute_job(
             ),
         )
 
-    # Check that the commenter has maintain or above permissions
-    if not any(comment.user.login in maintain_logins for comment in authorization_comments):
+    # Check that the commenter has push or above permissions
+    if not any(comment.user.login in push_logins for comment in authorization_comments):
         return Report(
             result=Result.FAIL,
             reason=(
                 f"{FAILURE_MESSAGE}"
-                "authorization comment from a user that is not a maintainer or above - "
+                "authorization comment from a user who does not have write permission or above - "
                 f"{EXECUTE_JOB_MESSAGE}, {branch_name=}, {commit_sha=}, {pull_for_branch.number=}"
             ),
         )
