@@ -24,7 +24,7 @@ from flask_httpauth import HTTPTokenAuth
 from flask_pydantic import validate
 from github import GithubException
 
-from . import (
+from repo_policy_compliance import (
     PullRequestInput,
     PushInput,
     ScheduleInput,
@@ -38,7 +38,7 @@ from . import (
     schedule,
     workflow_dispatch,
 )
-from .check import Result
+from repo_policy_compliance.check import Result
 
 repo_policy_compliance = Blueprint("repo_policy_compliance", __name__)
 auth = HTTPTokenAuth(scheme="Bearer")

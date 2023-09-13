@@ -9,7 +9,7 @@ from typing import cast
 
 from pydantic import BaseModel, Field
 
-from . import check, log, policy
+from repo_policy_compliance import check, log, policy
 
 
 class UsedPolicy(Enum):

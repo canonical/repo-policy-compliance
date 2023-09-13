@@ -10,10 +10,10 @@ from github import Github
 from github.Branch import Branch
 from github.Repository import Repository
 
-from . import log
-from .comment import remove_quote_lines
-from .github_client import get_branch, get_collaborators
-from .github_client import inject as inject_github_client
+from repo_policy_compliance import log
+from repo_policy_compliance.comment import remove_quote_lines
+from repo_policy_compliance.github_client import get_branch, get_collaborators
+from repo_policy_compliance.github_client import inject as inject_github_client
 
 BYPASS_ALLOWANCES_KEY = "bypass_pull_request_allowances"
 FAILURE_MESSAGE = (
