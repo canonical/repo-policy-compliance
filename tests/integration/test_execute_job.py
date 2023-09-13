@@ -238,7 +238,7 @@ def test_fail_forked_comment_from_wrong_user_on_pr(
     ci_github_repository: Repository | None,
 ):
     """
-    arrange: given a fork branch that has a PR with the right comment from a user that does no
+    arrange: given a fork branch that has a PR with the right comment from a user that does not
         have write access
     act: when execute_job is called
     assert: then a fail report is returned.
