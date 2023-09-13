@@ -339,7 +339,7 @@ def _branch_external_fork(
     if repository_name == source_repository_name:
         return False
 
-    # Check if the owner of the fork also has puish or higher permission
+    # Check if the owner of the fork also has push or higher permission
     if source_repository_name.split("/")[0] in push_logins:
         return False
 
