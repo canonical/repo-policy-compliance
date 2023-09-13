@@ -24,6 +24,7 @@ FAILURE_MESSAGE = (
     "\n"
 )
 AUTHORIZATION_STRING_PREFIX = "/canonical/self-hosted-runners/run-workflows"
+# write permission in the UI is equivalent to push permission on the GitHub API
 EXECUTE_JOB_MESSAGE = (
     "execution not authorized, a comment from a user with write permission or above on the "
     "repository approving the workflow was not found on a PR from a fork, the comment should "
@@ -416,7 +417,8 @@ def execute_job(
             ),
         )
 
-    # Check that the commenter has push or above permissions
+    # Check that the commenter has push or above permissions, this permission is called write in
+    # the UI
     if not any(comment.user.login in push_logins for comment in authorization_comments):
         return Report(
             result=Result.FAIL,
