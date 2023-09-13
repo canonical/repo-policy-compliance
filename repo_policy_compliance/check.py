@@ -323,13 +323,14 @@ def _branch_external_fork(
 ) -> bool:
     """Check whether a branch is an external fork.
 
-    A external fork is a fork that is not owned by a user who is also a maintainer or above on
-    the repository.
+    A external fork is a fork that is not owned by a user who has push or above permission on the
+    repository.
 
     Args:
         repository_name: The name of the repository to run the check on.
         source_repository_name: The name of the repository that contains the source branch.
-        push_logins: The logins from maintainer or above on the repository.
+        push_logins: The logins from users with push or above permission or above on the
+            repository.
 
     Returns:
         Whether the branch is from a external fork.
@@ -337,7 +338,7 @@ def _branch_external_fork(
     if repository_name == source_repository_name:
         return False
 
-    # Check if the owner of the fork is also a maintainer or above on the repo
+    # Check if the owner of the fork also has puish or higher permission
     if source_repository_name.split("/")[0] in push_logins:
         return False
 

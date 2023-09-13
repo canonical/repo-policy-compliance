@@ -29,14 +29,14 @@ from .. import assert_
             "user-1/name-1",
             {"user-1"},
             False,
-            id="repo names don't match, owner in write logins",
+            id="repo names don't match, owner in push logins",
         ),
         pytest.param(
             "repo-1/name-1",
             "user-1/name-1",
             set(),
             True,
-            id="repo names don't match, owner not in write logins",
+            id="repo names don't match, owner not in push logins",
         ),
     ],
 )
@@ -47,8 +47,8 @@ def test__branch_external_fork(
     expected_result: bool,
 ):
     """
-    arrange: given repository name, source repository name and write logins
-    act: when repository name, source repository name and write logins are passed to
+    arrange: given repository name, source repository name and push logins
+    act: when repository name, source repository name and push logins are passed to
         _branch_external_fork
     assert: then the expected result is returned.
     """
@@ -239,7 +239,7 @@ def test_fail_forked_comment_from_wrong_user_on_pr(
 ):
     """
     arrange: given a fork branch that has a PR with the right comment from a user that does not
-        have write access
+        have push access
     act: when execute_job is called
     assert: then a fail report is returned.
     """
@@ -321,7 +321,7 @@ def test_pass_fork(
     ci_github_repository: Repository | None,
 ):
     """
-    arrange: given a fork branch that has a PR with an authorization comment from a user with write
+    arrange: given a fork branch that has a PR with an authorization comment from a user with push
         or above permission
     act: when execute_job is called
     assert: then a pass report is returned.
@@ -355,7 +355,7 @@ def test_pass_fork(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"test-branch/execute-job/writer-fork-branch/{uuid4()}"],
+    [f"test-branch/execute-job/push-fork-branch/{uuid4()}"],
     indirect=True,
 )
 def test_pass_fork_collaborator_no_comment(
@@ -365,8 +365,8 @@ def test_pass_fork_collaborator_no_comment(
     commit_on_forked_github_branch: Commit,
 ):
     """
-    arrange: given a fork branch from a writer that has a PR without an authorization comment
-        from a writer
+    arrange: given a fork branch from a push permission user that has a PR without an authorization
+        comment from a push
     act: when execute_job is called
     assert: then a pass report is returned.
     """
