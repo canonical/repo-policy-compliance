@@ -19,7 +19,7 @@ policies:
   on must be signed.
 * `collaborators`: Check that all outside collaborators of the project have at
   most `read` permissions.
-* `execute_job`: That a maintainer or above has left the comment
+* `execute_job`: That a user with write permission or above has left the comment
   `/canonical/self-hosted-runners/run-workflows <commit SHA>` approving a
   workflow run for a specific commit SHA. Only applicable to forked source
   branches.
@@ -60,4 +60,4 @@ short lived, e.g., 7 days. If it expires, a new token needs to be set.
 
 On GitHub actions, an expanded set of tests is run as the `GITHUB_TOKEN` for a
 bot is available which can be used to test things like comments from a user that
-is not a maintainer or above.
+does not have write permission or above.
