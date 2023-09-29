@@ -19,7 +19,8 @@ BYPASS_ALLOWANCES_KEY = "bypass_pull_request_allowances"
 FAILURE_MESSAGE = (
     "\n"
     "This job has failed to pass a repository policy compliance check as defined in the "
-    "https://github.com/canonical/repo-policy-compliance repository. The specific failure is listed "
+    "https://github.com/canonical/repo-policy-compliance repository. "
+    "The specific failure is listed "
     "below. Please update the settings on this project to fix the relevant policy."
     "\n"
 )
