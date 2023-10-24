@@ -3,6 +3,7 @@
 
 """Individual checks used to compose job checks."""
 
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import NamedTuple
 
@@ -112,10 +113,11 @@ def unique_commits_signed(
     Returns:
         Whether the unique commits on the branch are signed.
     """
+    commits_since = datetime.now() - timedelta(days=30)
     other_branch_commit_shas = {
-        commit.sha for commit in repository.get_commits(sha=other_branch_name)
+        commit.sha for commit in repository.get_commits(sha=other_branch_name, since=commits_since)
     }
-    branch_commits = repository.get_commits(sha=branch_name)
+    branch_commits = repository.get_commits(sha=branch_name, since=commits_since)
     unsigned_unique_branch_commits = (
         commit
         for commit in branch_commits
