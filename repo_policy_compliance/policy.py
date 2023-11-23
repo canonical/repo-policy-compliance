@@ -15,7 +15,7 @@ from jsonschema import ValidationError, validate
 class JobType(str, Enum):
     """The names of the properties for the policy document.
 
-    Attrs:
+    Attributes:
         PULL_REQUEST: Policies for pull requests.
         WORKFLOW_DISPATCH: Policies for workflow dispatch jobs.
         PUSH: Policies for push jobs.
@@ -31,7 +31,7 @@ class JobType(str, Enum):
 class PullRequestProperty(str, Enum):
     """The names of the properties for the pull request portion of the policy document.
 
-    Attrs:
+    Attributes:
         TARGET_BRANCH_PROTECTION: Branch protection for the target branch.
         COLLABORATORS: Particupants on a repository.
         EXECUTE_JOB: Whether a job should be executed.
@@ -45,7 +45,7 @@ class PullRequestProperty(str, Enum):
 class BranchJobProperty(str, Enum):
     """The names of the properties for jobs running on a branch portion of the policy document.
 
-    Attrs:
+    Attributes:
         COLLABORATORS: Particupants on a repository.
     """
 
@@ -73,7 +73,7 @@ ALL = MappingProxyType(
 class Report(NamedTuple):
     """Reports the result of checking whether a policy document is valid.
 
-    Attrs:
+    Attributes:
         result: The check result.
         reason: If the check failed, the reason why it failed.
     """

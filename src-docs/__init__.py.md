@@ -12,7 +12,13 @@ Library for checking that GitHub repos comply with policy.
 ## <kbd>class</kbd> `BranchInput`
 Input arguments to check jobs running on a branch. 
 
-Attrs:  repository_name: The name of the repository to run the check on.  branch_name: The name of the branch that the job is running on.  commit_sha: The SHA of the commit that the job is running on. 
+
+
+**Attributes:**
+ 
+ - <b>`repository_name`</b>:  The name of the repository to run the check on. 
+ - <b>`branch_name`</b>:  The name of the branch that the job is running on. 
+ - <b>`commit_sha`</b>:  The SHA of the commit that the job is running on. 
 
 
 ---
@@ -56,7 +62,15 @@ Returns the set of fields that have been explicitly set on this model instance.
 ## <kbd>class</kbd> `PullRequestInput`
 Input arguments for pull request checks. 
 
-Attrs:  repository_name: The name of the repository to run the check on.  source_repository_name: The name of the repository that has the source branch.  target_branch_name: The name of the branch that is targeted by the PR.  source_branch_name: The name of the branch that contains the commits to be merged.  commit_sha: The SHA of the commit that the job is running on. 
+
+
+**Attributes:**
+ 
+ - <b>`repository_name`</b>:  The name of the repository to run the check on. 
+ - <b>`source_repository_name`</b>:  The name of the repository that has the source branch. 
+ - <b>`target_branch_name`</b>:  The name of the branch that is targeted by the PR. 
+ - <b>`source_branch_name`</b>:  The name of the branch that contains the commits to be merged. 
+ - <b>`commit_sha`</b>:  The SHA of the commit that the job is running on. 
 
 
 ---
@@ -100,7 +114,13 @@ Returns the set of fields that have been explicitly set on this model instance.
 ## <kbd>class</kbd> `BranchInput`
 Input arguments to check jobs running on a branch. 
 
-Attrs:  repository_name: The name of the repository to run the check on.  branch_name: The name of the branch that the job is running on.  commit_sha: The SHA of the commit that the job is running on. 
+
+
+**Attributes:**
+ 
+ - <b>`repository_name`</b>:  The name of the repository to run the check on. 
+ - <b>`branch_name`</b>:  The name of the branch that the job is running on. 
+ - <b>`commit_sha`</b>:  The SHA of the commit that the job is running on. 
 
 
 ---
@@ -144,7 +164,13 @@ Returns the set of fields that have been explicitly set on this model instance.
 ## <kbd>class</kbd> `BranchInput`
 Input arguments to check jobs running on a branch. 
 
-Attrs:  repository_name: The name of the repository to run the check on.  branch_name: The name of the branch that the job is running on.  commit_sha: The SHA of the commit that the job is running on. 
+
+
+**Attributes:**
+ 
+ - <b>`repository_name`</b>:  The name of the repository to run the check on. 
+ - <b>`branch_name`</b>:  The name of the branch that the job is running on. 
+ - <b>`commit_sha`</b>:  The SHA of the commit that the job is running on. 
 
 
 ---
@@ -188,7 +214,11 @@ Returns the set of fields that have been explicitly set on this model instance.
 ## <kbd>class</kbd> `UsedPolicy`
 Sentinel to indicate which policy to use. 
 
-Attrs:  ALL: Use all policies. 
+
+
+**Attributes:**
+ 
+ - <b>`ALL`</b>:  Use all policies. 
 
 
 
@@ -199,7 +229,13 @@ Attrs:  ALL: Use all policies.
 ## <kbd>class</kbd> `BranchInput`
 Input arguments to check jobs running on a branch. 
 
-Attrs:  repository_name: The name of the repository to run the check on.  branch_name: The name of the branch that the job is running on.  commit_sha: The SHA of the commit that the job is running on. 
+
+
+**Attributes:**
+ 
+ - <b>`repository_name`</b>:  The name of the repository to run the check on. 
+ - <b>`branch_name`</b>:  The name of the branch that the job is running on. 
+ - <b>`commit_sha`</b>:  The SHA of the commit that the job is running on. 
 
 
 ---

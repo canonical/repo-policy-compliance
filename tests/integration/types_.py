@@ -26,7 +26,7 @@ class BranchWithProtection:
 class RequestedCollaborator(NamedTuple):
     """Information about the requested collaborators to be added.
 
-    Attrs:
+    Attributes:
         permission: The permission the collaborators should have.
         role_name: The name of the role the collaborators should have
     """

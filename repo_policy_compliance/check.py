@@ -36,7 +36,7 @@ EXECUTE_JOB_MESSAGE = (
 class Result(str, Enum):
     """The result of a check.
 
-    Attrs:
+    Attributes:
         PASS: The check passed.
         FAIL: The check failed.
     """
@@ -49,7 +49,7 @@ class Result(str, Enum):
 class Report(NamedTuple):
     """Reports the result of a check.
 
-    Attrs:
+    Attributes:
         result: The check result.
         reason: If the check failed, the reason why it failed.
     """

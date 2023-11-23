@@ -67,7 +67,7 @@ HEALTH_ENDPOINT = "/health"
 class Users(str, Enum):
     """The possible users.
 
-    Attrs:
+    Attributes:
         CHARM: The charm user that can request one time tokens.
         RUNNER: The runner user that can check whether a run should proceed.
     """

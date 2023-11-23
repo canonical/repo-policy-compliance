@@ -18,7 +18,12 @@ Individual checks used to compose job checks.
 ## <kbd>class</kbd> `Report`
 Reports the result of a check. 
 
-Attrs:  result: The check result.  reason: If the check failed, the reason why it failed. 
+
+
+**Attributes:**
+ 
+ - <b>`result`</b>:  The check result. 
+ - <b>`reason`</b>:  If the check failed, the reason why it failed. 
 
 
 
@@ -29,7 +34,12 @@ Attrs:  result: The check result.  reason: If the check failed, the reason why i
 ## <kbd>class</kbd> `Result`
 The result of a check. 
 
-Attrs:  PASS: The check passed.  FAIL: The check failed. 
+
+
+**Attributes:**
+ 
+ - <b>`PASS`</b>:  The check passed. 
+ - <b>`FAIL`</b>:  The check failed. 
 
 
 

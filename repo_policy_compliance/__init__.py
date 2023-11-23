@@ -15,7 +15,7 @@ from repo_policy_compliance import check, log, policy
 class UsedPolicy(Enum):
     """Sentinel to indicate which policy to use.
 
-    Attrs:
+    Attributes:
         ALL: Use all policies.
     """
 
@@ -25,7 +25,7 @@ class UsedPolicy(Enum):
 class PullRequestInput(BaseModel):
     """Input arguments for pull request checks.
 
-    Attrs:
+    Attributes:
         repository_name: The name of the repository to run the check on.
         source_repository_name: The name of the repository that has the source branch.
         target_branch_name: The name of the branch that is targeted by the PR.
@@ -118,7 +118,7 @@ def pull_request(
 class BranchInput(BaseModel):
     """Input arguments to check jobs running on a branch.
 
-    Attrs:
+    Attributes:
         repository_name: The name of the repository to run the check on.
         branch_name: The name of the branch that the job is running on.
         commit_sha: The SHA of the commit that the job is running on.
