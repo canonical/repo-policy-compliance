@@ -3,13 +3,11 @@
 
 """Individual checks used to compose job checks."""
 
-from datetime import datetime, timedelta
 from enum import Enum
 from typing import NamedTuple
 
 from github import Github
 from github.Branch import Branch
-from github.Repository import Repository
 
 from repo_policy_compliance import log
 from repo_policy_compliance.comment import remove_quote_lines

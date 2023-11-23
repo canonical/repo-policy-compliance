@@ -46,7 +46,6 @@ class BranchJobProperty(str, Enum):
     """The names of the properties for jobs running on a branch portion of the policy document.
 
     Attrs:
-        BRANCH_PROTECTION: Branch protection for the branch.
         COLLABORATORS: Particupants on a repository.
     """
 

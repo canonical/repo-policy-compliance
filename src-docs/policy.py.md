@@ -13,7 +13,7 @@ Module for the policy document.
 
 ---
 
-<a href="../repo_policy_compliance/policy.py#L86"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/policy.py#L85"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `check`
 
@@ -37,7 +37,7 @@ Check that a policy document is valid.
 
 ---
 
-<a href="../repo_policy_compliance/policy.py#L106"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/policy.py#L105"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `enabled`
 
@@ -70,7 +70,7 @@ Check whether a given policy is enabled.
 ## <kbd>class</kbd> `BranchJobProperty`
 The names of the properties for jobs running on a branch portion of the policy document. 
 
-Attrs:  BRANCH_PROTECTION: Branch protection for the branch.  COLLABORATORS: Particupants on a repository. 
+Attrs:  COLLABORATORS: Particupants on a repository. 
 
 
 
@@ -103,7 +103,7 @@ Attrs:  TARGET_BRANCH_PROTECTION: Branch protection for the target branch.  COLL
 ## <kbd>class</kbd> `BranchJobProperty`
 The names of the properties for jobs running on a branch portion of the policy document. 
 
-Attrs:  BRANCH_PROTECTION: Branch protection for the branch.  COLLABORATORS: Particupants on a repository. 
+Attrs:  COLLABORATORS: Particupants on a repository. 
 
 
 
@@ -125,7 +125,7 @@ Attrs:  result: The check result.  reason: If the check failed, the reason why i
 ## <kbd>class</kbd> `BranchJobProperty`
 The names of the properties for jobs running on a branch portion of the policy document. 
 
-Attrs:  BRANCH_PROTECTION: Branch protection for the branch.  COLLABORATORS: Particupants on a repository. 
+Attrs:  COLLABORATORS: Particupants on a repository. 
 
 
 
@@ -136,7 +136,7 @@ Attrs:  BRANCH_PROTECTION: Branch protection for the branch.  COLLABORATORS: Par
 ## <kbd>class</kbd> `BranchJobProperty`
 The names of the properties for jobs running on a branch portion of the policy document. 
 
-Attrs:  BRANCH_PROTECTION: Branch protection for the branch.  COLLABORATORS: Particupants on a repository. 
+Attrs:  COLLABORATORS: Particupants on a repository. 
 
 
 

@@ -16,7 +16,6 @@ class BranchWithProtection:
         dismiss_stale_reviews_enabled: True if branch dismisses stale reviews.
         bypass_pull_request_allowance_disabled: True if users/teams/apps are allowed to bypass
             pull requests.
-        required_signatures_enabled: True if branch requires signatures.
     """
 
     branch_protection_enabled: bool = True
