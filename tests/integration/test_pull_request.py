@@ -71,7 +71,6 @@ def test_target_branch(
             policy.PullRequestProperty.TARGET_BRANCH_PROTECTION: {
                 policy.ENABLED_KEY: policy_enabled
             },
-            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION: {policy.ENABLED_KEY: False},
             policy.PullRequestProperty.COLLABORATORS: {policy.ENABLED_KEY: False},
             policy.PullRequestProperty.EXECUTE_JOB: {policy.ENABLED_KEY: False},
         }
@@ -89,64 +88,6 @@ def test_target_branch(
     )
 
     assert report.result == expected_result, report.reason
-
-
-@pytest.mark.parametrize(
-    "github_branch, protected_github_branch, another_github_branch, policy_enabled, "
-    "expected_result",
-    [
-        pytest.param(
-            f"test-branch/pull_request/source-branch-fail-enabled/target/{uuid4()}",
-            BranchWithProtection(),
-            f"test-branch/pull_request/source-branch-fail-enabled/source/{uuid4()}",
-            True,
-            Result.FAIL,
-            id="policy enabled",
-        ),
-        pytest.param(
-            f"test-branch/pull_request/source-branch-fail-disabled/target/{uuid4()}",
-            BranchWithProtection(),
-            f"test-branch/pull_request/source-branch-fail-disabled/source/{uuid4()}",
-            False,
-            Result.PASS,
-            id="policy disabled",
-        ),
-    ],
-    indirect=["github_branch", "protected_github_branch", "another_github_branch"],
-)
-@pytest.mark.usefixtures("protected_github_branch")
-def test_source_branch(
-    github_branch: Branch,
-    github_repository_name: str,
-    another_github_branch: Branch,
-    policy_enabled: bool,
-    expected_result: Result,
-):
-    """
-    arrange: given a source branch that is not compliant and whether the policy is enabled
-    act: when pull_request is called with the policy
-    assert: then the expected report is returned.
-    """
-    policy_document = {
-        policy.JobType.PULL_REQUEST: {
-            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION: {
-                policy.ENABLED_KEY: policy_enabled
-            }
-        }
-    }
-
-    report = pull_request(
-        input_=PullRequestInput(
-            repository_name=github_repository_name,
-            source_repository_name=github_repository_name,
-            target_branch_name=github_branch.name,
-            source_branch_name=another_github_branch.name,
-            commit_sha=another_github_branch.commit.sha,
-        ),
-        policy_document=policy_document,
-    )
-
-    assert report.result == expected_result
 
 
 @pytest.mark.parametrize(

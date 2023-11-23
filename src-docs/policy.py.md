@@ -13,7 +13,7 @@ Module for the policy document.
 
 ---
 
-<a href="../repo_policy_compliance/policy.py#L89"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/policy.py#L86"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `check`
 
@@ -37,7 +37,7 @@ Check that a policy document is valid.
 
 ---
 
-<a href="../repo_policy_compliance/policy.py#L109"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/policy.py#L106"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `enabled`
 
@@ -92,7 +92,7 @@ Attrs:  PULL_REQUEST: Policies for pull requests.  WORKFLOW_DISPATCH: Policies f
 ## <kbd>class</kbd> `PullRequestProperty`
 The names of the properties for the pull request portion of the policy document. 
 
-Attrs:  TARGET_BRANCH_PROTECTION: Branch protection for the target branch.  SOURCE_BRANCH_PROTECTION: Branch protection for the source branch.  COLLABORATORS: Particupants on a repository.  EXECUTE_JOB: Whether a job should be executed. 
+Attrs:  TARGET_BRANCH_PROTECTION: Branch protection for the target branch.  COLLABORATORS: Particupants on a repository.  EXECUTE_JOB: Whether a job should be executed. 
 
 
 

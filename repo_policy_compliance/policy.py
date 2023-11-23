@@ -33,13 +33,11 @@ class PullRequestProperty(str, Enum):
 
     Attrs:
         TARGET_BRANCH_PROTECTION: Branch protection for the target branch.
-        SOURCE_BRANCH_PROTECTION: Branch protection for the source branch.
         COLLABORATORS: Particupants on a repository.
         EXECUTE_JOB: Whether a job should be executed.
     """
 
     TARGET_BRANCH_PROTECTION = "target_branch_protection"
-    SOURCE_BRANCH_PROTECTION = "source_branch_protection"
     COLLABORATORS = "collaborators"
     EXECUTE_JOB = "execute_job"
 
@@ -52,7 +50,6 @@ class BranchJobProperty(str, Enum):
         COLLABORATORS: Particupants on a repository.
     """
 
-    BRANCH_PROTECTION = "branch_protection"
     COLLABORATORS = "collaborators"
 
 

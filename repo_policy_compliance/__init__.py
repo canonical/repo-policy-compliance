@@ -84,24 +84,6 @@ def pull_request(
     if (
         policy.enabled(
             job_type=policy.JobType.PULL_REQUEST,
-            name=policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION,
-            policy_document=used_policy_document,
-        )
-        and (
-            source_branch_report := check.source_branch_protection(
-                repository_name=input_.repository_name,
-                source_repository_name=input_.source_repository_name,
-                branch_name=input_.source_branch_name,
-                target_branch_name=input_.target_branch_name,
-            )
-        ).result
-        == check.Result.FAIL
-    ):
-        return source_branch_report
-
-    if (
-        policy.enabled(
-            job_type=policy.JobType.PULL_REQUEST,
             name=policy.PullRequestProperty.COLLABORATORS,
             policy_document=used_policy_document,
         )
@@ -177,23 +159,6 @@ def workflow_dispatch(
     if (
         policy.enabled(
             job_type=policy.JobType.WORKFLOW_DISPATCH,
-            name=policy.WorkflowDispatchProperty.BRANCH_PROTECTION,
-            policy_document=used_policy_document,
-        )
-        and (
-            branch_report := check.branch_protection(
-                repository_name=input_.repository_name,
-                branch_name=input_.branch_name,
-                commit_sha=input_.commit_sha,
-            )
-        ).result
-        == check.Result.FAIL
-    ):
-        return branch_report
-
-    if (
-        policy.enabled(
-            job_type=policy.JobType.WORKFLOW_DISPATCH,
             name=policy.WorkflowDispatchProperty.COLLABORATORS,
             policy_document=used_policy_document,
         )
@@ -232,23 +197,6 @@ def push(input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL)
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
-    if (
-        policy.enabled(
-            job_type=policy.JobType.PUSH,
-            name=policy.PushProperty.BRANCH_PROTECTION,
-            policy_document=used_policy_document,
-        )
-        and (
-            branch_report := check.branch_protection(
-                repository_name=input_.repository_name,
-                branch_name=input_.branch_name,
-                commit_sha=input_.commit_sha,
-            )
-        ).result
-        == check.Result.FAIL
-    ):
-        return branch_report
-
     if (
         policy.enabled(
             job_type=policy.JobType.PUSH,
@@ -292,23 +240,6 @@ def schedule(
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
-    if (
-        policy.enabled(
-            job_type=policy.JobType.SCHEDULE,
-            name=policy.ScheduleProperty.BRANCH_PROTECTION,
-            policy_document=used_policy_document,
-        )
-        and (
-            branch_report := check.branch_protection(
-                repository_name=input_.repository_name,
-                branch_name=input_.branch_name,
-                commit_sha=input_.commit_sha,
-            )
-        ).result
-        == check.Result.FAIL
-    ):
-        return branch_report
-
     if (
         policy.enabled(
             job_type=policy.JobType.SCHEDULE,

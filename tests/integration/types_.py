@@ -22,7 +22,6 @@ class BranchWithProtection:
     branch_protection_enabled: bool = True
     dismiss_stale_reviews_enabled: bool = True
     bypass_pull_request_allowance_disabled: bool = True
-    required_signatures_enabled: bool = True
 
 
 class RequestedCollaborator(NamedTuple):

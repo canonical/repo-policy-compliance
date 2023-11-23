@@ -100,17 +100,17 @@ def test_check(document: dict, expected_result: bool, expected_reason: tuple[str
     [
         pytest.param(
             policy.JobType.PULL_REQUEST,
-            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION,
+            policy.PullRequestProperty.TARGET_BRANCH_PROTECTION,
             {},
             True,
             id="empty",
         ),
         pytest.param(
             policy.JobType.PULL_REQUEST,
-            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION,
+            policy.PullRequestProperty.TARGET_BRANCH_PROTECTION,
             {
                 policy.JobType.WORKFLOW_DISPATCH: {
-                    policy.WorkflowDispatchProperty.BRANCH_PROTECTION: {policy.ENABLED_KEY: False}
+                    policy.WorkflowDispatchProperty.COLLABORATORS: {policy.ENABLED_KEY: False}
                 }
             },
             True,
@@ -118,12 +118,10 @@ def test_check(document: dict, expected_result: bool, expected_reason: tuple[str
         ),
         pytest.param(
             policy.JobType.PULL_REQUEST,
-            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION,
+            policy.PullRequestProperty.TARGET_BRANCH_PROTECTION,
             {
                 policy.JobType.PULL_REQUEST: {
-                    policy.PullRequestProperty.TARGET_BRANCH_PROTECTION: {
-                        policy.ENABLED_KEY: False
-                    }
+                    policy.PullRequestProperty.COLLABORATORS: {policy.ENABLED_KEY: False}
                 }
             },
             True,
@@ -131,10 +129,10 @@ def test_check(document: dict, expected_result: bool, expected_reason: tuple[str
         ),
         pytest.param(
             policy.JobType.PULL_REQUEST,
-            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION,
+            policy.PullRequestProperty.TARGET_BRANCH_PROTECTION,
             {
                 policy.JobType.PULL_REQUEST: {
-                    policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION: {policy.ENABLED_KEY: True}
+                    policy.PullRequestProperty.TARGET_BRANCH_PROTECTION: {policy.ENABLED_KEY: True}
                 }
             },
             True,
@@ -142,10 +140,10 @@ def test_check(document: dict, expected_result: bool, expected_reason: tuple[str
         ),
         pytest.param(
             policy.JobType.PULL_REQUEST,
-            policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION,
+            policy.PullRequestProperty.TARGET_BRANCH_PROTECTION,
             {
                 policy.JobType.PULL_REQUEST: {
-                    policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION: {
+                    policy.PullRequestProperty.TARGET_BRANCH_PROTECTION: {
                         policy.ENABLED_KEY: False
                     }
                 }

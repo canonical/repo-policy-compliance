@@ -39,53 +39,6 @@ def test_invalid_policy():
 
 
 @pytest.mark.parametrize(
-    "github_branch, policy_enabled, expected_result",
-    [
-        pytest.param(
-            f"test-branch/schedule/branch-fail-enabled/{uuid4()}",
-            True,
-            Result.FAIL,
-            id="policy enabled",
-        ),
-        pytest.param(
-            f"test-branch/schedule/branch-fail-disabled/{uuid4()}",
-            False,
-            Result.PASS,
-            id="policy disabled",
-        ),
-    ],
-    indirect=["github_branch"],
-)
-def test_branch(
-    github_branch: Branch,
-    policy_enabled: bool,
-    expected_result: Result,
-    github_repository_name: str,
-):
-    """
-    arrange: given a branch that is not compliant and whether the policy is enabled
-    act: when schedule is called with the policy
-    assert: then the expected report is returned.
-    """
-    policy_document = {
-        policy.JobType.SCHEDULE: {
-            policy.ScheduleProperty.BRANCH_PROTECTION: {policy.ENABLED_KEY: policy_enabled}
-        }
-    }
-
-    report = schedule(
-        input_=ScheduleInput(
-            repository_name=github_repository_name,
-            branch_name=github_branch.name,
-            commit_sha="sha 1",
-        ),
-        policy_document=policy_document,
-    )
-
-    assert report.result == expected_result, report.reason
-
-
-@pytest.mark.parametrize(
     "github_branch, protected_github_branch, collaborators_with_permission, policy_enabled, "
     "expected_result",
     [

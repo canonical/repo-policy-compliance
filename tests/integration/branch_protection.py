@@ -36,6 +36,3 @@ def edit(branch: Branch, branch_with_protection: BranchWithProtection) -> None:
             teams_bypass_pull_request_allowances=["is-charms"],  # type: ignore
             apps_bypass_pull_request_allowances=["test"],  # type: ignore
         )
-
-    if branch_with_protection.required_signatures_enabled:
-        branch.add_required_signatures()
