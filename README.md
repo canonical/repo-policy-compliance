@@ -17,8 +17,8 @@ policies:
 * `pull_request`: Runs `target_branch_protection`, `collaborators` and
   `execute_job`.
 * `workflow_dispatch`: Runs `collaborators`.
-* `push`: Runs collaborators`.
-* `schedule`: Runs collaborators`.
+* `push`: Runs `collaborators`.
+* `schedule`: Runs `collaborators`.
 
 These policies are designed for workflow runs in the context of a pull request.
 

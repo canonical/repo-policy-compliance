@@ -74,7 +74,7 @@ The names of the properties for jobs running on a branch portion of the policy d
 
 **Attributes:**
  
- - <b>`COLLABORATORS`</b>:  Particupants on a repository. 
+ - <b>`COLLABORATORS`</b>:  Participants on a repository. 
 
 
 
@@ -108,7 +108,7 @@ The names of the properties for the pull request portion of the policy document.
 **Attributes:**
  
  - <b>`TARGET_BRANCH_PROTECTION`</b>:  Branch protection for the target branch. 
- - <b>`COLLABORATORS`</b>:  Particupants on a repository. 
+ - <b>`COLLABORATORS`</b>:  Participants on a repository. 
  - <b>`EXECUTE_JOB`</b>:  Whether a job should be executed. 
 
 
@@ -124,7 +124,7 @@ The names of the properties for jobs running on a branch portion of the policy d
 
 **Attributes:**
  
- - <b>`COLLABORATORS`</b>:  Particupants on a repository. 
+ - <b>`COLLABORATORS`</b>:  Participants on a repository. 
 
 
 
@@ -155,7 +155,7 @@ The names of the properties for jobs running on a branch portion of the policy d
 
 **Attributes:**
  
- - <b>`COLLABORATORS`</b>:  Particupants on a repository. 
+ - <b>`COLLABORATORS`</b>:  Participants on a repository. 
 
 
 
@@ -170,7 +170,7 @@ The names of the properties for jobs running on a branch portion of the policy d
 
 **Attributes:**
  
- - <b>`COLLABORATORS`</b>:  Particupants on a repository. 
+ - <b>`COLLABORATORS`</b>:  Participants on a repository. 
 
 
 

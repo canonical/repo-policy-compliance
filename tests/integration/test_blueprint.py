@@ -28,9 +28,9 @@ EXPECTED_PULL_REQUEST_KEYS = (
     "commit_sha",
 )
 
-EXPECTED_WORKFLOW_DISPATCH_KEYS = ("repository_name", "branch_name", "commit_sha")
-EXPECTED_PUSH_KEYS = ("repository_name", "branch_name", "commit_sha")
-EXPECTED_SCHEDULE_KEYS = ("repository_name", "branch_name", "commit_sha")
+EXPECTED_WORKFLOW_DISPATCH_KEYS = ("repository_name",)
+EXPECTED_PUSH_KEYS = ("repository_name",)
+EXPECTED_SCHEDULE_KEYS = ("repository_name",)
 
 
 @pytest.fixture(name="app")

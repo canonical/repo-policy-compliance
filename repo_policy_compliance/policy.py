@@ -33,7 +33,7 @@ class PullRequestProperty(str, Enum):
 
     Attributes:
         TARGET_BRANCH_PROTECTION: Branch protection for the target branch.
-        COLLABORATORS: Particupants on a repository.
+        COLLABORATORS: Participants on a repository.
         EXECUTE_JOB: Whether a job should be executed.
     """
 
@@ -46,7 +46,7 @@ class BranchJobProperty(str, Enum):
     """The names of the properties for jobs running on a branch portion of the policy document.
 
     Attributes:
-        COLLABORATORS: Particupants on a repository.
+        COLLABORATORS: Participants on a repository.
     """
 
     COLLABORATORS = "collaborators"

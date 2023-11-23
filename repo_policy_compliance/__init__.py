@@ -125,8 +125,8 @@ class BranchInput(BaseModel):
     """
 
     repository_name: str = Field(min_length=1)
-    branch_name: str = Field(min_length=1)
-    commit_sha: str = Field(min_length=1)
+    branch_name: str | None = Field(default=None, min_length=1)
+    commit_sha: str | None = Field(default=None, min_length=1)
 
 
 WorkflowDispatchInput = BranchInput
