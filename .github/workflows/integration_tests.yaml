@@ -7,7 +7,7 @@ on:
 
 jobs:
   integration-tests:
-    runs-on: [self-hosted, jammy]
+    runs-on: [self-hosted, jammy, edge]
     if: ${{ !failure() }}
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
