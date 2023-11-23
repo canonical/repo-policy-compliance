@@ -120,13 +120,9 @@ class BranchInput(BaseModel):
 
     Attributes:
         repository_name: The name of the repository to run the check on.
-        branch_name: The name of the branch that the job is running on.
-        commit_sha: The SHA of the commit that the job is running on.
     """
 
     repository_name: str = Field(min_length=1)
-    branch_name: str | None = Field(default=None, min_length=1)
-    commit_sha: str | None = Field(default=None, min_length=1)
 
 
 WorkflowDispatchInput = BranchInput

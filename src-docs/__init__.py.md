@@ -17,8 +17,6 @@ Input arguments to check jobs running on a branch.
 **Attributes:**
  
  - <b>`repository_name`</b>:  The name of the repository to run the check on. 
- - <b>`branch_name`</b>:  The name of the branch that the job is running on. 
- - <b>`commit_sha`</b>:  The SHA of the commit that the job is running on. 
 
 
 ---
@@ -119,8 +117,6 @@ Input arguments to check jobs running on a branch.
 **Attributes:**
  
  - <b>`repository_name`</b>:  The name of the repository to run the check on. 
- - <b>`branch_name`</b>:  The name of the branch that the job is running on. 
- - <b>`commit_sha`</b>:  The SHA of the commit that the job is running on. 
 
 
 ---
@@ -169,8 +165,6 @@ Input arguments to check jobs running on a branch.
 **Attributes:**
  
  - <b>`repository_name`</b>:  The name of the repository to run the check on. 
- - <b>`branch_name`</b>:  The name of the branch that the job is running on. 
- - <b>`commit_sha`</b>:  The SHA of the commit that the job is running on. 
 
 
 ---
@@ -234,8 +228,6 @@ Input arguments to check jobs running on a branch.
 **Attributes:**
  
  - <b>`repository_name`</b>:  The name of the repository to run the check on. 
- - <b>`branch_name`</b>:  The name of the branch that the job is running on. 
- - <b>`commit_sha`</b>:  The SHA of the commit that the job is running on. 
 
 
 ---
