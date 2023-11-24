@@ -8,8 +8,6 @@ properties:
     properties:
       target_branch_protection:
         $ref: "#/$defs/rule"
-      source_branch_protection:
-        $ref: "#/$defs/rule"
       collaborators:
         $ref: "#/$defs/rule"
       execute_job:
@@ -18,24 +16,18 @@ properties:
   workflow_dispatch:
     type: object
     properties:
-      branch_protection:
-        $ref: "#/$defs/rule"
       collaborators:
         $ref: "#/$defs/rule"
     additionalProperties: false
   push:
     type: object
     properties:
-      branch_protection:
-        $ref: "#/$defs/rule"
       collaborators:
         $ref: "#/$defs/rule"
     additionalProperties: false
   schedule:
     type: object
     properties:
-      branch_protection:
-        $ref: "#/$defs/rule"
       collaborators:
         $ref: "#/$defs/rule"
     additionalProperties: false

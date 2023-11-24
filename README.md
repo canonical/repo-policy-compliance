@@ -5,29 +5,20 @@ The module exposes several functions to check for compliance with the following
 policies:
 
 * `target_branch_protection`: That the branch targeted by a pull request has
-  protection enabled, stale reviews are dismissed, that rules cannot be bypassed
-  and that signed commits are required. The requirement for reviews is relaxed
-  for non-default branches where both the source and target branch are on the
-  repository.
-* `source_branch_protection`: That the branch containing the commits to be
-  merged has protections enabled and requires signed commits. Additionally, all
-  commits on the branch and not on the target branch must be signed. Not
-  applicable to forked source branches.
-* `branch_protection`: That the branch containing the commits has protections
-  enabled and requires signed commits. Additionally, all commits on the branch
-  and not on the default branch must be signed and the commit the job is running
-  on must be signed.
+  protection enabled, stale reviews are dismissed and that rules cannot be
+  bypassed. The requirement for reviews is relaxed for non-default branches
+  where both the source and target branch are on the repository.
 * `collaborators`: Check that all outside collaborators of the project have at
   most `read` permissions.
 * `execute_job`: That a user with write permission or above has left the comment
   `/canonical/self-hosted-runners/run-workflows <commit SHA>` approving a
   workflow run for a specific commit SHA. Only applicable to forked source
   branches.
-* `pull_request`: Runs `target_branch_protection`, `source_branch_protection`,
-  `collaborators` and `execute_job`.
-* `workflow_dispatch`: Runs `branch_protection` and `collaborators`.
-* `push`: Runs `branch_protection` and `collaborators`.
-* `schedule`: Runs `branch_protection` and `collaborators`.
+* `pull_request`: Runs `target_branch_protection`, `collaborators` and
+  `execute_job`.
+* `workflow_dispatch`: Runs `collaborators`.
+* `push`: Runs `collaborators`.
+* `schedule`: Runs `collaborators`.
 
 These policies are designed for workflow runs in the context of a pull request.
 

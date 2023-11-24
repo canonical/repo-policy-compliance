@@ -15,7 +15,7 @@ from repo_policy_compliance import check, log, policy
 class UsedPolicy(Enum):
     """Sentinel to indicate which policy to use.
 
-    Attrs:
+    Attributes:
         ALL: Use all policies.
     """
 
@@ -25,7 +25,7 @@ class UsedPolicy(Enum):
 class PullRequestInput(BaseModel):
     """Input arguments for pull request checks.
 
-    Attrs:
+    Attributes:
         repository_name: The name of the repository to run the check on.
         source_repository_name: The name of the repository that has the source branch.
         target_branch_name: The name of the branch that is targeted by the PR.
@@ -84,24 +84,6 @@ def pull_request(
     if (
         policy.enabled(
             job_type=policy.JobType.PULL_REQUEST,
-            name=policy.PullRequestProperty.SOURCE_BRANCH_PROTECTION,
-            policy_document=used_policy_document,
-        )
-        and (
-            source_branch_report := check.source_branch_protection(
-                repository_name=input_.repository_name,
-                source_repository_name=input_.source_repository_name,
-                branch_name=input_.source_branch_name,
-                target_branch_name=input_.target_branch_name,
-            )
-        ).result
-        == check.Result.FAIL
-    ):
-        return source_branch_report
-
-    if (
-        policy.enabled(
-            job_type=policy.JobType.PULL_REQUEST,
             name=policy.PullRequestProperty.COLLABORATORS,
             policy_document=used_policy_document,
         )
@@ -136,15 +118,11 @@ def pull_request(
 class BranchInput(BaseModel):
     """Input arguments to check jobs running on a branch.
 
-    Attrs:
+    Attributes:
         repository_name: The name of the repository to run the check on.
-        branch_name: The name of the branch that the job is running on.
-        commit_sha: The SHA of the commit that the job is running on.
     """
 
     repository_name: str = Field(min_length=1)
-    branch_name: str = Field(min_length=1)
-    commit_sha: str = Field(min_length=1)
 
 
 WorkflowDispatchInput = BranchInput
@@ -174,23 +152,6 @@ def workflow_dispatch(
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
-    if (
-        policy.enabled(
-            job_type=policy.JobType.WORKFLOW_DISPATCH,
-            name=policy.WorkflowDispatchProperty.BRANCH_PROTECTION,
-            policy_document=used_policy_document,
-        )
-        and (
-            branch_report := check.branch_protection(
-                repository_name=input_.repository_name,
-                branch_name=input_.branch_name,
-                commit_sha=input_.commit_sha,
-            )
-        ).result
-        == check.Result.FAIL
-    ):
-        return branch_report
-
     if (
         policy.enabled(
             job_type=policy.JobType.WORKFLOW_DISPATCH,
@@ -235,23 +196,6 @@ def push(input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL)
     if (
         policy.enabled(
             job_type=policy.JobType.PUSH,
-            name=policy.PushProperty.BRANCH_PROTECTION,
-            policy_document=used_policy_document,
-        )
-        and (
-            branch_report := check.branch_protection(
-                repository_name=input_.repository_name,
-                branch_name=input_.branch_name,
-                commit_sha=input_.commit_sha,
-            )
-        ).result
-        == check.Result.FAIL
-    ):
-        return branch_report
-
-    if (
-        policy.enabled(
-            job_type=policy.JobType.PUSH,
             name=policy.PushProperty.COLLABORATORS,
             policy_document=used_policy_document,
         )
@@ -292,23 +236,6 @@ def schedule(
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
-    if (
-        policy.enabled(
-            job_type=policy.JobType.SCHEDULE,
-            name=policy.ScheduleProperty.BRANCH_PROTECTION,
-            policy_document=used_policy_document,
-        )
-        and (
-            branch_report := check.branch_protection(
-                repository_name=input_.repository_name,
-                branch_name=input_.branch_name,
-                commit_sha=input_.commit_sha,
-            )
-        ).result
-        == check.Result.FAIL
-    ):
-        return branch_report
-
     if (
         policy.enabled(
             job_type=policy.JobType.SCHEDULE,

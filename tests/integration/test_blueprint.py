@@ -18,6 +18,7 @@ from github.Repository import Repository
 from repo_policy_compliance import blueprint, github_client, policy
 
 from .. import assert_
+from .types_ import RequestedCollaborator
 
 EXPECTED_PULL_REQUEST_KEYS = (
     "repository_name",
@@ -27,9 +28,9 @@ EXPECTED_PULL_REQUEST_KEYS = (
     "commit_sha",
 )
 
-EXPECTED_WORKFLOW_DISPATCH_KEYS = ("repository_name", "branch_name", "commit_sha")
-EXPECTED_PUSH_KEYS = ("repository_name", "branch_name", "commit_sha")
-EXPECTED_SCHEDULE_KEYS = ("repository_name", "branch_name", "commit_sha")
+EXPECTED_WORKFLOW_DISPATCH_KEYS = ("repository_name",)
+EXPECTED_PUSH_KEYS = ("repository_name",)
+EXPECTED_SCHEDULE_KEYS = ("repository_name",)
 
 
 @pytest.fixture(name="app")
@@ -221,10 +222,16 @@ def test_check_run_missing_data(
 
 
 @pytest.mark.parametrize(
-    "github_branch",
-    [f"test-branch/blueprint/pull-request/fail/{uuid4()}"],
-    indirect=True,
+    "github_branch, collaborators_with_permission",
+    [
+        (
+            f"test-branch/blueprint/pull-request/fail/{uuid4()}",
+            RequestedCollaborator("admin", "admin"),
+        )
+    ],
+    indirect=["github_branch", "collaborators_with_permission"],
 )
+@pytest.mark.usefixtures("collaborators_with_permission")
 def test_pull_request_check_run_fail(
     client: FlaskClient, runner_token: str, github_repository: Repository, github_branch: Branch
 ):
@@ -247,32 +254,34 @@ def test_pull_request_check_run_fail(
     )
 
     assert response.status_code == http.HTTPStatus.FORBIDDEN, response.data
-    assert_.substrings_in_string(
-        ("branch protection", "not enabled"), response.data.decode("utf-8")
-    )
+    assert_.substrings_in_string(("outside collaborators",), response.data.decode("utf-8"))
 
 
 @pytest.mark.parametrize(
-    "github_branch, endpoint",
+    "github_branch, collaborators_with_permission, endpoint",
     [
         pytest.param(
             f"test-branch/blueprint/workflow-dispatch/fail/{uuid4()}",
+            RequestedCollaborator("admin", "admin"),
             blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT,
             id="workflow dispatch",
         ),
         pytest.param(
             f"test-branch/blueprint/workflow-dispatch/fail/{uuid4()}",
+            RequestedCollaborator("admin", "admin"),
             blueprint.PUSH_CHECK_RUN_ENDPOINT,
             id="push",
         ),
         pytest.param(
             f"test-branch/blueprint/workflow-dispatch/fail/{uuid4()}",
+            RequestedCollaborator("admin", "admin"),
             blueprint.SCHEDULE_CHECK_RUN_ENDPOINT,
             id="schedule",
         ),
     ],
-    indirect=["github_branch"],
+    indirect=["github_branch", "collaborators_with_permission"],
 )
+@pytest.mark.usefixtures("collaborators_with_permission")
 def test_branch_check_run_fail(
     client: FlaskClient,
     runner_token: str,
@@ -283,7 +292,7 @@ def test_branch_check_run_fail(
     """
     arrange: given flask application with the blueprint registered and the charm token environment
         variable set
-    act: when branch check run is requested with a runner token and an invalid run
+    act: when check run is requested with a runner token and an invalid run
     assert: then 403 is returned.
     """
     response = client.post(
@@ -297,9 +306,7 @@ def test_branch_check_run_fail(
     )
 
     assert response.status_code == http.HTTPStatus.FORBIDDEN, response.data
-    assert_.substrings_in_string(
-        ("branch protection", "not enabled"), response.data.decode("utf-8")
-    )
+    assert_.substrings_in_string(("outside collaborators",), response.data.decode("utf-8"))
 
 
 @pytest.mark.parametrize(
@@ -468,10 +475,16 @@ def test_policy_invalid(client: FlaskClient, charm_token: str):
 
 
 @pytest.mark.parametrize(
-    "github_branch",
-    [f"test-branch/blueprint/pull-request/fail-policy/{uuid4()}"],
-    indirect=True,
+    "github_branch, collaborators_with_permission",
+    [
+        (
+            f"test-branch/blueprint/pull-request/fail-policy/{uuid4()}",
+            RequestedCollaborator("admin", "admin"),
+        )
+    ],
+    indirect=["github_branch", "collaborators_with_permission"],
 )
+@pytest.mark.usefixtures("collaborators_with_permission")
 def test_pull_request_check_run_fail_policy_disabled(
     client: FlaskClient,
     runner_token: str,
@@ -531,10 +544,16 @@ def test_pull_request_check_run_fail_policy_disabled(
 
 
 @pytest.mark.parametrize(
-    "github_branch",
-    [f"test-branch/blueprint/workflow-dispatch/fail-policy/{uuid4()}"],
-    indirect=True,
+    "github_branch, collaborators_with_permission",
+    [
+        (
+            f"test-branch/blueprint/workflow-dispatch/fail-policy/{uuid4()}",
+            RequestedCollaborator("admin", "admin"),
+        )
+    ],
+    indirect=["github_branch", "collaborators_with_permission"],
 )
+@pytest.mark.usefixtures("collaborators_with_permission")
 def test_workflow_dispatch_check_run_fail_policy_disabled(
     client: FlaskClient,
     runner_token: str,
@@ -590,10 +609,16 @@ def test_workflow_dispatch_check_run_fail_policy_disabled(
 
 
 @pytest.mark.parametrize(
-    "github_branch",
-    [f"test-branch/blueprint/push/fail-policy/{uuid4()}"],
-    indirect=True,
+    "github_branch, collaborators_with_permission",
+    [
+        (
+            f"test-branch/blueprint/push/fail-policy/{uuid4()}",
+            RequestedCollaborator("admin", "admin"),
+        )
+    ],
+    indirect=["github_branch", "collaborators_with_permission"],
 )
+@pytest.mark.usefixtures("collaborators_with_permission")
 def test_push_check_run_policy_disabled(
     client: FlaskClient,
     runner_token: str,
@@ -649,10 +674,16 @@ def test_push_check_run_policy_disabled(
 
 
 @pytest.mark.parametrize(
-    "github_branch",
-    [f"test-branch/blueprint/schedule/fail-policy/{uuid4()}"],
-    indirect=True,
+    "github_branch, collaborators_with_permission",
+    [
+        (
+            f"test-branch/blueprint/schedule/fail-policy/{uuid4()}",
+            RequestedCollaborator("admin", "admin"),
+        )
+    ],
+    indirect=["github_branch", "collaborators_with_permission"],
 )
+@pytest.mark.usefixtures("collaborators_with_permission")
 def test_schedule_check_run_policy_disabled(
     client: FlaskClient,
     runner_token: str,

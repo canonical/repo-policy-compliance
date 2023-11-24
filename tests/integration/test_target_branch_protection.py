@@ -37,12 +37,6 @@ from .types_ import BranchWithProtection
             ("pull request", "reviews", "can be bypassed"),
             id="pull-request-allowance not empty",
         ),
-        pytest.param(
-            f"test-branch/target-branch/requires-signature/{uuid4()}",
-            BranchWithProtection(required_signatures_enabled=False),
-            ("signed", "commits", "not required"),
-            id="required-signature disabled",
-        ),
     ],
     indirect=["github_branch", "protected_github_branch"],
 )
@@ -139,7 +133,6 @@ def test_fail_default_branch(
     """
     default_branch = forked_github_repository.get_branch(forked_github_repository.default_branch)
     default_branch.edit_protection()
-    default_branch.add_required_signatures()
     default_branch.remove_required_pull_request_reviews()
 
     # The github_client is injected
@@ -186,7 +179,6 @@ def test_pass_default_branch(
         (
             f"test-branch/target-branch/protected-on-repo/{uuid4()}",
             BranchWithProtection(
-                required_signatures_enabled=True,
                 branch_protection_enabled=True,
                 dismiss_stale_reviews_enabled=False,
                 bypass_pull_request_allowance_disabled=False,

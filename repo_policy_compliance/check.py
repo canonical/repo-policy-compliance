@@ -3,13 +3,11 @@
 
 """Individual checks used to compose job checks."""
 
-from datetime import datetime, timedelta
 from enum import Enum
 from typing import NamedTuple
 
 from github import Github
 from github.Branch import Branch
-from github.Repository import Repository
 
 from repo_policy_compliance import log
 from repo_policy_compliance.comment import remove_quote_lines
@@ -38,7 +36,7 @@ EXECUTE_JOB_MESSAGE = (
 class Result(str, Enum):
     """The result of a check.
 
-    Attrs:
+    Attributes:
         PASS: The check passed.
         FAIL: The check failed.
     """
@@ -51,7 +49,7 @@ class Result(str, Enum):
 class Report(NamedTuple):
     """Reports the result of a check.
 
-    Attrs:
+    Attributes:
         result: The check result.
         reason: If the check failed, the reason why it failed.
     """
@@ -78,61 +76,6 @@ def branch_protected(branch: Branch) -> Report:
             result=Result.FAIL,
             reason=(f"{FAILURE_MESSAGE}branch protection not enabled, {branch.name=!r}"),
         )
-    return Report(result=Result.PASS, reason=None)
-
-
-@log.call
-def signed_commits_required(branch: Branch) -> Report:
-    """Check that the branch requires signed commits.
-
-    Args:
-        branch: The branch to check.
-
-    Returns:
-        Whether the branch requires signed commits.
-    """
-    if not branch.get_required_signatures():
-        return Report(
-            result=Result.FAIL,
-            reason=(f"{FAILURE_MESSAGE}signed commits not required, {branch.name=!r}"),
-        )
-    return Report(result=Result.PASS, reason=None)
-
-
-@log.call
-def unique_commits_signed(
-    branch_name: str, other_branch_name: str, repository: Repository
-) -> Report:
-    """Check that the commits unique to a branch are signed.
-
-    Args:
-        branch_name: The name of the branch to check.
-        other_branch_name: The name of the branch which will be used to exclude commits.
-        repository: The repository the branches are on.
-
-    Returns:
-        Whether the unique commits on the branch are signed.
-    """
-    commits_since = datetime.now() - timedelta(days=30)
-    other_branch_commit_shas = {
-        commit.sha for commit in repository.get_commits(sha=other_branch_name, since=commits_since)
-    }
-    branch_commits = repository.get_commits(sha=branch_name, since=commits_since)
-    unsigned_unique_branch_commits = (
-        commit
-        for commit in branch_commits
-        if commit.sha not in other_branch_commit_shas
-        and not commit.commit.raw_data["verification"]["verified"]
-    )
-    if first_unsigned_commit := next(unsigned_unique_branch_commits, None):
-        return Report(
-            result=Result.FAIL,
-            reason=(
-                f"{FAILURE_MESSAGE}"
-                f"commit is not signed, {branch_name=!r}, {first_unsigned_commit.sha=!r}"
-            ),
-        )
-
     return Report(result=Result.PASS, reason=None)
 
 
@@ -186,102 +129,6 @@ def target_branch_protection(
                     f"{FAILURE_MESSAGE}pull request reviews can be bypassed, {branch_name=!r}"
                 ),
             )
-
-    if (signed_commits_report := signed_commits_required(branch=branch)).result == Result.FAIL:
-        return signed_commits_report
-
-    return Report(result=Result.PASS, reason=None)
-
-
-@inject_github_client
-@log.call
-def source_branch_protection(
-    github_client: Github,
-    repository_name: str,
-    source_repository_name: str,
-    branch_name: str,
-    target_branch_name: str,
-) -> Report:
-    """Check that the source branch has appropriate protections.
-
-    Args:
-        github_client: The client to be used for GitHub API interactions.
-        repository_name: The name of the repository to run the check on.
-        source_repository_name: The name of the repository that contains the source branch.
-        branch_name: The name of the branch to check.
-        target_branch_name: The name of the branch that the source branch is proposed to be merged
-            into.
-
-    Returns:
-        Whether the branch has appropriate protections.
-    """
-    # Check for fork
-    if source_repository_name != repository_name:
-        return Report(result=Result.PASS, reason=None)
-
-    branch = get_branch(
-        github_client=github_client, repository_name=repository_name, branch_name=branch_name
-    )
-
-    if (protected_report := branch_protected(branch=branch)).result == Result.FAIL:
-        return protected_report
-
-    if (signed_commits_report := signed_commits_required(branch=branch)).result == Result.FAIL:
-        return signed_commits_report
-
-    repository = github_client.get_repo(repository_name)
-    if (
-        unique_commits_signed_report := unique_commits_signed(
-            branch_name=branch_name,
-            other_branch_name=target_branch_name,
-            repository=repository,
-        )
-    ).result == Result.FAIL:
-        return unique_commits_signed_report
-
-    return Report(result=Result.PASS, reason=None)
-
-
-@inject_github_client
-@log.call
-def branch_protection(
-    github_client: Github,
-    repository_name: str,
-    branch_name: str,
-    commit_sha: str,
-) -> Report:
-    """Check that the branch has appropriate protections.
-
-    Args:
-        github_client: The client to be used for GitHub API interactions.
-        repository_name: The name of the repository to run the check on.
-        branch_name: The name of the branch to check.
-        commit_sha: The SHA of the commit that the workflow run is on.
-
-    Returns:
-        Whether the branch has appropriate protections.
-    """
-    branch = get_branch(
-        github_client=github_client, repository_name=repository_name, branch_name=branch_name
-    )
-
-    if (protected_report := branch_protected(branch=branch)).result == Result.FAIL:
-        return protected_report
-
-    if (signed_commits_report := signed_commits_required(branch=branch)).result == Result.FAIL:
-        return signed_commits_report
-
-    # Check that the commit the job is running on is signed
-    repository = github_client.get_repo(repository_name)
-    commit = repository.get_commit(sha=commit_sha)
-    if not commit.commit.raw_data["verification"]["verified"]:
-        return Report(
-            result=Result.FAIL,
-            reason=(
-                f"{FAILURE_MESSAGE}"
-                f"commit the job is running on is not signed, {branch_name=!r}, {commit_sha=!r}"
-            ),
-        )
 
     return Report(result=Result.PASS, reason=None)
 
