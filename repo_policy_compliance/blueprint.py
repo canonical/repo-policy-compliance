@@ -61,6 +61,8 @@ PULL_REQUEST_CHECK_RUN_ENDPOINT = "/pull_request/check-run"
 WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT = "/workflow_dispatch/check-run"
 PUSH_CHECK_RUN_ENDPOINT = "/push/check-run"
 SCHEDULE_CHECK_RUN_ENDPOINT = "/schedule/check-run"
+DEFAULT_CHECK_RUN_ENDPOINT = "/default/check-run"
+ALWAYS_FAIL_CHECK_RUN_ENDPOINT = "/always-fail/check-run"
 HEALTH_ENDPOINT = "/health"
 
 
@@ -219,6 +221,8 @@ def workflow_dispatch_check_run(body: WorkflowDispatchInput) -> Response:
     return Response(status=http.HTTPStatus.NO_CONTENT)
 
 
+# Include a default endpoint that works the same as push to be used for other events
+@repo_policy_compliance.route(DEFAULT_CHECK_RUN_ENDPOINT, methods=["POST"])
 @repo_policy_compliance.route(PUSH_CHECK_RUN_ENDPOINT, methods=["POST"])
 @auth.login_required(role=RUNNER_ROLE)
 @validate()
@@ -278,3 +282,17 @@ def health() -> Response:
         )
 
     return Response(status=http.HTTPStatus.NO_CONTENT)
+
+
+@repo_policy_compliance.route(ALWAYS_FAIL_CHECK_RUN_ENDPOINT, methods=["POST"])
+@auth.login_required(role=RUNNER_ROLE)
+def always_fail_check_run() -> Response:
+    """Return failure to be used during testing.
+
+    Returns:
+        Always returns a failure response.
+    """
+    return Response(
+        response="Endpoint designed for testing that always fails",
+        status=http.HTTPStatus.FORBIDDEN,
+    )
