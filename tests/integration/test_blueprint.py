@@ -31,6 +31,7 @@ EXPECTED_PULL_REQUEST_KEYS = (
 EXPECTED_WORKFLOW_DISPATCH_KEYS = ("repository_name",)
 EXPECTED_PUSH_KEYS = ("repository_name",)
 EXPECTED_SCHEDULE_KEYS = ("repository_name",)
+EXPECTED_DEFAULT_KEYS = ("repository_name",)
 
 
 @pytest.fixture(name="app")
@@ -164,6 +165,9 @@ def test_check_run_twice_same_token(
         pytest.param(
             blueprint.SCHEDULE_CHECK_RUN_ENDPOINT, id=blueprint.SCHEDULE_CHECK_RUN_ENDPOINT
         ),
+        pytest.param(
+            blueprint.DEFAULT_CHECK_RUN_ENDPOINT, id=blueprint.DEFAULT_CHECK_RUN_ENDPOINT
+        ),
     ],
 )
 def test_check_run_not_json(endpoint: str, client: FlaskClient, runner_token: str):
@@ -201,6 +205,11 @@ def test_check_run_not_json(endpoint: str, client: FlaskClient, runner_token: st
             blueprint.SCHEDULE_CHECK_RUN_ENDPOINT,
             EXPECTED_SCHEDULE_KEYS,
             id=blueprint.SCHEDULE_CHECK_RUN_ENDPOINT,
+        ),
+        pytest.param(
+            blueprint.DEFAULT_CHECK_RUN_ENDPOINT,
+            EXPECTED_DEFAULT_KEYS,
+            id=blueprint.DEFAULT_CHECK_RUN_ENDPOINT,
         ),
     ],
 )
@@ -278,6 +287,12 @@ def test_pull_request_check_run_fail(
             blueprint.SCHEDULE_CHECK_RUN_ENDPOINT,
             id="schedule",
         ),
+        pytest.param(
+            f"test-branch/blueprint/workflow-dispatch/fail/{uuid4()}",
+            RequestedCollaborator("admin", "admin"),
+            blueprint.DEFAULT_CHECK_RUN_ENDPOINT,
+            id="default",
+        ),
     ],
     indirect=["github_branch", "collaborators_with_permission"],
 )
@@ -331,6 +346,11 @@ def test_branch_check_run_fail(
             blueprint.SCHEDULE_CHECK_RUN_ENDPOINT,
             EXPECTED_SCHEDULE_KEYS,
             id=blueprint.SCHEDULE_CHECK_RUN_ENDPOINT,
+        ),
+        pytest.param(
+            blueprint.DEFAULT_CHECK_RUN_ENDPOINT,
+            EXPECTED_DEFAULT_KEYS,
+            id=blueprint.DEFAULT_CHECK_RUN_ENDPOINT,
         ),
     ],
 )
@@ -391,6 +411,7 @@ def test_pull_request_check_run_pass(
         pytest.param(blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT, id="workflow dispatch"),
         pytest.param(blueprint.PUSH_CHECK_RUN_ENDPOINT, id="push"),
         pytest.param(blueprint.SCHEDULE_CHECK_RUN_ENDPOINT, id="schedule"),
+        pytest.param(blueprint.DEFAULT_CHECK_RUN_ENDPOINT, id="default"),
     ],
 )
 def test_branch_check_run_pass(
@@ -440,6 +461,14 @@ def test_branch_check_run_pass(
         ),
         pytest.param(
             blueprint.SCHEDULE_CHECK_RUN_ENDPOINT, "post", id=blueprint.SCHEDULE_CHECK_RUN_ENDPOINT
+        ),
+        pytest.param(
+            blueprint.DEFAULT_CHECK_RUN_ENDPOINT, "post", id=blueprint.DEFAULT_CHECK_RUN_ENDPOINT
+        ),
+        pytest.param(
+            blueprint.ALWAYS_FAIL_CHECK_RUN_ENDPOINT,
+            "post",
+            id=blueprint.ALWAYS_FAIL_CHECK_RUN_ENDPOINT,
         ),
     ],
 )
@@ -736,6 +765,22 @@ def test_schedule_check_run_policy_disabled(
     )
 
     assert disabled_response.status_code == http.HTTPStatus.NO_CONTENT, disabled_response.data
+
+
+def test_always_fail(client: FlaskClient, runner_token: str):
+    """
+    arrange: given flask application with the blueprint registered and the charm token environment
+        variable set
+    act: when always fail is requested with a runner token
+    assert: then 403 is returned.
+    """
+
+    response = client.post(
+        blueprint.ALWAYS_FAIL_CHECK_RUN_ENDPOINT,
+        headers={"Authorization": f"Bearer {runner_token}"},
+    )
+
+    assert response.status_code == http.HTTPStatus.FORBIDDEN, response.data
 
 
 @pytest.mark.parametrize(

@@ -38,6 +38,9 @@ The functions are made available via a
 [flask blueprint](repo_policy_compliance/blueprint.py). This is designed to run
 in a single thread for simplicity.
 
+The blueprint exposes an endpoint `/always-fail/check-run` that simulates a
+failing check to be used for testing purposes.
+
 ## Running the Tests
 
 To run the tests, the `GITHUB_TOKEN` environment variable must be set. This
