@@ -287,7 +287,7 @@ def health() -> Response:
 @repo_policy_compliance.route(ALWAYS_FAIL_CHECK_RUN_ENDPOINT, methods=["POST"])
 @auth.login_required(role=RUNNER_ROLE)
 def always_fail_check_run() -> Response:
-    """Always return failure to be used during testing.
+    """Return failure to be used during testing.
 
     Returns:
         Always returns a failure response.

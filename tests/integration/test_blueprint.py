@@ -774,7 +774,6 @@ def test_always_fail(client: FlaskClient, runner_token: str):
     act: when always fail is requested with a runner token
     assert: then 403 is returned.
     """
-
     response = client.post(
         blueprint.ALWAYS_FAIL_CHECK_RUN_ENDPOINT,
         headers={"Authorization": f"Bearer {runner_token}"},
