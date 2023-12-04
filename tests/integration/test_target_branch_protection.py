@@ -26,12 +26,6 @@ from .types_ import BranchWithProtection
             id="branch_protection disabled",
         ),
         pytest.param(
-            f"test-branch/target-branch/stale-review-not-dismissed/{uuid4()}",
-            BranchWithProtection(dismiss_stale_reviews_enabled=False),
-            ("stale", "reviews", "not dismissed"),
-            id="stale-review not-dismissed",
-        ),
-        pytest.param(
             f"test-branch/target-branch/pull-request-allowance-not-empty/{uuid4()}",
             BranchWithProtection(bypass_pull_request_allowance_disabled=False),
             ("pull request", "reviews", "can be bypassed"),
@@ -179,9 +173,7 @@ def test_pass_default_branch(
         (
             f"test-branch/target-branch/protected-on-repo/{uuid4()}",
             BranchWithProtection(
-                branch_protection_enabled=True,
-                dismiss_stale_reviews_enabled=False,
-                bypass_pull_request_allowance_disabled=False,
+                branch_protection_enabled=True, bypass_pull_request_allowance_disabled=False
             ),
         )
     ],

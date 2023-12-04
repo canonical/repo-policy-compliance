@@ -18,7 +18,6 @@ def edit(branch: Branch, branch_with_protection: BranchWithProtection) -> None:
     """
     if branch_with_protection.bypass_pull_request_allowance_disabled:
         branch.edit_protection(
-            dismiss_stale_reviews=branch_with_protection.dismiss_stale_reviews_enabled,
             # This seems to be required as of version 1.59 of PyGithub, without it the API returns
             # an error indicating that None is not a valid value for bypass pull request
             # allowances. Mypy also seems to be finding the wrong argument name
@@ -28,7 +27,6 @@ def edit(branch: Branch, branch_with_protection: BranchWithProtection) -> None:
         )
     else:
         branch.edit_protection(
-            dismiss_stale_reviews=branch_with_protection.dismiss_stale_reviews_enabled,
             users_bypass_pull_request_allowances=[  # type: ignore
                 "gregory-schiano",
                 "jdkanderson",

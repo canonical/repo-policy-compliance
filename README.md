@@ -5,9 +5,9 @@ The module exposes several functions to check for compliance with the following
 policies:
 
 * `target_branch_protection`: That the branch targeted by a pull request has
-  protection enabled, stale reviews are dismissed and that rules cannot be
-  bypassed. The requirement for reviews is relaxed for non-default branches
-  where both the source and target branch are on the repository.
+  protection enabled and that rules cannot be bypassed. The requirement for
+  reviews is relaxed for non-default branches where both the source and target
+  branch are on the repository.
 * `collaborators`: Check that all outside collaborators of the project have at
   most `read` permissions.
 * `execute_job`: That a user with write permission or above has left the comment

@@ -238,10 +238,7 @@ def protected_github_branch_with_commit_in_ci(
 
     # Can't use protected_github_branch since the commit needs to be done before the branch
     # protections are applied
-    branch_with_protection = BranchWithProtection(
-        dismiss_stale_reviews_enabled=False,
-        bypass_pull_request_allowance_disabled=True,
-    )
+    branch_with_protection = BranchWithProtection(bypass_pull_request_allowance_disabled=True)
 
     branch_protection.edit(branch=github_branch, branch_with_protection=branch_with_protection)
 

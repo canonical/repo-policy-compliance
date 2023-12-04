@@ -115,11 +115,6 @@ def target_branch_protection(
                     f"{FAILURE_MESSAGE}pull request reviews are not required, {branch_name=!r}"
                 ),
             )
-        if not pull_request_reviews.dismiss_stale_reviews:
-            return Report(
-                result=Result.FAIL,
-                reason=(f"{FAILURE_MESSAGE}stale reviews are not dismissed, {branch_name=!r}"),
-            )
         # Check for bypass allowances
         bypass_allowances = pull_request_reviews.raw_data.get(BYPASS_ALLOWANCES_KEY, {})
         if any(bypass_allowances.get(key, []) for key in ("users", "teams", "apps")):
