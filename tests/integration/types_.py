@@ -13,13 +13,11 @@ class BranchWithProtection:
 
     Attributes:
         branch_protection_enabled: True if we need to enable branch protection enabled.
-        dismiss_stale_reviews_enabled: True if branch dismisses stale reviews.
         bypass_pull_request_allowance_disabled: True if users/teams/apps are allowed to bypass
             pull requests.
     """
 
     branch_protection_enabled: bool = True
-    dismiss_stale_reviews_enabled: bool = True
     bypass_pull_request_allowance_disabled: bool = True
 
 
