@@ -157,4 +157,4 @@ def get_collaborator_permission(
             f"Invalid collaborator permission {user_permission} received, "
             'expected one of "admin", "write", "read", "none"'
         )
-    return user_permission
+    return cast(Literal["admin", "write", "read", "none"], user_permission)
