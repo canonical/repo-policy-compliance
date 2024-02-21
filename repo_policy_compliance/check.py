@@ -188,7 +188,6 @@ def _branch_external_fork(repository: Repository, source_repository_name: str) -
     fork_username = source_repository_name.split("/")[0]
 
     # Check if owner of the fork already has push or higher permission (not an external user)
-    # This additional check is a fail-safe to paginated results of push_logins.
     fork_user_permission = get_collaborator_permission(repository, fork_username)
     if fork_user_permission in ("admin", "write"):
         return False
