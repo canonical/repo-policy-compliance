@@ -148,6 +148,10 @@ def get_collaborator_permission(
     Returns:
         The collaborator permission.
     """
-    return cast(
-        Literal["admin", "write", "read", "none"], repository.get_collaborator_permission(username)
-    )
+    user_permission = repository.get_collaborator_permission(username)
+    if user_permission not in ("admin", "write", "read", "none"):
+        raise GithubClientError(
+            f"Invalid collaborator permission {user_permission} received, "
+            'expected one of "admin", "write", "read", "none"'
+        )
+    return user_permission
