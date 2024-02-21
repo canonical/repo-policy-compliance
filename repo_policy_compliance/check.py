@@ -8,10 +8,15 @@ from typing import NamedTuple
 
 from github import Github
 from github.Branch import Branch
+from github.Repository import Repository
 
 from repo_policy_compliance import log
 from repo_policy_compliance.comment import remove_quote_lines
-from repo_policy_compliance.github_client import get_branch, get_collaborators
+from repo_policy_compliance.github_client import (
+    get_branch,
+    get_collaborator_permission,
+    get_collaborators,
+)
 from repo_policy_compliance.github_client import inject as inject_github_client
 
 BYPASS_ALLOWANCES_KEY = "bypass_pull_request_allowances"
@@ -164,28 +169,27 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
-def _branch_external_fork(
-    repository_name: str, source_repository_name: str, push_logins: set[str]
-) -> bool:
+def _branch_external_fork(repository: Repository, source_repository_name: str) -> bool:
     """Check whether a branch is an external fork.
 
     A external fork is a fork that is not owned by a user who has push or above permission on the
     repository.
 
     Args:
-        repository_name: The name of the repository to run the check on.
+        repository: The repository to run the check on.
         source_repository_name: The name of the repository that contains the source branch.
-        push_logins: The logins from users with push or above permission or above on the
-            repository.
 
     Returns:
         Whether the branch is from a external fork.
     """
-    if repository_name == source_repository_name:
+    if repository.full_name == source_repository_name:
         return False
 
-    # Check if the owner of the fork also has push or higher permission
-    if source_repository_name.split("/")[0] in push_logins:
+    fork_username = source_repository_name.split("/")[0]
+
+    # Check if owner of the fork already has push or higher permission (not an external user)
+    fork_user_permission = get_collaborator_permission(repository, fork_username)
+    if fork_user_permission in ("admin", "write"):
         return False
 
     return True
@@ -220,9 +224,7 @@ def execute_job(
         )
     }
     if not _branch_external_fork(
-        repository_name=repository_name,
-        source_repository_name=source_repository_name,
-        push_logins=push_logins,
+        repository=repository, source_repository_name=source_repository_name
     ):
         return Report(result=Result.PASS, reason=None)
 

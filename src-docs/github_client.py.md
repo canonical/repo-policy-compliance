@@ -89,7 +89,7 @@ Get collaborators with a given affiliation and permission.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L119"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L124"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_branch`
 
@@ -115,5 +115,39 @@ Get the branch for the check.
 
 **Returns:**
  The requested branch. 
+
+
+---
+
+<a href="../repo_policy_compliance/github_client.py#L139"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `get_collaborator_permission`
+
+```python
+get_collaborator_permission(
+    repository: Repository,
+    username: str
+) → Literal['admin', 'write', 'read', 'none']
+```
+
+Get user permission for a given repository. 
+
+
+
+**Args:**
+ 
+ - <b>`repository`</b>:  The repository to get collaborators for. 
+ - <b>`username`</b>:  The github login to check for permission. 
+
+
+
+**Raises:**
+ 
+ - <b>`GithubClientError`</b>:  if an invalid user permission is returned from the API call. 
+
+
+
+**Returns:**
+ The collaborator permission. 
 
 

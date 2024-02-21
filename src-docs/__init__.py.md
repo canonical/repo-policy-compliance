@@ -21,17 +21,6 @@ Input arguments to check jobs running on a branch.
 
 ---
 
-#### <kbd>property</kbd> model_computed_fields
-
-Get the computed fields of this model instance. 
-
-
-
-**Returns:**
-  A dictionary of computed field names and their corresponding `ComputedFieldInfo` objects. 
-
----
-
 #### <kbd>property</kbd> model_extra
 
 Get extra fields set during validation. 
@@ -73,17 +62,6 @@ Input arguments for pull request checks.
 
 ---
 
-#### <kbd>property</kbd> model_computed_fields
-
-Get the computed fields of this model instance. 
-
-
-
-**Returns:**
-  A dictionary of computed field names and their corresponding `ComputedFieldInfo` objects. 
-
----
-
 #### <kbd>property</kbd> model_extra
 
 Get extra fields set during validation. 
@@ -121,17 +99,6 @@ Input arguments to check jobs running on a branch.
 
 ---
 
-#### <kbd>property</kbd> model_computed_fields
-
-Get the computed fields of this model instance. 
-
-
-
-**Returns:**
-  A dictionary of computed field names and their corresponding `ComputedFieldInfo` objects. 
-
----
-
 #### <kbd>property</kbd> model_extra
 
 Get extra fields set during validation. 
@@ -166,17 +133,6 @@ Input arguments to check jobs running on a branch.
  
  - <b>`repository_name`</b>:  The name of the repository to run the check on. 
 
-
----
-
-#### <kbd>property</kbd> model_computed_fields
-
-Get the computed fields of this model instance. 
-
-
-
-**Returns:**
-  A dictionary of computed field names and their corresponding `ComputedFieldInfo` objects. 
 
 ---
 
@@ -229,17 +185,6 @@ Input arguments to check jobs running on a branch.
  
  - <b>`repository_name`</b>:  The name of the repository to run the check on. 
 
-
----
-
-#### <kbd>property</kbd> model_computed_fields
-
-Get the computed fields of this model instance. 
-
-
-
-**Returns:**
-  A dictionary of computed field names and their corresponding `ComputedFieldInfo` objects. 
 
 ---
 

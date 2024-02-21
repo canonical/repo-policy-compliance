@@ -7,7 +7,9 @@ from unittest.mock import MagicMock
 
 import pytest
 from github import Github, GithubException, RateLimitExceededException
+from github.Repository import Repository
 
+import repo_policy_compliance.github_client
 from repo_policy_compliance.check import target_branch_protection
 from repo_policy_compliance.exceptions import GithubClientError
 
@@ -42,6 +44,9 @@ def test_github_error(
     monkeypatch.setattr(
         "repo_policy_compliance.github_client.Github", lambda *_args, **_kwargs: github_client
     )
+    monkeypatch.setattr(
+        repo_policy_compliance.github_client, "get", lambda *_args, **_kwargs: github_client
+    )
 
     with pytest.raises(GithubClientError) as error:
         # The github_client is injected
@@ -49,3 +54,20 @@ def test_github_error(
             GITHUB_REPOSITORY_NAME, GITHUB_BRANCH_NAME, GITHUB_REPOSITORY_NAME
         )
     assert expected_message in str(error.value)
+
+
+def test_get_collaborator_permission_error():
+    """
+    arrange: Given a mocked get_collaborator_permission function that returns invalid value.
+    act: when get_collaborator_permission is called.
+    assert: GithubClientError is raised.
+    """
+    mock_repository = MagicMock(spec=Repository)
+    mock_repository.get_collaborator_permission.return_value = "invalid"
+
+    with pytest.raises(GithubClientError) as error:
+        # The github_client is injected
+        repo_policy_compliance.github_client.get_collaborator_permission(  # pylint: disable=no-value-for-parameter
+            mock_repository, "test_user"
+        )
+    assert "Invalid collaborator permission" in str(error.value)
