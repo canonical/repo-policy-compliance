@@ -4,7 +4,7 @@
 """Tests for the execute_job function."""
 
 # The tests in this file have to rely on many fixtures, need access to private function to test it
-# pylint: disable=too-many-arguments,protected-access
+# pylint: disable=too-many-arguments
 
 from uuid import uuid4
 
@@ -18,47 +18,6 @@ import repo_policy_compliance
 from repo_policy_compliance.check import AUTHORIZATION_STRING_PREFIX, Result, execute_job
 
 from .. import assert_
-
-
-@pytest.mark.parametrize(
-    "repository_name, source_repository_name, push_logins, expected_result",
-    [
-        pytest.param("repo-1/name-1", "repo-1/name-1", set(), False, id="repo names match"),
-        pytest.param(
-            "repo-1/name-1",
-            "user-1/name-1",
-            {"user-1"},
-            False,
-            id="repo names don't match, owner in push logins",
-        ),
-        pytest.param(
-            "repo-1/name-1",
-            "user-1/name-1",
-            set(),
-            True,
-            id="repo names don't match, owner not in push logins",
-        ),
-    ],
-)
-def test__branch_external_fork(
-    repository_name: str,
-    source_repository_name: str,
-    push_logins: set[str],
-    expected_result: bool,
-):
-    """
-    arrange: given repository name, source repository name and push logins
-    act: when repository name, source repository name and push logins are passed to
-        _branch_external_fork
-    assert: then the expected result is returned.
-    """
-    returned_result = repo_policy_compliance.check._branch_external_fork(
-        repository_name=repository_name,
-        source_repository_name=source_repository_name,
-        push_logins=push_logins,
-    )
-
-    assert returned_result == expected_result
 
 
 @pytest.mark.parametrize(

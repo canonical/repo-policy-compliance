@@ -5,7 +5,7 @@
 
 import functools
 import os
-from typing import Callable, Concatenate, Literal, ParamSpec, TypeVar
+from typing import Callable, Concatenate, Literal, ParamSpec, TypeVar, cast
 from urllib import parse
 
 from github import BadCredentialsException, Github, GithubException, RateLimitExceededException
@@ -103,7 +103,12 @@ def get_collaborators(
     """
     collaborators_url = repository.collaborators_url.replace("{/collaborator}", "")
     default_query = dict(parse.parse_qsl(parse.urlparse(collaborators_url).query))
-    query: dict[str, str] = {**default_query, "permission": permission, "affiliation": affiliation}
+    query: dict[str, str] = {
+        **default_query,
+        "permission": permission,
+        "affiliation": affiliation,
+        "per_page": "100",
+    }
 
     # mypy thinks the attribute doesn't exist when it actually does exist
     # need to use requester to send a raw API request
@@ -129,3 +134,20 @@ def get_branch(github_client: Github, repository_name: str, branch_name: str) ->
     """
     repository = github_client.get_repo(repository_name)
     return repository.get_branch(branch_name)
+
+
+def get_collaborator_permission(
+    repository: Repository, username: str
+) -> Literal["admin", "write", "read", "none"]:
+    """Get user permission for a given repository.
+
+    Args:
+        repository: The repository to get collaborators for.
+        username: The github login to check for permission.
+
+    Returns:
+        The collaborator permission.
+    """
+    return cast(
+        Literal["admin", "write", "read", "none"], repository.get_collaborator_permission(username)
+    )

@@ -8,6 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 from github import Github, GithubException, RateLimitExceededException
 
+import repo_policy_compliance.github_client
 from repo_policy_compliance.check import target_branch_protection
 from repo_policy_compliance.exceptions import GithubClientError
 
@@ -41,6 +42,9 @@ def test_github_error(
 
     monkeypatch.setattr(
         "repo_policy_compliance.github_client.Github", lambda *_args, **_kwargs: github_client
+    )
+    monkeypatch.setattr(
+        repo_policy_compliance.github_client, "get", lambda *_args, **_kwargs: github_client
     )
 
     with pytest.raises(GithubClientError) as error:
