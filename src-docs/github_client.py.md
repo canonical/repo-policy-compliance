@@ -141,6 +141,12 @@ Get user permission for a given repository.
 
 
 
+**Raises:**
+ 
+ - <b>`GithubClientError`</b>:  if an invalid user permission is returned from the API call. 
+
+
+
 **Returns:**
  The collaborator permission. 
 

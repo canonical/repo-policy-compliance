@@ -145,6 +145,9 @@ def get_collaborator_permission(
         repository: The repository to get collaborators for.
         username: The github login to check for permission.
 
+    Raises:
+        GithubClientError: if an invalid user permission is returned from the API call.
+
     Returns:
         The collaborator permission.
     """
