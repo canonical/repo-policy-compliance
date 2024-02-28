@@ -16,8 +16,53 @@ from github.Repository import Repository
 
 import repo_policy_compliance
 from repo_policy_compliance.check import AUTHORIZATION_STRING_PREFIX, Result, execute_job
+from repo_policy_compliance.exceptions import GithubClientError
 
 from .. import assert_
+
+
+@pytest.mark.parametrize(
+    "forked_github_branch",
+    [f"test-branch/execute-job/no-pr/{uuid4()}"],
+    indirect=True,
+)
+@pytest.mark.usefixtures("make_fork_branch_external")
+def test__branch_external_fork_github_error(
+    monkeypatch: pytest.MonkeyPatch,
+    forked_github_repository: Repository,
+    forked_github_branch: Branch,
+    github_repository_name: str,
+):
+    """
+    arrange: Given a mock _branch_external_fork that raises a Github error.
+    act: when execute_job is called.
+    assert: A failed result is returned with Github exception in reason.
+    """
+
+    def raise_(exception):
+        """Raises exception.
+
+        Args:
+            exception: The exception to raise.
+        """
+        raise exception
+
+    monkeypatch.setattr(
+        repo_policy_compliance.check,
+        "_branch_external_fork",
+        lambda: raise_(GithubClientError("No user found.")),
+    )
+
+    # The github_client is injected
+    report = execute_job(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name,
+        source_repository_name=forked_github_repository.full_name,
+        branch_name=forked_github_branch.name,
+        commit_sha=forked_github_branch.commit.sha,
+    )
+
+    assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
 
 
 @pytest.mark.parametrize(

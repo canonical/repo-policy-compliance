@@ -13,6 +13,7 @@ from github.Repository import Repository
 from repo_policy_compliance import log
 from repo_policy_compliance.comment import remove_quote_lines
 from repo_policy_compliance.github_client import (
+    GithubClientError,
     get_branch,
     get_collaborator_permission,
     get_collaborators,
@@ -181,6 +182,9 @@ def _branch_external_fork(repository: Repository, source_repository_name: str) -
 
     Returns:
         Whether the branch is from a external fork.
+
+    Raises:
+        GithubClientError: if an unexpected error occurred getting collaborator permission.
     """
     if repository.full_name == source_repository_name:
         return False
@@ -188,7 +192,11 @@ def _branch_external_fork(repository: Repository, source_repository_name: str) -
     fork_username = source_repository_name.split("/")[0]
 
     # Check if owner of the fork already has push or higher permission (not an external user)
-    fork_user_permission = get_collaborator_permission(repository, fork_username)
+    try:
+        fork_user_permission = get_collaborator_permission(repository, fork_username)
+    except GithubClientError as exc:
+        log.logging.error(f"Failed to get collaborator permission: {exc}")
+        raise
     if fork_user_permission in ("admin", "write"):
         return False
 
@@ -197,7 +205,7 @@ def _branch_external_fork(repository: Repository, source_repository_name: str) -
 
 @inject_github_client
 @log.call
-def execute_job(
+def execute_job(  # pylint: disable=too-many-return-statements
     github_client: Github,
     repository_name: str,
     source_repository_name: str,
@@ -223,9 +231,13 @@ def execute_job(
             repository=repository, permission="push", affiliation="all"
         )
     }
-    if not _branch_external_fork(
-        repository=repository, source_repository_name=source_repository_name
-    ):
+    try:
+        is_external_fork = _branch_external_fork(
+            repository=repository, source_repository_name=source_repository_name
+        )
+    except GithubClientError as exc:
+        return Report(result=Result.FAIL, reason=f"Unexpected error from GitHub client: {exc}")
+    if not is_external_fork:
         return Report(result=Result.PASS, reason=None)
 
     # Retrieve PR for the branch

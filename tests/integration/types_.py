@@ -29,5 +29,5 @@ class RequestedCollaborator(NamedTuple):
         role_name: The name of the role the collaborators should have
     """
 
-    permission: Literal["admin", "pull"]
+    permission: Literal["admin", "pull"]  # one of [pull, triage, push, maintain, admin]
     role_name: str
