@@ -53,7 +53,7 @@ def test__branch_external_fork_github_error(
     monkeypatch.setattr(
         repo_policy_compliance.check,
         "_branch_external_fork",
-        lambda: raise_(GithubClientError("No user found.")),
+        lambda *_args, **_kwargs: raise_(GithubClientError("No user found.")),
     )
 
     # The github_client is injected
