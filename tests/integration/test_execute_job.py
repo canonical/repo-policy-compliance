@@ -62,7 +62,7 @@ def test__branch_external_fork_github_error(
     )
 
     assert report.result == Result.FAIL
-    assert report.reason, "expected a reason along with the fail result"
+    assert "No user found." in report.reason, "expected a reason along with the fail result"
 
 
 @pytest.mark.parametrize(
