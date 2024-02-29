@@ -56,6 +56,25 @@ def test_github_error(
     assert expected_message in str(error.value)
 
 
+def test_get_collaborator_permission_exception():
+    """
+    arrange: Given a mocked get_collaborator_permission function that raises an exception.
+    act: when get_collaborator_permission is called.
+    assert: GithubClientError is raised.
+    """
+    mock_repository = MagicMock(spec=Repository)
+    mock_repository.get_collaborator_permission.side_effect = GithubException(
+        status=404, message="User not found"
+    )
+
+    with pytest.raises(GithubClientError) as error:
+        # The github_client is injected
+        repo_policy_compliance.github_client.get_collaborator_permission(
+            mock_repository, "test_user"
+        )
+    assert "User not found" in str(error.value)
+
+
 def test_get_collaborator_permission_error():
     """
     arrange: Given a mocked get_collaborator_permission function that returns invalid value.
