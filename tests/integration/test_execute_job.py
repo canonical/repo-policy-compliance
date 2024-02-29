@@ -44,6 +44,9 @@ def test__branch_external_fork_github_error(
 
         Args:
             exception: The exception to raise.
+
+        Raises:
+            exception: exception that was passed in as argument.
         """
         raise exception
 
@@ -62,7 +65,7 @@ def test__branch_external_fork_github_error(
     )
 
     assert report.result == Result.FAIL
-    assert "No user found." in report.reason, "expected a reason along with the fail result"
+    assert "No user found." in str(report.reason), "expected a reason along with the fail result"
 
 
 @pytest.mark.parametrize(
