@@ -3,6 +3,7 @@
 
 """Individual checks used to compose job checks."""
 
+import functools
 from enum import Enum
 from typing import Callable, NamedTuple, ParamSpec, TypeVar
 
@@ -80,6 +81,7 @@ def github_exceptions_to_fail_report(func: Callable[P, R]) -> Callable[P, R | Re
         The function where any exceptions raised would be converted to a failed result.
     """
 
+    @functools.wraps(func)
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | Report:
         """Replace function.
 

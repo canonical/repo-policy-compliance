@@ -14,7 +14,7 @@ Individual checks used to compose job checks.
 
 ---
 
-<a href="../repo_policy_compliance/check.py#L73"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/check.py#L74"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `github_exceptions_to_fail_report`
 
@@ -36,81 +36,6 @@ Catch exceptions and convert to failed report with reason.
 
 **Returns:**
  The function where any exceptions raised would be converted to a failed result. 
-
-
----
-
-<a href="../repo_policy_compliance/check.py#L83"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-## <kbd>function</kbd> `wrapper`
-
-```python
-wrapper(*args: args, **kwargs: kwargs) → Union[~R, Report]
-```
-
-Replace function. 
-
-
-
-**Args:**
- 
- - <b>`args`</b>:  The positional arguments passed to the original method. 
- - <b>`kwargs`</b>:  The keywords arguments passed to the original method. 
-
-
-
-**Returns:**
- Failed result report if any exceptions were raised. The return value after calling the wrapped function otherwise. 
-
-
----
-
-<a href="../repo_policy_compliance/check.py#L83"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-## <kbd>function</kbd> `wrapper`
-
-```python
-wrapper(*args: args, **kwargs: kwargs) → Union[~R, Report]
-```
-
-Replace function. 
-
-
-
-**Args:**
- 
- - <b>`args`</b>:  The positional arguments passed to the original method. 
- - <b>`kwargs`</b>:  The keywords arguments passed to the original method. 
-
-
-
-**Returns:**
- Failed result report if any exceptions were raised. The return value after calling the wrapped function otherwise. 
-
-
----
-
-<a href="../repo_policy_compliance/check.py#L83"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-## <kbd>function</kbd> `wrapper`
-
-```python
-wrapper(*args: args, **kwargs: kwargs) → Union[~R, Report]
-```
-
-Replace function. 
-
-
-
-**Args:**
- 
- - <b>`args`</b>:  The positional arguments passed to the original method. 
- - <b>`kwargs`</b>:  The keywords arguments passed to the original method. 
-
-
-
-**Returns:**
- Failed result report if any exceptions were raised. The return value after calling the wrapped function otherwise. 
 
 
 ---
