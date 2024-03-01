@@ -4,7 +4,7 @@
 """Individual checks used to compose job checks."""
 
 from enum import Enum
-from typing import NamedTuple
+from typing import Callable, NamedTuple, ParamSpec, TypeVar
 
 from github import Github
 from github.Branch import Branch
@@ -12,6 +12,7 @@ from github.Repository import Repository
 
 from repo_policy_compliance import log
 from repo_policy_compliance.comment import remove_quote_lines
+from repo_policy_compliance.exceptions import GithubClientError
 from repo_policy_compliance.github_client import (
     get_branch,
     get_collaborator_permission,
@@ -65,6 +66,38 @@ class Report(NamedTuple):
 
 log.setup()
 
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+def github_exceptions_to_fail_report(func: Callable[P, R]) -> Callable[P, R | Report]:
+    """Catch exceptions and convert to failed report with reason.
+
+    Args:
+        func: The function to catch the GithubClient exceptions for.
+
+    Returns:
+        The function where any exceptions raised would be converted to a failed result.
+    """
+
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | Report:
+        """Replace function.
+
+        Args:
+            args: The positional arguments passed to the original method.
+            kwargs: The keywords arguments passed to the original method.
+
+        Returns:
+            Failed result report if any exceptions were raised. The return value after calling the
+            wrapped function otherwise.
+        """
+        try:
+            return func(*args, **kwargs)
+        except GithubClientError as exc:
+            return Report(result=Result.FAIL, reason=str(exc))
+
+    return wrapper
+
 
 @log.call
 def branch_protected(branch: Branch) -> Report:
@@ -84,6 +117,7 @@ def branch_protected(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
+@github_exceptions_to_fail_report
 @inject_github_client
 @log.call
 def target_branch_protection(
@@ -133,6 +167,7 @@ def target_branch_protection(
     return Report(result=Result.PASS, reason=None)
 
 
+@github_exceptions_to_fail_report
 @inject_github_client
 @log.call
 def collaborators(github_client: Github, repository_name: str) -> Report:
@@ -195,6 +230,7 @@ def _branch_external_fork(repository: Repository, source_repository_name: str) -
     return True
 
 
+@github_exceptions_to_fail_report
 @inject_github_client
 @log.call
 def execute_job(

@@ -10,7 +10,7 @@ from github import Github, GithubException, RateLimitExceededException
 from github.Repository import Repository
 
 import repo_policy_compliance.github_client
-from repo_policy_compliance.check import target_branch_protection
+from repo_policy_compliance.check import Result, target_branch_protection
 from repo_policy_compliance.exceptions import GithubClientError
 
 GITHUB_REPOSITORY_NAME = "test/repository"
@@ -48,12 +48,12 @@ def test_github_error(
         repo_policy_compliance.github_client, "get", lambda *_args, **_kwargs: github_client
     )
 
-    with pytest.raises(GithubClientError) as error:
-        # The github_client is injected
-        target_branch_protection(  # pylint: disable=no-value-for-parameter
-            GITHUB_REPOSITORY_NAME, GITHUB_BRANCH_NAME, GITHUB_REPOSITORY_NAME
-        )
-    assert expected_message in str(error.value)
+    # The github_client is injected
+    report = target_branch_protection(  # pylint: disable=no-value-for-parameter
+        GITHUB_REPOSITORY_NAME, GITHUB_BRANCH_NAME, GITHUB_REPOSITORY_NAME
+    )
+    assert report.result == Result.FAIL
+    assert expected_message in str(report.reason)
 
 
 def test_get_collaborator_permission_error():
@@ -67,7 +67,7 @@ def test_get_collaborator_permission_error():
 
     with pytest.raises(GithubClientError) as error:
         # The github_client is injected
-        repo_policy_compliance.github_client.get_collaborator_permission(  # pylint: disable=no-value-for-parameter
+        repo_policy_compliance.github_client.get_collaborator_permission(
             mock_repository, "test_user"
         )
     assert "Invalid collaborator permission" in str(error.value)
