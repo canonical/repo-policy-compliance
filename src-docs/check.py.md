@@ -12,6 +12,29 @@ Individual checks used to compose job checks.
 - **AUTHORIZATION_STRING_PREFIX**
 - **EXECUTE_JOB_MESSAGE**
 
+---
+
+<a href="../repo_policy_compliance/check.py#L74"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `exceptions_to_fail_report`
+
+```python
+exceptions_to_fail_report(func: Callable[~P, ~R]) → Callable[~P, ~R]
+```
+
+Catch exceptions and convert to failed report with reason. 
+
+
+
+**Args:**
+ 
+ - <b>`func`</b>:  The function to catch the exceptions for. 
+
+
+
+**Returns:**
+ The function where any exceptions raised would be converted to a failed result. 
+
 
 ---
 

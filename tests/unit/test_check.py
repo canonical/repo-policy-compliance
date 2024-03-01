@@ -12,7 +12,6 @@ import pytest
 from github.Repository import Repository
 
 import repo_policy_compliance
-from repo_policy_compliance.exceptions import GithubClientError
 
 
 @pytest.mark.parametrize(
@@ -75,29 +74,3 @@ def test__branch_external_fork(
     )
 
     assert returned_result == expected_result
-
-
-def test__branch_external_fork_error(monkeypatch: pytest.MonkeyPatch):
-    """
-    arrange: given a monkeypathed get_collaborator_permission that raises a GithubClient error.
-    act: when _branch_external_fork is called.
-    assert: the error is re-raised.
-    """
-    mocked_repository = MagicMock(spec=Repository)
-    mocked_repository.full_name = "repo-1/name-1"
-    mock_get_collab_permission = MagicMock(
-        spec=repo_policy_compliance.check.get_collaborator_permission,
-        side_effect=GithubClientError,
-    )
-    monkeypatch.setattr(
-        repo_policy_compliance.check,
-        "get_collaborator_permission",
-        mock_get_collab_permission,
-    )
-
-    with pytest.raises(GithubClientError) as exc:
-        repo_policy_compliance.check._branch_external_fork(
-            repository=mocked_repository, source_repository_name="user-1/name-1"
-        )
-
-    assert exc.errisinstance(GithubClientError)
