@@ -12,7 +12,7 @@ from github.Repository import Repository
 
 from repo_policy_compliance import log
 from repo_policy_compliance.comment import remove_quote_lines
-from repo_policy_compliance.exceptions import GithubClientError
+from repo_policy_compliance.exceptions import ConfigurationError, GithubClientError
 from repo_policy_compliance.github_client import (
     get_branch,
     get_collaborator_permission,
@@ -94,6 +94,8 @@ def github_exceptions_to_fail_report(func: Callable[P, R]) -> Callable[P, R | Re
         try:
             return func(*args, **kwargs)
         except GithubClientError as exc:
+            return Report(result=Result.FAIL, reason=str(exc))
+        except ConfigurationError as exc:
             return Report(result=Result.FAIL, reason=str(exc))
 
     return wrapper
