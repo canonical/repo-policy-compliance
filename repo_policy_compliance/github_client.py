@@ -151,13 +151,7 @@ def get_collaborator_permission(
     Returns:
         The collaborator permission.
     """
-    try:
-        user_permission = repository.get_collaborator_permission(username)
-    except GithubException as exc:
-        raise GithubClientError(
-            "Unexpected error occurred fetching permissions."
-            f"Message: {exc.message}, status: {exc.status}, data: {exc.data}"
-        ) from exc
+    user_permission = repository.get_collaborator_permission(username)
     if user_permission not in ("admin", "write", "read", "none"):
         raise GithubClientError(
             f"Invalid collaborator permission {user_permission} received, "

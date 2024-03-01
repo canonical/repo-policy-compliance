@@ -67,7 +67,7 @@ def test_get_collaborator_permission_error():
 
     with pytest.raises(GithubClientError) as error:
         # The github_client is injected
-        repo_policy_compliance.github_client.get_collaborator_permission(
+        repo_policy_compliance.github_client.get_collaborator_permission(  # pylint: disable=no-value-for-parameter
             mock_repository, "test_user"
         )
     assert "Invalid collaborator permission" in str(error.value)
