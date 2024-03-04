@@ -26,7 +26,7 @@ GITHUB_BRANCH_NAME = "arbitrary"
             id="github_client rate limit error",
         ),
         pytest.param(
-            GithubException(0, "", {}), "encountered an error", id="git_client other error"
+            GithubException(0, "", {}), "Something went wrong", id="git_client other error"
         ),
     ],
 )
