@@ -51,6 +51,7 @@ class Result(str, Enum):
     # Bandit thinks pass is for password
     PASS = "pass"  # nosec
     FAIL = "fail"
+    ERROR = "error"
 
 
 class Report(NamedTuple):
@@ -96,9 +97,9 @@ def github_exceptions_to_fail_report(func: Callable[P, R]) -> Callable[P, R | Re
         try:
             return func(*args, **kwargs)
         except GithubClientError as exc:
-            return Report(result=Result.FAIL, reason=str(exc))
+            return Report(result=Result.ERROR, reason=str(exc))
         except ConfigurationError as exc:
-            return Report(result=Result.FAIL, reason=str(exc))
+            return Report(result=Result.ERROR, reason=str(exc))
 
     return wrapper
 
