@@ -832,7 +832,7 @@ def test_internal_server_error(
     act: when blueprint routes are called.
     assert: 500 error is returned with reason.
     """
-    monkeypatch.setenv(github_client.GITHUB_TOKEN_ENV_NAME, "invalid token")
+    monkeypatch.setenv(github_client.GITHUB_TOKEN_ENV_NAME, "")
 
     response = client.get(endpoint)
 
