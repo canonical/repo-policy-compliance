@@ -195,7 +195,7 @@ def pull_request_check_run(body: PullRequestInput) -> Response:
         report := pull_request(input_=body, policy_document=policy_document)
     ).result == Result.FAIL:
         return Response(response=report.reason, status=http.HTTPStatus.FORBIDDEN)
-    elif report.result == Result.ERROR:
+    if report.result == Result.ERROR:
         return Response(response=report.reason, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return Response(status=http.HTTPStatus.NO_CONTENT)
@@ -219,7 +219,7 @@ def workflow_dispatch_check_run(body: WorkflowDispatchInput) -> Response:
         report := workflow_dispatch(input_=body, policy_document=policy_document)
     ).result == Result.FAIL:
         return Response(response=report.reason, status=http.HTTPStatus.FORBIDDEN)
-    elif report.result == Result.ERROR:
+    if report.result == Result.ERROR:
         return Response(response=report.reason, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return Response(status=http.HTTPStatus.NO_CONTENT)
@@ -243,7 +243,7 @@ def push_check_run(body: PushInput) -> Response:
 
     if (report := push(input_=body, policy_document=policy_document)).result == Result.FAIL:
         return Response(response=report.reason, status=http.HTTPStatus.FORBIDDEN)
-    elif report.result == Result.ERROR:
+    if report.result == Result.ERROR:
         return Response(response=report.reason, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return Response(status=http.HTTPStatus.NO_CONTENT)
@@ -265,7 +265,7 @@ def schedule_check_run(body: ScheduleInput) -> Response:
 
     if (report := schedule(input_=body, policy_document=policy_document)).result == Result.FAIL:
         return Response(response=report.reason, status=http.HTTPStatus.FORBIDDEN)
-    elif report.result == Result.ERROR:
+    if report.result == Result.ERROR:
         return Response(response=report.reason, status=http.HTTPStatus.INTERNAL_SERVER_ERROR)
 
     return Response(status=http.HTTPStatus.NO_CONTENT)

@@ -46,6 +46,7 @@ class Result(str, Enum):
     Attributes:
         PASS: The check passed.
         FAIL: The check failed.
+        ERROR: There was an error while performing the check.
     """
 
     # Bandit thinks pass is for password

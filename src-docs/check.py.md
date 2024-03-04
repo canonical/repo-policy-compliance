@@ -14,7 +14,7 @@ Individual checks used to compose job checks.
 
 ---
 
-<a href="../repo_policy_compliance/check.py#L75"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/check.py#L76"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `github_exceptions_to_fail_report`
 
@@ -65,6 +65,7 @@ The result of a check.
  
  - <b>`PASS`</b>:  The check passed. 
  - <b>`FAIL`</b>:  The check failed. 
+ - <b>`ERROR`</b>:  There was an error while performing the check. 
 
 
 

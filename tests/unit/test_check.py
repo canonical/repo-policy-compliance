@@ -33,7 +33,7 @@ def test_github_exceptions_to_fail_report():
         raise GithubClientError("Exception message.")
 
     report = github_client_error_raiser()
-    assert report.result == Result.FAIL
+    assert report.result == Result.ERROR
     assert report.reason == "Exception message."
 
 

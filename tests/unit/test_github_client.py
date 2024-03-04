@@ -52,7 +52,7 @@ def test_github_error(
     report = target_branch_protection(  # pylint: disable=no-value-for-parameter
         GITHUB_REPOSITORY_NAME, GITHUB_BRANCH_NAME, GITHUB_REPOSITORY_NAME
     )
-    assert report.result == Result.FAIL
+    assert report.result == Result.ERROR
     assert expected_message in str(report.reason)
 
 
