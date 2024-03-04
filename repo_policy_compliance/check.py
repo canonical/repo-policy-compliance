@@ -38,11 +38,6 @@ EXECUTE_JOB_MESSAGE = (
     f"include the string '{AUTHORIZATION_STRING_PREFIX} <commit SHA>' where the commit SHA is the "
     "SHA of the latest commit on the branch"
 )
-ERROR_MESSAGE = (
-    "\n"
-    "Something went wrong  while checking repository compliance policy. "
-    "Please contact the operator."
-)
 
 
 class Result(str, Enum):
@@ -103,17 +98,9 @@ def github_exceptions_to_fail_report(func: Callable[P, R]) -> Callable[P, R | Re
         try:
             return func(*args, **kwargs)
         except GithubClientError as exc:
-            log.logging.error("Github client error: %s", exc, exc_info=exc)
-            return Report(
-                result=Result.ERROR,
-                reason=ERROR_MESSAGE,
-            )
+            return Report(result=Result.ERROR, reason=str(exc))
         except ConfigurationError as exc:
-            log.logging.error("Configuration error: %s", exc, exc_info=exc)
-            return Report(
-                result=Result.ERROR,
-                reason=ERROR_MESSAGE,
-            )
+            return Report(result=Result.ERROR, reason=str(exc))
 
     return wrapper
 
