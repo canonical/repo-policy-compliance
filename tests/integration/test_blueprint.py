@@ -808,3 +808,33 @@ def test_health(client: FlaskClient):
     response = client.get(blueprint.HEALTH_ENDPOINT)
 
     assert response.status_code == http.HTTPStatus.NO_CONTENT, response.data
+
+
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        pytest.param(blueprint.CHECK_RUN_ENDPOINT, id="check run endpoint"),
+        pytest.param(blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT, id="PR check run endpoint"),
+        pytest.param(
+            blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT,
+            id="workflow dispatch check run endpoint",
+        ),
+        pytest.param(blueprint.DEFAULT_CHECK_RUN_ENDPOINT, id="default check run endpoint"),
+        pytest.param(blueprint.PUSH_CHECK_RUN_ENDPOINT, id="push check run endpoint"),
+        pytest.param(blueprint.SCHEDULE_CHECK_RUN_ENDPOINT, id="schedule check run endpoint"),
+    ],
+)
+def test_internal_server_error(
+    client: FlaskClient, endpoint: str, monkeypatch: pytest.MonkeyPatch
+):
+    """
+    arrange: given a monkeypatched github client get function that raises ConfigurationError.
+    act: when blueprint routes are called.
+    assert: 500 error is returned with reason.
+    """
+    monkeypatch.setenv(github_client.GITHUB_TOKEN_ENV_NAME, "invalid token")
+
+    response = client.get(endpoint)
+
+    assert response.status_code == http.HTTPStatus.INTERNAL_SERVER_ERROR, response.data
+    assert "environment variable was not provided or empty" in str(response.data, encoding="utf-8")
