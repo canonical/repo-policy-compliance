@@ -152,19 +152,16 @@ def workflow_dispatch(
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
-    if (
-        policy.enabled(
-            job_type=policy.JobType.WORKFLOW_DISPATCH,
-            name=policy.WorkflowDispatchProperty.COLLABORATORS,
-            policy_document=used_policy_document,
-        )
-        and (
-            (
-                collaborators_report := check.collaborators(repository_name=input_.repository_name)
-            ).result
-            or collaborators_report.result == check.Result.ERROR
-        )
+    if policy.enabled(
+        job_type=policy.JobType.WORKFLOW_DISPATCH,
+        name=policy.WorkflowDispatchProperty.COLLABORATORS,
+        policy_document=used_policy_document,
+    ) and (
+        (
+            collaborators_report := check.collaborators(repository_name=input_.repository_name)
+        ).result
         == check.Result.FAIL
+        or collaborators_report.result == check.Result.ERROR
     ):
         return collaborators_report
 

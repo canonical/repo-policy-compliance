@@ -837,7 +837,6 @@ def test_internal_server_error(
     assert: 500 error is returned with reason.
     """
     monkeypatch.setenv(github_client.GITHUB_TOKEN_ENV_NAME, "")
-    monkeypatch.setattr(policy, "enabled", lambda *_args, **_kwargs: True)
     main_branch = github_repository.get_branch(github_repository.default_branch)
     request_data = {
         "repository_name": github_repository.full_name,
