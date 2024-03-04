@@ -81,7 +81,7 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
                 "please wait before retrying."
             ) from exc
         except GithubException as exc:
-            raise GithubClientError(f"The github client encountered an error. {exc.data}") from exc
+            raise GithubClientError("The github client encountered an error") from exc
 
     return wrapper
 
