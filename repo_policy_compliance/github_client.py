@@ -4,6 +4,7 @@
 """Module for GitHub client."""
 
 import functools
+import logging
 import os
 from typing import Callable, Concatenate, Literal, ParamSpec, TypeVar, cast
 from urllib import parse
@@ -81,6 +82,7 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
                 "please wait before retrying."
             ) from exc
         except GithubException as exc:
+            logging.error("Github client error: %s", exc, exc_info=exc)
             raise GithubClientError("The github client encountered an error.") from exc
 
     return wrapper
