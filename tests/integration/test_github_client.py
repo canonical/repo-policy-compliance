@@ -38,5 +38,5 @@ def test_github_token(
         source_repository_name="arbitrary",
     )
 
-    assert report.result == Result.FAIL
+    assert report.result == Result.ERROR
     assert_.substrings_in_string([GITHUB_TOKEN_ENV_NAME, fail_reason], str(report.reason))

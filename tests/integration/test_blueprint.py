@@ -825,7 +825,11 @@ def test_health(client: FlaskClient):
     ],
 )
 def test_internal_server_error(
-    client: FlaskClient, endpoint: str, monkeypatch: pytest.MonkeyPatch
+    client: FlaskClient,
+    endpoint: str,
+    github_repository: Repository,
+    runner_token: str,
+    monkeypatch: pytest.MonkeyPatch,
 ):
     """
     arrange: given a monkeypatched github client get function that raises ConfigurationError.
@@ -833,8 +837,20 @@ def test_internal_server_error(
     assert: 500 error is returned with reason.
     """
     monkeypatch.setenv(github_client.GITHUB_TOKEN_ENV_NAME, "")
+    main_branch = github_repository.get_branch(github_repository.default_branch)
+    request_data = {
+        "repository_name": github_repository.full_name,
+        "source_repository_name": github_repository.full_name,
+        "target_branch_name": github_repository.default_branch,
+        "source_branch_name": github_repository.default_branch,
+        "commit_sha": main_branch.commit.sha,
+    }
 
-    response = client.get(endpoint)
+    response = client.post(
+        endpoint, json=request_data, headers={"Authorization": f"Bearer {runner_token}"}
+    )
 
     assert response.status_code == http.HTTPStatus.INTERNAL_SERVER_ERROR, response.data
-    assert "environment variable was not provided or empty" in str(response.data, encoding="utf-8")
+    assert "environment variable was not provided or empty" in str(
+        response.response, encoding="utf-8"
+    )
