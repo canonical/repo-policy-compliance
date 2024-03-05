@@ -83,10 +83,7 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
             ) from exc
         except GithubException as exc:
             logging.error("Github client error: %s", exc, exc_info=exc)
-            raise GithubClientError(
-                "Something went wrong checking Github repository policy compliance. Please contact "
-                "the operator."
-            ) from exc
+            raise GithubClientError("The github client encountered an error.") from exc
 
     return wrapper
 

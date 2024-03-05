@@ -59,7 +59,7 @@ Injects a GitHub client as the first argument to a function.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L94"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L91"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_collaborators`
 
@@ -89,7 +89,7 @@ Get collaborators with a given affiliation and permission.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L129"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L126"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_branch`
 
@@ -119,7 +119,7 @@ Get the branch for the check.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L144"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L141"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_collaborator_permission`
 
