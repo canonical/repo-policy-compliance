@@ -25,7 +25,7 @@ GITHUB_BRANCH_NAME = "arbitrary"
         ),
         pytest.param(
             RateLimitExceededException(0, "", {}),
-            "please wait before retrying",
+            "Please wait before retrying",
             id="github_client rate limit error",
         ),
         pytest.param(

@@ -101,8 +101,12 @@ def github_exceptions_to_fail_report(func: Callable[P, R]) -> Callable[P, R | Re
         """
         try:
             return func(*args, **kwargs)
-        except RetryableGithubClientError as exc:
-            return Report(result=Result.ERROR, reason=str(exc))
+        except RetryableGithubClientError:
+            return Report(
+                result=Result.ERROR,
+                reason="Checking repository compliance policy failed due to Github rate limit "
+                "exceeded. Please wait before retrying",
+            )
         except GithubClientError:
             return Report(
                 result=Result.ERROR,

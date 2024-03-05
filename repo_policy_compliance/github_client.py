@@ -85,7 +85,7 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
         except RateLimitExceededException as exc:
             logging.error("Github rate limit exceeded error: %s", exc, exc_info=exc)
             raise RetryableGithubClientError(
-                "The github client is returning an Rate Limit Exceeded error, "
+                "The github client is returning a Rate Limit Exceeded error, "
                 "please wait before retrying."
             ) from exc
         except GithubException as exc:
