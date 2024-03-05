@@ -852,6 +852,6 @@ def test_internal_server_error(
 
     assert response.status_code == http.HTTPStatus.INTERNAL_SERVER_ERROR, response.data
     assert (
-        "Something went wrong while checking repository compliance policy. "
+        "Something went wrong while configuring repository compliance policy check. "
         "Please contact the operator" in str(response.data, encoding="utf-8")
     )

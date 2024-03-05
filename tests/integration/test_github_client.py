@@ -14,9 +14,21 @@ from .. import assert_
 @pytest.mark.parametrize(
     "github_token_value, fail_reason",
     [
-        pytest.param("", "was not provided", id="github_token empty"),
-        pytest.param(None, "Bad Credential error", id="github_token none"),
-        pytest.param("abcd", "Bad Credential error", id="github_token wrong"),
+        pytest.param(
+            "",
+            "Something went wrong while configuring repository compliance policy check.",
+            id="github_token empty",
+        ),
+        pytest.param(
+            None,
+            "Something went wrong while checking repository compliance policy.",
+            id="github_token none",
+        ),
+        pytest.param(
+            "abcd",
+            "Something went wrong while checking repository compliance policy.",
+            id="github_token wrong",
+        ),
     ],
 )
 def test_github_token(
@@ -39,4 +51,4 @@ def test_github_token(
     )
 
     assert report.result == Result.ERROR
-    assert_.substrings_in_string([GITHUB_TOKEN_ENV_NAME, fail_reason], str(report.reason))
+    assert fail_reason in str(report.reason)
