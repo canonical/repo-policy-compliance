@@ -8,8 +8,6 @@ import pytest
 from repo_policy_compliance.check import Result, target_branch_protection
 from repo_policy_compliance.github_client import GITHUB_TOKEN_ENV_NAME
 
-from .. import assert_
-
 
 @pytest.mark.parametrize(
     "github_token_value, fail_reason",
