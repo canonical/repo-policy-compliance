@@ -851,4 +851,7 @@ def test_internal_server_error(
     )
 
     assert response.status_code == http.HTTPStatus.INTERNAL_SERVER_ERROR, response.data
-    assert "environment variable was not provided or empty" in str(response.data, encoding="utf-8")
+    assert (
+        "Something went wrong while checking repository compliance policy. "
+        "Please contact the operator" in str(response.data, encoding="utf-8")
+    )
