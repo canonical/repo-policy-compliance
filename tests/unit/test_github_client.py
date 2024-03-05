@@ -6,7 +6,7 @@
 from unittest.mock import MagicMock
 
 import pytest
-from github import Github, GithubException, RateLimitExceededException
+from github import BadCredentialsException, Github, GithubException, RateLimitExceededException
 from github.Repository import Repository
 
 import repo_policy_compliance.github_client
@@ -21,12 +21,15 @@ GITHUB_BRANCH_NAME = "arbitrary"
     "raised_exception, expected_message",
     [
         pytest.param(
+            BadCredentialsException(0, "", {}), "Something went wrong", id="bad credentials error"
+        ),
+        pytest.param(
             RateLimitExceededException(0, "", {}),
-            "Rate Limit Exceeded error",
+            "please wait before retrying",
             id="github_client rate limit error",
         ),
         pytest.param(
-            GithubException(0, "", {}), "encountered an error", id="git_client other error"
+            GithubException(0, "", {}), "Something went wrong", id="git_client other error"
         ),
     ],
 )

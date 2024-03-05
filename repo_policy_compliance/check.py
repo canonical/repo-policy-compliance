@@ -13,7 +13,11 @@ from github.Repository import Repository
 
 from repo_policy_compliance import log
 from repo_policy_compliance.comment import remove_quote_lines
-from repo_policy_compliance.exceptions import ConfigurationError, GithubClientError
+from repo_policy_compliance.exceptions import (
+    ConfigurationError,
+    GithubClientError,
+    RetryableGithubClientError,
+)
 from repo_policy_compliance.github_client import (
     get_branch,
     get_collaborator_permission,
@@ -97,10 +101,20 @@ def github_exceptions_to_fail_report(func: Callable[P, R]) -> Callable[P, R | Re
         """
         try:
             return func(*args, **kwargs)
-        except GithubClientError as exc:
+        except RetryableGithubClientError as exc:
             return Report(result=Result.ERROR, reason=str(exc))
-        except ConfigurationError as exc:
-            return Report(result=Result.ERROR, reason=str(exc))
+        except GithubClientError:
+            return Report(
+                result=Result.ERROR,
+                reason="Something went wrong while checking repository compliance policy. "
+                "Please contact the operator.",
+            )
+        except ConfigurationError:
+            return Report(
+                result=Result.ERROR,
+                reason="Something went wrong while configuring repository compliance policy "
+                "check. Please contact the operator.",
+            )
 
     return wrapper
 

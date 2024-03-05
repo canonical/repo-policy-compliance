@@ -34,7 +34,7 @@ def test_github_exceptions_to_fail_report():
 
     report = github_client_error_raiser()
     assert report.result == Result.ERROR
-    assert report.reason == "Exception message."
+    assert "Something went wrong" in str(report.reason)
 
 
 @pytest.mark.parametrize(
