@@ -12,6 +12,29 @@ import pytest
 from github.Repository import Repository
 
 import repo_policy_compliance
+from repo_policy_compliance.check import Result
+from repo_policy_compliance.exceptions import GithubClientError
+
+
+def test_github_exceptions_to_fail_report():
+    """
+    arrange: given a function that raises a GithubClient error.
+    act: when the function is called with github_exceptions_to_fail_report decorator.
+    assert: a failed report with exception as reason is returned.
+    """
+
+    @repo_policy_compliance.check.github_exceptions_to_fail_report
+    def github_client_error_raiser():
+        """A mock function to raise github client error.
+
+        Raises:
+            GithubClientError: always.
+        """
+        raise GithubClientError("Exception message.")
+
+    report = github_client_error_raiser()
+    assert report.result == Result.ERROR
+    assert "Something went wrong" in str(report.reason)
 
 
 @pytest.mark.parametrize(

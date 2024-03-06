@@ -18,3 +18,7 @@ class ConfigurationError(BaseError):
 
 class GithubClientError(BaseError):
     """Error occurred on Github API."""
+
+
+class RetryableGithubClientError(GithubClientError):
+    """Error occurred on Github API that can be retried on user's end."""

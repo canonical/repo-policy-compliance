@@ -4,6 +4,7 @@
 """Module for GitHub client."""
 
 import functools
+import logging
 import os
 from typing import Callable, Concatenate, Literal, ParamSpec, TypeVar, cast
 from urllib import parse
@@ -13,7 +14,11 @@ from github.Auth import Token
 from github.Branch import Branch
 from github.Repository import Repository
 
-from repo_policy_compliance.exceptions import ConfigurationError, GithubClientError
+from repo_policy_compliance.exceptions import (
+    ConfigurationError,
+    GithubClientError,
+    RetryableGithubClientError,
+)
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -61,6 +66,7 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
 
         Raises:
             GithubClientError: If the Github client encountered an error.
+            RetryableGithubClientError: If the error raised is retryable on the users's end.
 
         Returns:
             The return value after calling the wrapped function with the injected GitHub client.
@@ -71,16 +77,19 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
         try:
             return func(github_client, *args, **kwargs)
         except BadCredentialsException as exc:
+            logging.error("Github client credentials error: %s", exc, exc_info=exc)
             raise GithubClientError(
-                f"The github client returned a Bad Credential error, "
+                "The github client returned a Bad Credential error, "
                 f"please ensure {GITHUB_TOKEN_ENV_NAME} is set with a valid value."
             ) from exc
         except RateLimitExceededException as exc:
-            raise GithubClientError(
-                "The github client is returning an Rate Limit Exceeded error, "
+            logging.error("Github rate limit exceeded error: %s", exc, exc_info=exc)
+            raise RetryableGithubClientError(
+                "The github client is returning a Rate Limit Exceeded error, "
                 "please wait before retrying."
             ) from exc
         except GithubException as exc:
+            logging.error("Github client error: %s", exc, exc_info=exc)
             raise GithubClientError("The github client encountered an error.") from exc
 
     return wrapper
