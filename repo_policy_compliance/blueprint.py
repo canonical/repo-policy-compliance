@@ -92,7 +92,7 @@ def verify_token(token: str) -> str | None:
     Returns:
         The identity associated with the token or None if no token matches.
     """
-    charm_token = os.getenv(CHARM_TOKEN_ENV_NAME)
+    charm_token = os.getenv(CHARM_TOKEN_ENV_NAME) or os.getenv(f"FLASK_{CHARM_TOKEN_ENV_NAME}")
 
     if not charm_token:
         logging.error(

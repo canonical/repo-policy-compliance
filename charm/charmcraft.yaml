@@ -1,0 +1,42 @@
+# Copyright 2024 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+name: repo-policy-compliance
+
+type: charm
+
+bases:
+  - build-on:
+    - name: ubuntu
+      channel: "22.04"
+    run-on:
+    - name: ubuntu
+      channel: "22.04"
+
+summary: Check the repository setup for policy compliance
+
+description: |
+  Used to check whether a GitHub repository complies with expected policies.
+
+extensions:
+  - flask-framework
+
+# Uncomment the integrations used by your application
+# requires:
+#   mysql:
+#     interface: mysql_client
+#     limit: 1
+#   postgresql:
+#     interface: postgresql_client
+#     limit: 1
+
+config:
+  options:
+    CHARM_TOKEN:
+      description: The token for the charm to generate new tokens.
+      type: string
+      required: true
+    GITHUB_TOKEN:
+      description: The token to use for comms with GitHub.
+      type: string
+      required: true
