@@ -30,6 +30,7 @@ from repo_policy_compliance import (
     ScheduleInput,
     UsedPolicy,
     WorkflowDispatchInput,
+    database,
     exceptions,
     github_client,
     policy,
@@ -42,9 +43,6 @@ from repo_policy_compliance.check import Result
 
 repo_policy_compliance = Blueprint("repo_policy_compliance", __name__)
 auth = HTTPTokenAuth(scheme="Bearer")
-# Using local variables means that this blueprint can only be used with a single worker. This is
-# done to reduce deployment complexity as a database would otherwise be required.
-runner_tokens: set[str] = set()
 # Need temporary file to persist policy document so better not wrap the entire module in a with
 # statement
 policy_document_file = tempfile.NamedTemporaryFile()  # pylint: disable=consider-using-with
@@ -107,8 +105,7 @@ def verify_token(token: str) -> str | None:
     if compare_digest(token, charm_token):
         return Users.CHARM
 
-    if token in runner_tokens:
-        runner_tokens.remove(token)
+    if database.check_token(token=token):
         return Users.RUNNER
 
     return None
@@ -144,7 +141,7 @@ def one_time_token() -> str:
         The one time token.
     """
     token = secrets.token_hex(32)
-    runner_tokens.add(token)
+    database.add_token(token)
     return token
 
 
