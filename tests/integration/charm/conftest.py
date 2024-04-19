@@ -3,7 +3,6 @@
 
 """Fixtures for the github-runner-webhook-router charm."""
 
-import asyncio
 import os
 import secrets
 
@@ -75,10 +74,7 @@ async def app_fixture(
         "CHARM_TOKEN": charm_token,
     }
     application = await model.deploy(
-        charm_file,
-        resources=resources,
-        application_name=app_name,
-        config=config,
+        charm_file, resources=resources, application_name=app_name, config=config, num_units=2
     )
 
     database_name = "postgresql-k8s"

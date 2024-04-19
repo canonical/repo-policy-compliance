@@ -62,6 +62,7 @@ SCHEDULE_CHECK_RUN_ENDPOINT = "/schedule/check-run"
 DEFAULT_CHECK_RUN_ENDPOINT = "/default/check-run"
 ALWAYS_FAIL_CHECK_RUN_ENDPOINT = "/always-fail/check-run"
 HEALTH_ENDPOINT = "/health"
+AUTH_HEALTH_ENDPOINT = "/auth-health"
 
 
 class Users(str, Enum):
@@ -286,6 +287,17 @@ def health() -> Response:
             status=http.HTTPStatus.INTERNAL_SERVER_ERROR,
         )
 
+    return Response(status=http.HTTPStatus.NO_CONTENT)
+
+
+@repo_policy_compliance.route(AUTH_HEALTH_ENDPOINT, methods=["GET"])
+@auth.login_required(role=RUNNER_ROLE)
+def auth_health() -> Response:
+    """Authenticated health check endpoint.
+
+    Returns:
+        204 response otherwise.
+    """
     return Response(status=http.HTTPStatus.NO_CONTENT)
 
 

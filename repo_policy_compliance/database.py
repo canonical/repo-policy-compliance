@@ -3,9 +3,38 @@
 
 """Provides persistence for runner tokens."""
 
-# Using local variables means that this blueprint can only be used with a single worker. This is
-# done to reduce deployment complexity as a database would otherwise be required.
-_runner_tokens: set[str] = set()
+import os
+
+import sqlalchemy as sa
+from sqlalchemy import create_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
+
+
+class Base(DeclarativeBase):
+    """Base class for ORM models."""
+
+
+class OneTimeToken(Base):
+    """Stores one time tokens.
+
+    Attributes:
+        vaue: The token.
+    """
+
+    __tablename__ = "one_time_token"
+
+    value: Mapped[str] = mapped_column(sa.String(30), primary_key=True)
+
+
+db_connect_str = os.getenv("POSTGRESQL_DB_CONNECT_STRING")
+engine: sa.Engine
+if db_connect_str:
+    engine = create_engine(db_connect_str)
+else:
+    # Using sqlite means that this app can only be used with a single worker. This reduces deployment
+    # complexity as a database would otherwise be required.
+    engine = create_engine("sqlite://")
+    Base.metadata.create_all(engine)
 
 
 def add_token(token: str) -> None:
@@ -14,7 +43,10 @@ def add_token(token: str) -> None:
     Args:
         token: The token to add.
     """
-    _runner_tokens.add(token)
+    with Session(engine) as session:
+        token = OneTimeToken(value=token)
+        session.add(token)
+        session.commit()
 
 
 def check_token(token: str) -> bool:
@@ -26,7 +58,13 @@ def check_token(token: str) -> bool:
     Returns:
         Whether the token is valid.
     """
-    if token in _runner_tokens:
-        _runner_tokens.remove(token)
-        return True
-    return False
+    with Session(engine) as session:
+        token_in_db = session.query(OneTimeToken.value).filter_by(value=token).first() is not None
+
+        if not token_in_db:
+            return False
+
+        session.query(OneTimeToken).filter_by(value=token).delete()
+        session.commit()
+
+    return True
