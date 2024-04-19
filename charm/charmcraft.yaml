@@ -21,14 +21,10 @@ description: |
 extensions:
   - flask-framework
 
-# Uncomment the integrations used by your application
-# requires:
-#   mysql:
-#     interface: mysql_client
-#     limit: 1
-#   postgresql:
-#     interface: postgresql_client
-#     limit: 1
+requires:
+  postgresql:
+    interface: postgresql_client
+    limit: 1
 
 config:
   options:

@@ -13,3 +13,12 @@ platforms:
 
 extensions:
     - flask-framework
+
+parts:
+    flask-framework/install-app:
+        prime:
+            - flask/app/migrations/
+            - flask/app/repo_policy_compliance/
+            - flask/app/alembic.ini
+            - flask/app/app.py
+            - flask/app/migrate.sh

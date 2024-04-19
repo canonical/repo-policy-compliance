@@ -49,7 +49,7 @@ def setup() -> None:
 
     # Setup local logging
     logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    # logger.setLevel(logging.DEBUG)
     logger.addHandler(handler)
 
     # Setup urllib3 logging

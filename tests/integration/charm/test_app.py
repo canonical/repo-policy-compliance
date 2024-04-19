@@ -4,6 +4,7 @@
 """Integration tests for the charmed flask application."""
 
 import json
+from time import sleep
 from typing import cast
 from urllib.request import Request, urlopen
 

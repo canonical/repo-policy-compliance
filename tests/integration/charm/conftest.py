@@ -3,9 +3,9 @@
 
 """Fixtures for the github-runner-webhook-router charm."""
 
+import asyncio
 import os
 import secrets
-from time import sleep
 
 import pytest
 import pytest_asyncio
@@ -59,7 +59,7 @@ def app_name_fixture() -> str:
     return "repo-policy-compliance"
 
 
-@pytest_asyncio.fixture(name="app", scope="module")
+@pytest_asyncio.fixture(name="app", scope="function")
 async def app_fixture(
     model: Model,
     charm_file: str,
@@ -80,5 +80,20 @@ async def app_fixture(
         application_name=app_name,
         config=config,
     )
-    await model.wait_for_idle(apps=[app_name], status="active")
+
+    database_name = "postgresql-k8s"
+    await model.deploy(
+        database_name,
+        channel="14/edge",
+        series="jammy",
+        trust=True,
+        config={
+            "profile": "testing",
+            "plugin_hstore_enable": "true",
+            "plugin_pg_trgm_enable": "true",
+        },
+    )
+    await model.integrate(app_name, f"{database_name}:database")
+    await model.wait_for_idle(apps=[app_name, database_name], status="active")
+
     return application
