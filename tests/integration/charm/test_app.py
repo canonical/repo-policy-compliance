@@ -56,10 +56,10 @@ async def test_app(app: Application, ops_test: OpsTest, charm_token: str):
     assert urlopen(request).status == 204
     with pytest.raises(HTTPError) as exc:
         urlopen(request)
-    assert exc.code == 401
+    assert exc.value.code == 401
 
     request = Request(f"http://{unit_ips[0]}:{PORT}/auth-health")
     request.add_header("Authorization", f"Bearer {one_time_token}")
     with pytest.raises(HTTPError) as exc:
         urlopen(request)
-    assert exc.code == 401
+    assert exc.value.code == 401
