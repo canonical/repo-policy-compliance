@@ -70,8 +70,8 @@ async def app_fixture(
     """Deploy the application."""
     resources = {"flask-app-image": flask_app_image}
     config = {
-        "GITHUB_TOKEN": github_token,
-        "CHARM_TOKEN": charm_token,
+        "github_token": github_token,
+        "charm_token": charm_token,
     }
     application = await model.deploy(
         charm_file, resources=resources, application_name=app_name, config=config, num_units=2

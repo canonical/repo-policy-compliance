@@ -28,11 +28,11 @@ requires:
 
 config:
   options:
-    CHARM_TOKEN:
+    charm_token:
       description: The token for the charm to generate new tokens.
       type: string
       required: true
-    GITHUB_TOKEN:
+    github_token:
       description: The token to use for comms with GitHub.
       type: string
       required: true
