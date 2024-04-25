@@ -34,6 +34,7 @@ async def _get_unit_ips(ops_test: OpsTest, application_name: str) -> tuple[str, 
     )
 
 
+# http scheme is known to be used and therefore we can ignore the security warning in the test
 async def test_app(app: Application, ops_test: OpsTest, charm_token: str):
     """
     arrange: given a running charm
@@ -45,21 +46,21 @@ async def test_app(app: Application, ops_test: OpsTest, charm_token: str):
 
     request = Request(f"http://{unit_ips[0]}:{PORT}/one-time-token")
     request.add_header("Authorization", f"Bearer {charm_token}")
-    one_time_token = urlopen(request).read().decode(encoding="utf-8")
+    one_time_token = urlopen(request).read().decode(encoding="utf-8")  # nosec: B310
     assert one_time_token
 
     request = Request(f"http://{unit_ips[0]}:{PORT}/health")
-    assert urlopen(request).status == 204
+    assert urlopen(request).status == 204  # nosec: B310
 
     request = Request(f"http://{unit_ips[1]}:{PORT}/auth-health")
     request.add_header("Authorization", f"Bearer {one_time_token}")
-    assert urlopen(request).status == 204
+    assert urlopen(request).status == 204  # nosec: B310
     with pytest.raises(HTTPError) as exc:
-        urlopen(request)
+        urlopen(request)  # nosec: B310
     assert exc.value.code == 401
 
     request = Request(f"http://{unit_ips[0]}:{PORT}/auth-health")
     request.add_header("Authorization", f"Bearer {one_time_token}")
     with pytest.raises(HTTPError) as exc:
-        urlopen(request)
+        urlopen(request)  # nosec: B310
     assert exc.value.code == 401
