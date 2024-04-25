@@ -1,0 +1,23 @@
+header:
+  license:
+    spdx-id: Apache-2.0
+    copyright-owner: Canonical Ltd.
+    content: |
+      Copyright [year] [owner]
+      See LICENSE file for licensing details.
+  paths:
+    - '**'
+  paths-ignore:
+    - '.github/**'
+    - '**/*.json'
+    - '**/*.md'
+    - '**/*.txt'
+    - '.gitignore'
+    - '.licenserc.yaml'
+    - 'CODEOWNERS'
+    - 'LICENSE'
+    - '.woke.yaml'
+    - 'pyproject.toml'
+    - 'charm/.gitignore'
+    - 'charm/lib/**'
+  comment: on-failure
