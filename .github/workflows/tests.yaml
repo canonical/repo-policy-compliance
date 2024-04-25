@@ -11,7 +11,7 @@ on:
 jobs:
   inclusive-naming-check:
     name: Inclusive naming
-    runs-on: [self-hosted, jammy, edge]
+    runs-on: [self-hosted, jammy, edge, x64]
     steps:
       - uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4
         with:
