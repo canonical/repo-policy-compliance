@@ -1,4 +1,4 @@
-"""create chaerm token table
+"""create charm token table
 
 Revision ID: 84627903eb9b
 Revises:
