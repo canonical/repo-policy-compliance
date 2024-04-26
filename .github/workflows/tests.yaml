@@ -9,21 +9,14 @@ on:
       - '**test-branch/**'
 
 jobs:
-  unit-tests:
-    uses: canonical/operator-workflows/.github/workflows/test.yaml@main
-    secrets: inherit
-    with:
-      # TODO: reenable self-hosted runner before merging
-      self-hosted-runner: false
-#      self-hosted-runner-label: "edge"
-  integration-tests:
+  tests:
     runs-on: ubuntu-latest
     if: ${{ !failure() }}
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
       - name: Install tox
         run: python3 -m pip install tox
-      - name: Run integration tests
+      - name: Run tests (unit + integration)
         id: run-tests
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
