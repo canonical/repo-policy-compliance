@@ -14,6 +14,7 @@ header:
     - '**/*.txt'
     - '.gitignore'
     - '.licenserc.yaml'
+    - 'trivy.yaml'
     - 'CODEOWNERS'
     - 'LICENSE'
     - '.woke.yaml'
