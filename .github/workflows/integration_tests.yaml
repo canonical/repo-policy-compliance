@@ -65,3 +65,14 @@ jobs:
         if: always()
         id: report
         run: echo "outcome=${{ steps.run-tests.conclusion }}" >> $GITHUB_OUTPUT
+  charm-integration-test:
+    uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
+    secrets: inherit
+    with:
+      juju-channel: 3.1/stable
+      channel: 1.28-strict/stable
+      # TODO: reenable self-hosted runners before merging
+      self-hosted-runner: false
+      rockcraft-channel: latest/edge
+      charmcraft-channel: latest/edge
+      test-tox-env: charm-integration-test
