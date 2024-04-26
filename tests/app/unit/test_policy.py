@@ -10,7 +10,7 @@ import pytest
 
 from repo_policy_compliance import policy
 
-from .. import assert_
+from tests import assert_
 
 
 @pytest.mark.parametrize(

@@ -1,7 +1,7 @@
 #  Copyright 2024 Canonical Ltd.
 #  See LICENSE file for licensing details.
 
-"""Fixtures for the github-runner-webhook-router charm."""
+"""Fixtures for the repo-policy-compliance charm."""
 
 import os
 import secrets

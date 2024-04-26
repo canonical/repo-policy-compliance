@@ -9,7 +9,7 @@ import pytest
 
 from repo_policy_compliance.check import Result, collaborators
 
-from .. import assert_
+from tests import assert_
 from .types_ import RequestedCollaborator
 
 
