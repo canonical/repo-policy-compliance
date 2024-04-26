@@ -20,4 +20,5 @@ header:
     - 'pyproject.toml'
     - 'charm/.gitignore'
     - 'charm/lib/**'
+    - 'migrations/**'
   comment: on-failure
