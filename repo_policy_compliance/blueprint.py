@@ -290,6 +290,8 @@ def health() -> Response:
     return Response(status=http.HTTPStatus.NO_CONTENT)
 
 
+# ignore following endpoint from coverage as this is only used for (charm) integration testing
+# pragma: no cover
 @repo_policy_compliance.route(AUTH_HEALTH_ENDPOINT, methods=["GET"])
 @auth.login_required(role=RUNNER_ROLE)
 def auth_health() -> Response:
