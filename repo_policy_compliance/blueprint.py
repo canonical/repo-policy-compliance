@@ -293,7 +293,7 @@ def health() -> Response:
 @repo_policy_compliance.route(AUTH_HEALTH_ENDPOINT, methods=["GET"])
 @auth.login_required(role=RUNNER_ROLE)
 def auth_health() -> Response:
-    """Authenticated health check endpoint.
+    """Health check for authenticated requests.
 
     Returns:
         204 response otherwise.
