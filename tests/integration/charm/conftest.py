@@ -29,6 +29,12 @@ def fixture_charm_token() -> str | None:
     return secrets.token_hex(16)
 
 
+@pytest.fixture(scope="session", name="tokens")
+def fixture_tokens(github_token: str, charm_token: str) -> dict[str, str]:
+    """Return the GitHub and charm tokens."""
+    return {"github_token": github_token, "charm_token": charm_token}
+
+
 @pytest.fixture(name="charm_file", scope="module")
 def charm_file_fixture(pytestconfig: pytest.Config) -> str:
     """Return the path to the built charm file."""
@@ -64,15 +70,11 @@ async def app_fixture(
     charm_file: str,
     flask_app_image: str,
     app_name: str,
-    github_token: str,
-    charm_token: str,
+    tokens: dict[str, str],
 ) -> Application:
     """Deploy the application."""
     resources = {"flask-app-image": flask_app_image}
-    config = {
-        "github_token": github_token,
-        "charm_token": charm_token,
-    }
+    config = tokens
     application = await model.deploy(
         charm_file, resources=resources, application_name=app_name, config=config, num_units=2
     )

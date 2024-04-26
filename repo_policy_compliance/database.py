@@ -10,15 +10,19 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
 
 
+# methods are inherited from DeclarativeBase
+# pylint: disable=too-few-public-methods
 class Base(DeclarativeBase):
     """Base class for ORM models."""
 
 
+# this is similar to a dataclass, no need for public methods
+# pylint: disable=too-few-public-methods
 class OneTimeToken(Base):
     """Stores one time tokens.
 
     Attributes:
-        vaue: The token.
+        value: The token.
     """
 
     __tablename__ = "one_time_token"
@@ -31,8 +35,8 @@ engine: sa.Engine
 if db_connect_str:
     engine = create_engine(db_connect_str)
 else:
-    # Using sqlite means that this app can only be used with a single worker. This reduces deployment
-    # complexity as a database would otherwise be required.
+    # Using sqlite means that this app can only be used with a single worker.
+    # This reduces deployment complexity as a database would otherwise be required.
     engine = create_engine("sqlite://")
     Base.metadata.create_all(engine)
 
@@ -44,8 +48,8 @@ def add_token(token: str) -> None:
         token: The token to add.
     """
     with Session(engine) as session:
-        token = OneTimeToken(value=token)
-        session.add(token)
+        token_obj = OneTimeToken(value=token)
+        session.add(token_obj)
         session.commit()
 
 
