@@ -29,10 +29,16 @@ requires:
 config:
   options:
     charm_token:
-      description: The token for the charm to generate new tokens.
+      description: >-
+        The token for the charm to generate new tokens. 
+        This is a random secret chosen by you and must be shared with the authenticating client to
+        generate the subsequent one-time token authentication.
       type: string
       required: true
     github_token:
-      description: The token to use for comms with GitHub.
+      description: >-
+        The token to use for comms with GitHub. This can be a PAT or a fine-grained token
+        with permissions to read collaborators (and collaborators' permissions) and branches 
+        for all repositories that need to be checked.
       type: string
       required: true
