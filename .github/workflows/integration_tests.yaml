@@ -76,3 +76,5 @@ jobs:
       rockcraft-channel: latest/edge
       charmcraft-channel: latest/edge
       test-tox-env: charm-integration-test
+      trivy-image-config: "trivy.yaml"
+
