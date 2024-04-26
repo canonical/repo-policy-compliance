@@ -6,6 +6,9 @@ on:
       - 'test-branch/**'
 
 jobs:
+  # Usage of operator workflows requires INTEGRATION_TEST_ARGS to be set with
+  # --github-token PAT, where PAT is a GitHub Personal Access Token with sufficient perms for the
+  # charm integration test.
   charm-integration-test:
     uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
