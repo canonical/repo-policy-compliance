@@ -64,13 +64,12 @@ def pull_request(
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
-    if (
-        policy.enabled(
-            job_type=policy.JobType.PULL_REQUEST,
-            name=policy.PullRequestProperty.TARGET_BRANCH_PROTECTION,
-            policy_document=used_policy_document,
-        )
-        and (
+    if policy.enabled(
+        job_type=policy.JobType.PULL_REQUEST,
+        name=policy.PullRequestProperty.TARGET_BRANCH_PROTECTION,
+        policy_document=used_policy_document,
+    ) and (
+        (
             target_branch_report := check.target_branch_protection(
                 repository_name=input_.repository_name,
                 branch_name=input_.target_branch_name,
@@ -78,6 +77,7 @@ def pull_request(
             )
         ).result
         == check.Result.FAIL
+        or target_branch_report.result == check.Result.ERROR
     ):
         return target_branch_report
 
@@ -152,16 +152,16 @@ def workflow_dispatch(
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
-    if (
-        policy.enabled(
-            job_type=policy.JobType.WORKFLOW_DISPATCH,
-            name=policy.WorkflowDispatchProperty.COLLABORATORS,
-            policy_document=used_policy_document,
-        )
-        and (
+    if policy.enabled(
+        job_type=policy.JobType.WORKFLOW_DISPATCH,
+        name=policy.WorkflowDispatchProperty.COLLABORATORS,
+        policy_document=used_policy_document,
+    ) and (
+        (
             collaborators_report := check.collaborators(repository_name=input_.repository_name)
         ).result
         == check.Result.FAIL
+        or collaborators_report.result == check.Result.ERROR
     ):
         return collaborators_report
 
@@ -193,16 +193,16 @@ def push(input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL)
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
-    if (
-        policy.enabled(
-            job_type=policy.JobType.PUSH,
-            name=policy.PushProperty.COLLABORATORS,
-            policy_document=used_policy_document,
-        )
-        and (
+    if policy.enabled(
+        job_type=policy.JobType.PUSH,
+        name=policy.PushProperty.COLLABORATORS,
+        policy_document=used_policy_document,
+    ) and (
+        (
             collaborators_report := check.collaborators(repository_name=input_.repository_name)
         ).result
         == check.Result.FAIL
+        or collaborators_report.result == check.Result.ERROR
     ):
         return collaborators_report
 
@@ -236,16 +236,16 @@ def schedule(
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
-    if (
-        policy.enabled(
-            job_type=policy.JobType.SCHEDULE,
-            name=policy.ScheduleProperty.COLLABORATORS,
-            policy_document=used_policy_document,
-        )
-        and (
+    if policy.enabled(
+        job_type=policy.JobType.SCHEDULE,
+        name=policy.ScheduleProperty.COLLABORATORS,
+        policy_document=used_policy_document,
+    ) and (
+        (
             collaborators_report := check.collaborators(repository_name=input_.repository_name)
         ).result
         == check.Result.FAIL
+        or collaborators_report.result == check.Result.ERROR
     ):
         return collaborators_report
 

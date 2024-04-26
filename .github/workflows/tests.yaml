@@ -11,14 +11,14 @@ on:
 jobs:
   inclusive-naming-check:
     name: Inclusive naming
-    runs-on: [self-hosted, jammy, edge]
+    runs-on: [self-hosted, jammy, edge, x64]
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4
         with:
           repository: canonical/Inclusive-naming
           path: "./"
       - run: mv * /tmp
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4
       - name: Merge configuration files
         run: |
           # Combine all entries and replace matching elements by
@@ -49,9 +49,9 @@ jobs:
           woke-version: latest
   shellcheck-lint:
     name: Shell scripts lint
-    runs-on: [self-hosted, jammy, edge]
+    runs-on: [self-hosted, jammy, edge, x64]
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4
       - name: Gather files to scan
         shell: bash
         id: gather
@@ -110,11 +110,11 @@ jobs:
         run: shellcheck -f gcc ${{steps.gather.outputs.filepaths}}
   code-lint:
     name: Code lint
-    runs-on: [self-hosted, jammy, edge]
+    runs-on: [self-hosted, jammy, edge, x64]
     outputs:
       outcome: ${{ steps.report.outputs.outcome }}
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4
       - name: Install tox
         run: python3 -m pip install tox
       - name: Run tests
@@ -221,9 +221,9 @@ jobs:
         run: echo "outcome=${{ steps.run-tests.conclusion }}" >> $GITHUB_OUTPUT
   license-headers-check:
     name: Check license headers
-    runs-on: [self-hosted, jammy, edge]
+    runs-on: [self-hosted, jammy, edge, x64]
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      - uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4
       - name: Check .licenserc.yaml exists
         id: licenserc-yaml
         run: echo "exists=$([ -f .licenserc.yaml ] && echo "true" || echo "false")" >> $GITHUB_OUTPUT
@@ -238,7 +238,7 @@ jobs:
   required_status_checks:
     if: "always()"
     name: Required Test Status Checks
-    runs-on: [self-hosted, jammy, edge]
+    runs-on: [self-hosted, jammy, edge, x64]
     needs:
       - inclusive-naming-check
       - code-lint

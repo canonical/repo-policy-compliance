@@ -43,3 +43,12 @@ Input is missing or unexpected.
 
 
 
+---
+
+## <kbd>class</kbd> `RetryableGithubClientError`
+Error occurred on Github API that can be retried on user's end. 
+
+
+
+
+

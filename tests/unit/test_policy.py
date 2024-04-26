@@ -155,10 +155,12 @@ def test_check(document: dict, expected_result: bool, expected_reason: tuple[str
 )
 def test_enabled(
     job_type: policy.JobType,
-    name: policy.PullRequestProperty
-    | policy.WorkflowDispatchProperty
-    | policy.PushProperty
-    | policy.ScheduleProperty,
+    name: (
+        policy.PullRequestProperty
+        | policy.WorkflowDispatchProperty
+        | policy.PushProperty
+        | policy.ScheduleProperty
+    ),
     document: MappingProxyType,
     expected_result: bool,
 ):

@@ -11,7 +11,7 @@ Module for GitHub client.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L25"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L30"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get`
 
@@ -35,7 +35,7 @@ Get a GitHub client.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L43"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L48"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `inject`
 
@@ -59,7 +59,7 @@ Injects a GitHub client as the first argument to a function.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L89"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L98"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_collaborators`
 
@@ -89,7 +89,7 @@ Get collaborators with a given affiliation and permission.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L119"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L133"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_branch`
 
@@ -115,5 +115,39 @@ Get the branch for the check.
 
 **Returns:**
  The requested branch. 
+
+
+---
+
+<a href="../repo_policy_compliance/github_client.py#L148"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `get_collaborator_permission`
+
+```python
+get_collaborator_permission(
+    repository: Repository,
+    username: str
+) → Literal['admin', 'write', 'read', 'none']
+```
+
+Get user permission for a given repository. 
+
+
+
+**Args:**
+ 
+ - <b>`repository`</b>:  The repository to get collaborators for. 
+ - <b>`username`</b>:  The github login to check for permission. 
+
+
+
+**Raises:**
+ 
+ - <b>`GithubClientError`</b>:  if an invalid user permission is returned from the API call. 
+
+
+
+**Returns:**
+ The collaborator permission. 
 
 
