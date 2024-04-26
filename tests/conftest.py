@@ -7,6 +7,7 @@ from pytest import Parser
 
 CHARM_FILE_PARAM = "--charm-file"
 FLASK_APP_IMAGE_PARAM = "--repo-policy-compliance-image"
+GITHUB_TOKEN_PARAM = "--github-token"
 
 
 def pytest_addoption(parser: Parser) -> None:
@@ -17,3 +18,4 @@ def pytest_addoption(parser: Parser) -> None:
     """
     parser.addoption(CHARM_FILE_PARAM, action="store", help="Charm file to be deployed")
     parser.addoption(FLASK_APP_IMAGE_PARAM, action="store", help="Flask app image to be deployed")
+    parser.addoption(GITHUB_TOKEN_PARAM, action="store", help="GitHub token")

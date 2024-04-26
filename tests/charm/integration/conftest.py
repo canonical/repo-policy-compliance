@@ -11,13 +11,15 @@ from juju.application import Application
 from juju.model import Model
 from pytest_operator.plugin import OpsTest
 
-from tests.conftest import CHARM_FILE_PARAM, FLASK_APP_IMAGE_PARAM
+from tests.conftest import CHARM_FILE_PARAM, FLASK_APP_IMAGE_PARAM, GITHUB_TOKEN_PARAM
 
 
 @pytest.fixture(scope="session", name="github_token")
-def fixture_github_token() -> str:
-    """Get the (fake) GitHub token."""
-    return secrets.token_hex(16)
+def fixture_github_token(pytestconfig: pytest.Config) -> str:
+    """Get the GitHub token."""
+    token = pytestconfig.getoption(GITHUB_TOKEN_PARAM)
+    assert token, "Please provide a GitHub token"
+    return token
 
 
 @pytest.fixture(scope="session", name="charm_token")
