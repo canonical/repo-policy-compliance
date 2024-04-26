@@ -8,8 +8,8 @@ import itertools
 import pytest
 
 from repo_policy_compliance.check import Result, collaborators
-
 from tests import assert_
+
 from .types_ import RequestedCollaborator
 
 

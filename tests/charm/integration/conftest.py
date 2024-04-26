@@ -3,24 +3,33 @@
 
 """Fixtures for the repo-policy-compliance charm."""
 
-import os
 import secrets
 
 import pytest
 import pytest_asyncio
 from juju.application import Application
 from juju.model import Model
+from pytest import Parser
 from pytest_operator.plugin import OpsTest
 
-from tests.conftest import CHARM_FILE_PARAM, FLASK_APP_IMAGE_PARAM
+CHARM_FILE_PARAM = "--charm-file"
+FLASK_APP_IMAGE_PARAM = "--repo-policy-compliance-image"
+
+
+def pytest_addoption(parser: Parser) -> None:
+    """Parse additional pytest options.
+
+    Args:
+        parser: Pytest parser.
+    """
+    parser.addoption(CHARM_FILE_PARAM, action="store", help="Charm file to be deployed")
+    parser.addoption(FLASK_APP_IMAGE_PARAM, action="store", help="Flask app image to be deployed")
 
 
 @pytest.fixture(scope="session", name="github_token")
 def fixture_github_token() -> str:
-    """Get the GitHub token from the environment."""
-    github_token = os.getenv("GITHUB_TOKEN")
-    assert github_token
-    return github_token
+    """Get the (fake) GitHub token."""
+    return secrets.token_hex(16)
 
 
 @pytest.fixture(scope="session", name="charm_token")

@@ -9,7 +9,6 @@ from types import MappingProxyType
 import pytest
 
 from repo_policy_compliance import policy
-
 from tests import assert_
 
 

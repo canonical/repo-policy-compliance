@@ -16,7 +16,6 @@ from github.Repository import Repository
 
 import repo_policy_compliance
 from repo_policy_compliance.check import AUTHORIZATION_STRING_PREFIX, Result, execute_job
-
 from tests import assert_
 
 

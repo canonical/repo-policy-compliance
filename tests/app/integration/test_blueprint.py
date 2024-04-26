@@ -16,8 +16,8 @@ from github.Branch import Branch
 from github.Repository import Repository
 
 from repo_policy_compliance import blueprint, github_client, policy
-
 from tests import assert_
+
 from .types_ import RequestedCollaborator
 
 EXPECTED_PULL_REQUEST_KEYS = (
