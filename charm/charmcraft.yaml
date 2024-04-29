@@ -23,6 +23,7 @@ extensions:
 
 requires:
   postgresql:
+    optional: false
     interface: postgresql_client
     limit: 1
 
