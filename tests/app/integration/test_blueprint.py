@@ -7,6 +7,7 @@ import http
 import itertools
 import secrets
 from collections.abc import Iterable, Iterator
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
@@ -806,6 +807,32 @@ def test_health(client: FlaskClient):
     assert: then 204 is returned.
     """
     response = client.get(blueprint.HEALTH_ENDPOINT)
+
+    assert response.status_code == http.HTTPStatus.NO_CONTENT, response.data
+
+
+def test_auth_health_fail(client: FlaskClient, monkeypatch: pytest.MonkeyPatch):
+    """
+    arrange: given flask application with the blueprint registered and database.check_token
+        mocked to return false.
+    act: when the auth health check endpoint is requested
+    assert: then 401 is returned.
+    """
+    monkeypatch.setattr(blueprint.database, "check_token", MagicMock(return_value=False))
+    response = client.get(blueprint.AUTH_HEALTH_ENDPOINT)
+
+    assert response.status_code == http.HTTPStatus.UNAUTHORIZED, response.data
+
+
+def test_auth_health(client: FlaskClient, runner_token: str):
+    """
+    arrange: given flask application with the blueprint registered
+    act: when the auth health check endpoint is requested
+    assert: then 204 is returned.
+    """
+    response = client.get(
+        blueprint.AUTH_HEALTH_ENDPOINT, headers={"Authorization": f"Bearer {runner_token}"}
+    )
 
     assert response.status_code == http.HTTPStatus.NO_CONTENT, response.data
 
