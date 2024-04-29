@@ -11,7 +11,6 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
-    if: ${{ !failure() }}
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
       - name: Install tox
@@ -39,17 +38,17 @@ jobs:
             const fs = require('fs');
             const result = JSON.parse(fs.readFileSync('./test-result.json')).testenvs;
 
-            let int_result = result.test.test;
-            let int_success = int_result[0].retcode == 0;
-            let int_output = int_result[0].output;
+            let lint_result = result.test.test;
+            let lint_success = lint_result[0].retcode == 0;
+            let lint_output = lint_result[0].output;
             let coverage_result = result["coverage-report"].test;
             let coverage_output = coverage_result[0].output;
 
             let reports = [];
-            if (!int_success) {
+            if (!lint_success) {
               reports.push(
                 `Integration tests failed for ${sha}\n
-                \`\`\`\n${no_color(int_output).trim()}\n\`\`\``
+                \`\`\`\n${no_color(lint_output).trim()}\n\`\`\``
               );
             }
             reports.push(
