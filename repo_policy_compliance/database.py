@@ -33,6 +33,8 @@ class OneTimeToken(Base):
 db_connect_str = os.getenv("POSTGRESQL_DB_CONNECT_STRING")
 engine: sa.Engine
 if db_connect_str:
+    # this line is only covered by charm integration test which is not part of the coverage report
+    # pragma: no cover
     engine = create_engine(db_connect_str)
 else:
     # Using sqlite means that this app can only be used with a single worker.
