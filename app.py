@@ -7,5 +7,5 @@ from flask import Flask
 
 from repo_policy_compliance import blueprint
 
-app = Flask("production app")
+app = Flask(__name__)
 app.register_blueprint(blueprint.repo_policy_compliance)
