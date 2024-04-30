@@ -14,7 +14,7 @@ Individual checks used to compose job checks.
 
 ---
 
-<a href="../repo_policy_compliance/check.py#L81"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/check.py#L80"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `github_exceptions_to_fail_report`
 

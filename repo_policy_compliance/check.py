@@ -71,8 +71,7 @@ class Report(NamedTuple):
     reason: str | None
 
 
-if not log.is_setup():
-    log.setup()
+log.setup()
 
 P = ParamSpec("P")
 R = TypeVar("R")

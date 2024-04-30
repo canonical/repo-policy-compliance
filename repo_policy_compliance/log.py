@@ -5,7 +5,7 @@
 
 import logging
 import sys
-from typing import Callable, Optional, ParamSpec, TypeVar
+from typing import Callable, ParamSpec, TypeVar
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -40,37 +40,28 @@ def call(func: Callable[P, R]) -> Callable[P, R]:
     return wrapper
 
 
-def is_setup() -> bool:
-    """Check if logging has already been setup.
+def setup() -> None:
+    """Initialise logging for check execution."""
+    _setup_root_logger()
+    _setup_urllib3_logger()
 
-    Returns:
-        True if logging has already been setup, False otherwise.
-    """
+
+def _setup_root_logger() -> None:
+    """Set up the root logger."""
     root_logger = logging.getLogger()
-    urllib_logger = logging.getLogger("urllib3")
-
-    return bool(root_logger.handlers) and bool(urllib_logger.handlers)
-
-
-def setup(handlers: Optional[list[logging.Handler]] = None) -> None:
-    """Initialise logging for check execution.
-
-    Args:
-        handlers: The handlers to use for logging. If not provided, a StreamHandler is used.
-    """
-    if handlers is None:
+    if not root_logger.handlers:
+        # Setup logging handler
         handler = logging.StreamHandler(sys.stdout)
         handler.setLevel(logging.DEBUG)
         formatter = logging.Formatter("%(asctime)s - %(message)s")
         handler.setFormatter(formatter)
-        handlers = [handler]
+        root_logger.addHandler(handler)
 
-    # Setup local logging
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    logger.handlers = handlers
+    root_logger.setLevel(logging.DEBUG)
 
-    # Setup urllib3 logging
-    urllib3_logger = logging.getLogger("urllib3")
-    urllib3_logger.setLevel(logging.DEBUG)
-    urllib3_logger.handlers = handlers
+
+def _setup_urllib3_logger() -> None:
+    """Set up the urllib3 logger."""
+    # urllib3 logger propagates logs to the root logger, no need to add a handler
+    urllib_logger = logging.getLogger("urllib3")
+    urllib_logger.setLevel(logging.DEBUG)

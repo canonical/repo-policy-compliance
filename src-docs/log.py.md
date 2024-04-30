@@ -34,36 +34,12 @@ Log before func and result of func.
 
 <a href="../repo_policy_compliance/log.py#L43"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
-## <kbd>function</kbd> `is_setup`
-
-```python
-is_setup() → bool
-```
-
-Check if logging has already been setup. 
-
-
-
-**Returns:**
-  True if logging has already been setup, False otherwise. 
-
-
----
-
-<a href="../repo_policy_compliance/log.py#L55"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
 ## <kbd>function</kbd> `setup`
 
 ```python
-setup(handlers: Optional[list[Handler]] = None) → None
+setup() → None
 ```
 
 Initialise logging for check execution. 
-
-
-
-**Args:**
- 
- - <b>`handlers`</b>:  The handlers to use for logging. If not provided, a StreamHandler is used. 
 
 
