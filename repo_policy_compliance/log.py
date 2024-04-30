@@ -49,7 +49,8 @@ def setup() -> None:
 def _setup_root_logger() -> None:
     """Set up the root logger."""
     root_logger = logging.getLogger()
-    if not root_logger.handlers:
+    # pytest will have already set up a handler, so the following if clause is not covered.
+    if not root_logger.handlers:  # pragma: no cover
         # Setup logging handler
         handler = logging.StreamHandler(sys.stdout)
         handler.setLevel(logging.DEBUG)
