@@ -15,8 +15,8 @@ jobs:
     with:
       juju-channel: 3.1/stable
       channel: 1.28-strict/stable
-      # TODO: reenable self-hosted runners before merging
-      self-hosted-runner: false
+      self-hosted-runner: true
+      self-hosted-runner-label: "edge"
       rockcraft-channel: latest/edge
       charmcraft-channel: latest/edge
       test-tox-env: charm-integration-test
