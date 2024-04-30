@@ -7,7 +7,9 @@ from pytest import Parser
 
 CHARM_FILE_PARAM = "--charm-file"
 FLASK_APP_IMAGE_PARAM = "--repo-policy-compliance-image"
-GITHUB_TOKEN_PARAM = "--github-token"
+
+# this is not a hardcoded password, ignore bandit warning
+GITHUB_TOKEN_PARAM = "--github-token"  # nosec
 
 
 def pytest_addoption(parser: Parser) -> None:
