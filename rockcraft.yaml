@@ -1,0 +1,24 @@
+# Copyright 2024 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+name: repo-policy-compliance
+base: ubuntu@22.04
+version: '1.8.0'
+summary: Check the repository setup for policy compliance
+description: |
+    Used to check whether a GitHub repository complies with expected policies.
+license: Apache-2.0
+platforms:
+    amd64:
+
+extensions:
+    - flask-framework
+
+parts:
+    flask-framework/install-app:
+        prime:
+            - flask/app/migrations/
+            - flask/app/repo_policy_compliance/
+            - flask/app/alembic.ini
+            - flask/app/app.py
+            - flask/app/migrate.sh

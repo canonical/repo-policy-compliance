@@ -11,8 +11,8 @@ from github.Branch import Branch
 from github.Repository import Repository
 
 from repo_policy_compliance.check import Result, target_branch_protection
+from tests import assert_
 
-from .. import assert_
 from .types_ import BranchWithProtection
 
 

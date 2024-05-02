@@ -36,7 +36,7 @@ def get() -> Github:
     Raises:
         ConfigurationError: If the GitHub token environment variable is not provided or empty.
     """
-    github_token = os.getenv(GITHUB_TOKEN_ENV_NAME)
+    github_token = os.getenv(GITHUB_TOKEN_ENV_NAME) or os.getenv(f"FLASK_{GITHUB_TOKEN_ENV_NAME}")
     if not github_token:
         raise ConfigurationError(
             f"The {GITHUB_TOKEN_ENV_NAME} environment variable was not provided or empty, "

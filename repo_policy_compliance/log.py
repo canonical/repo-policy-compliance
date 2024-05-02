@@ -42,17 +42,27 @@ def call(func: Callable[P, R]) -> Callable[P, R]:
 
 def setup() -> None:
     """Initialise logging for check execution."""
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter("%(asctime)s - %(message)s")
-    handler.setFormatter(formatter)
+    _setup_root_logger()
+    _setup_urllib3_logger()
 
-    # Setup local logging
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    logger.addHandler(handler)
 
-    # Setup urllib3 logging
-    urllib3_logger = logging.getLogger("urllib3")
-    urllib3_logger.setLevel(logging.DEBUG)
-    urllib3_logger.addHandler(handler)
+def _setup_root_logger() -> None:
+    """Set up the root logger."""
+    root_logger = logging.getLogger()
+    # pytest will have already set up a handler, so the following if clause is not covered.
+    if not root_logger.handlers:  # pragma: no cover
+        # Setup logging handler
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("%(asctime)s - %(message)s")
+        handler.setFormatter(formatter)
+        root_logger.addHandler(handler)
+
+    root_logger.setLevel(logging.DEBUG)
+
+
+def _setup_urllib3_logger() -> None:
+    """Set up the urllib3 logger."""
+    # urllib3 logger propagates logs to the root logger, no need to add a handler
+    urllib_logger = logging.getLogger("urllib3")
+    urllib_logger.setLevel(logging.DEBUG)

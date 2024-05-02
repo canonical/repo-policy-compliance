@@ -16,8 +16,7 @@ from github.Repository import Repository
 
 import repo_policy_compliance
 from repo_policy_compliance.check import AUTHORIZATION_STRING_PREFIX, Result, execute_job
-
-from .. import assert_
+from tests import assert_
 
 
 @pytest.mark.parametrize(

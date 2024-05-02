@@ -30,6 +30,7 @@ from repo_policy_compliance import (
     ScheduleInput,
     UsedPolicy,
     WorkflowDispatchInput,
+    database,
     exceptions,
     github_client,
     policy,
@@ -42,9 +43,6 @@ from repo_policy_compliance.check import Result
 
 repo_policy_compliance = Blueprint("repo_policy_compliance", __name__)
 auth = HTTPTokenAuth(scheme="Bearer")
-# Using local variables means that this blueprint can only be used with a single worker. This is
-# done to reduce deployment complexity as a database would otherwise be required.
-runner_tokens: set[str] = set()
 # Need temporary file to persist policy document so better not wrap the entire module in a with
 # statement
 policy_document_file = tempfile.NamedTemporaryFile()  # pylint: disable=consider-using-with
@@ -64,6 +62,7 @@ SCHEDULE_CHECK_RUN_ENDPOINT = "/schedule/check-run"
 DEFAULT_CHECK_RUN_ENDPOINT = "/default/check-run"
 ALWAYS_FAIL_CHECK_RUN_ENDPOINT = "/always-fail/check-run"
 HEALTH_ENDPOINT = "/health"
+AUTH_HEALTH_ENDPOINT = "/auth-health"
 
 
 class Users(str, Enum):
@@ -92,7 +91,7 @@ def verify_token(token: str) -> str | None:
     Returns:
         The identity associated with the token or None if no token matches.
     """
-    charm_token = os.getenv(CHARM_TOKEN_ENV_NAME)
+    charm_token = os.getenv(CHARM_TOKEN_ENV_NAME) or os.getenv(f"FLASK_{CHARM_TOKEN_ENV_NAME}")
 
     if not charm_token:
         logging.error(
@@ -107,8 +106,7 @@ def verify_token(token: str) -> str | None:
     if compare_digest(token, charm_token):
         return Users.CHARM
 
-    if token in runner_tokens:
-        runner_tokens.remove(token)
+    if database.check_token(token=token):
         return Users.RUNNER
 
     return None
@@ -144,7 +142,7 @@ def one_time_token() -> str:
         The one time token.
     """
     token = secrets.token_hex(32)
-    runner_tokens.add(token)
+    database.add_token(token)
     return token
 
 
@@ -289,6 +287,17 @@ def health() -> Response:
             status=http.HTTPStatus.INTERNAL_SERVER_ERROR,
         )
 
+    return Response(status=http.HTTPStatus.NO_CONTENT)
+
+
+@repo_policy_compliance.route(AUTH_HEALTH_ENDPOINT, methods=["GET"])
+@auth.login_required(role=RUNNER_ROLE)
+def auth_health() -> Response:
+    """Health check for authenticated requests.
+
+    Returns:
+        204 response.
+    """
     return Response(status=http.HTTPStatus.NO_CONTENT)
 
 

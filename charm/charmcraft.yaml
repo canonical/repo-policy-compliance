@@ -1,0 +1,49 @@
+# Copyright 2024 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+name: repo-policy-compliance
+
+type: charm
+
+bases:
+  - build-on:
+    - name: ubuntu
+      channel: "22.04"
+    run-on:
+    - name: ubuntu
+      channel: "22.04"
+
+summary: Check the repository setup for policy compliance
+
+description: |
+  Used to check whether a GitHub repository complies with expected policies.
+
+extensions:
+  - flask-framework
+
+requires:
+  postgresql:
+    optional: false
+    interface: postgresql_client
+    limit: 1
+
+config:
+  options:
+    # Both token configuration options should be juju user secrets:
+    # https://juju.is/docs/juju/secret#heading--user
+    # This is not currently supported on paas-app-charmer, but as soon as it is,
+    # this should be updated.
+    charm_token:
+      description: >-
+        The token for the charm to generate new tokens. 
+        This is a random secret chosen by you and must be shared with the authenticating client to
+        generate the subsequent one-time token authentication.
+      type: string
+      required: true
+    github_token:
+      description: >-
+        The token to use for comms with GitHub. This can be a PAT or a fine-grained token
+        with permissions to read collaborators (and collaborators' permissions) and branches 
+        for all repositories that need to be checked.
+      type: string
+      required: true
