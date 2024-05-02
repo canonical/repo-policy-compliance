@@ -5,7 +5,7 @@
 
 import os
 from time import sleep
-from typing import Iterator, cast
+from typing import Any, Callable, Iterator, cast
 
 import pytest
 from github import Github
@@ -75,22 +75,33 @@ def fixture_forked_github_repository(
     github_repository: Repository,
 ) -> Iterator[Repository]:
     """Create a fork for a GitHub repository."""
-    forked_repository = github_repository.create_fork()
+    forked_repository = _simple_retry(github_repository.create_fork)
 
-    # Wait for repo to be ready
-    for _ in range(10):
-        try:
-            sleep(10)
-            forked_repository.get_branches()
-            break
-        except GithubException:
-            pass
-    else:
-        assert False, "timed out whilst waiting for repository creation"
+    # Wait for repo to be ready. We assume its ready if we can get the default branch.
+    _simple_retry(forked_repository.get_branch, github_repository.default_branch)
 
     yield forked_repository
 
-    forked_repository.delete()
+    _simple_retry(forked_repository.delete)
+
+
+def _simple_retry(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
+    """Retry a function 10 times before failing.
+
+    Args:
+        func: The function to retry.
+        args: The positional arguments to pass to the function.
+        kwargs: The keyword arguments to pass to the function.
+
+    Returns:
+        The result of the function.
+    """
+    for _ in range(10):
+        try:
+            return func(*args, **kwargs)
+        except GithubException:
+            sleep(10)
+    assert False, f"timed out while waiting for func {func.__name__} to complete"
 
 
 @pytest.fixture(name="github_branch")
