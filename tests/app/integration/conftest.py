@@ -100,7 +100,7 @@ def _simple_retry(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         try:
             return func(*args, **kwargs)
         except GithubException:
-            sleep(max(10 + i * 10, 60))
+            sleep(min(10 + i * 10, 60))
     assert False, f"timed out while waiting for func {func.__name__} to complete"
 
 
