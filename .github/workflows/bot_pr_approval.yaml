@@ -2,6 +2,8 @@ name: Provide approval for bot PRs
 
 on:
   pull_request:
+    branches-ignore:
+      - '**test-branch/**'
 
 jobs:
   bot_pr_approval:
