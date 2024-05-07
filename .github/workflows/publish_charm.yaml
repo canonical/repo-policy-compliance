@@ -13,3 +13,4 @@ jobs:
     with:
       channel: latest/edge
       charmcraft-channel: "latest/edge"
+      resource-mapping: '{"repo-policy-compliance": "flask-app-image"}'
