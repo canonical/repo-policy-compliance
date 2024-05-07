@@ -12,5 +12,4 @@ jobs:
     secrets: inherit
     with:
       channel: latest/edge
-      charm-directory: charm
       charmcraft-channel: "latest/edge"
