@@ -282,9 +282,9 @@ jsonschema-specifications==2023.12.1 ; python_full_version >= "3.10.0" and pytho
 jsonschema==4.22.0; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
     --hash=sha256:5b22d434a45935119af990552c862e5d6d564e8f6601206b305a61fdf661a2b7 \
     --hash=sha256:ff4cfd6b1367a40e7bc6411caec72effadd3db0bbe5017de188f2d6108335802
-mako==1.3.3 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
-    --hash=sha256:5324b88089a8978bf76d1629774fcc2f1c07b82acdf00f4c5dd8ceadfffc4b40 \
-    --hash=sha256:e16c01d9ab9c11f7290eef1cfefc093fb5a45ee4a3da09e2fec2e4d1bae54e73
+Mako==1.3.4; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
+    --hash=sha256:029a10f5fc497f5be7f7754e4ef5bcf26cb93044798de31fd1303f777f360916 \
+    --hash=sha256:a080ace85c3ceb6226d85e124608607b9ee072a87ae3ea22561435e8e6738125
 markupsafe==2.1.5 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
     --hash=sha256:00e046b6dd71aa03a41079792f8473dc494d564611a8f89bbbd7cb93295ebdcf \
     --hash=sha256:075202fa5b72c86ad32dc7d0b56024ebdbcf2048c0ba09f1cde31bfdd57bcfff \
