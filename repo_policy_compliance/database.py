@@ -49,9 +49,9 @@ def add_token(token: str) -> None:
         token: The token to add.
     """
     with Session(engine) as session:
-        token_obj = OneTimeToken(value=token)
-        session.add(token_obj)
-        session.commit()
+        with session.begin():
+            token_obj = OneTimeToken(value=token)
+            session.add(token_obj)
 
 
 def check_token(token: str) -> bool:
