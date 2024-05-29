@@ -49,9 +49,9 @@ def add_token(token: str) -> None:
         token: The token to add.
     """
     with Session(engine) as session:
-        token_obj = OneTimeToken(value=token)
-        session.add(token_obj)
-        session.commit()
+        with session.begin():
+            token_obj = OneTimeToken(value=token)
+            session.add(token_obj)
 
 
 def check_token(token: str) -> bool:
@@ -64,12 +64,14 @@ def check_token(token: str) -> bool:
         Whether the token is valid.
     """
     with Session(engine) as session:
-        token_in_db = session.query(OneTimeToken.value).filter_by(value=token).first() is not None
+        with session.begin():
+            token_in_db = (
+                session.query(OneTimeToken.value).filter_by(value=token).first() is not None
+            )
 
-        if not token_in_db:
-            return False
+            if not token_in_db:
+                return False
 
-        session.query(OneTimeToken).filter_by(value=token).delete()
-        session.commit()
+            session.query(OneTimeToken).filter_by(value=token).delete()
 
     return True
