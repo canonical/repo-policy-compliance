@@ -12,9 +12,8 @@ from urllib import parse
 from github import BadCredentialsException, Github, GithubException, RateLimitExceededException
 from github.Auth import Token
 from github.Branch import Branch
-from github.GithubRetry import GithubRetry
 from github.Repository import Repository
-
+from urllib3 import Retry
 
 from repo_policy_compliance.exceptions import (
     ConfigurationError,
@@ -44,7 +43,16 @@ def get() -> Github:
             f"The {GITHUB_TOKEN_ENV_NAME} environment variable was not provided or empty, "
             f"it is needed for interactions with GitHub, got: {github_token!r}"
         )
-    return Github(auth=Token(github_token), retry=None)
+    # Only retry on 5xx and only retry once after 20 secs
+    retry_config = Retry(
+        total=1,
+        backoff_factor=20,
+        status_forcelist=list(range(500, 600)),
+        respect_retry_after_header=False,
+        raise_on_status=False,
+        raise_on_redirect=False,
+    )
+    return Github(auth=Token(github_token), retry=retry_config)
 
 
 def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
