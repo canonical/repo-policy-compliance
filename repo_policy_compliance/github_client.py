@@ -12,7 +12,9 @@ from urllib import parse
 from github import BadCredentialsException, Github, GithubException, RateLimitExceededException
 from github.Auth import Token
 from github.Branch import Branch
+from github.GithubRetry import GithubRetry
 from github.Repository import Repository
+
 
 from repo_policy_compliance.exceptions import (
     ConfigurationError,
@@ -42,7 +44,7 @@ def get() -> Github:
             f"The {GITHUB_TOKEN_ENV_NAME} environment variable was not provided or empty, "
             f"it is needed for interactions with GitHub, got: {github_token!r}"
         )
-    return Github(auth=Token(github_token))
+    return Github(auth=Token(github_token), retry=None)
 
 
 def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
