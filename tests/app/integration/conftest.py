@@ -17,7 +17,6 @@ from github.PullRequest import PullRequest
 from github.Repository import Repository
 
 import repo_policy_compliance
-from repo_policy_compliance import github_client
 from repo_policy_compliance.github_client import get_collaborators
 from repo_policy_compliance.github_client import inject as inject_github_client
 
@@ -54,11 +53,14 @@ def fixture_ci_github_token() -> str | None:
 
 @pytest.fixture(scope="session", name="ci_github_repository")
 def fixture_ci_github_repository(
-    github_repository_name: str
-) -> Repository:
+    github_repository_name: str, github_token: str | None
+) -> None | Repository:
     """Returns client to the Github repository."""
-    client = github_client.get()
-    return client.get_repo(github_repository_name)
+    if not github_token:
+        return None
+
+    github_client = Github(auth=Token(github_token))
+    return github_client.get_repo(github_repository_name)
 
 
 @pytest.fixture(scope="session", name="github_repository")
