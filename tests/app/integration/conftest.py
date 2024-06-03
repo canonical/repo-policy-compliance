@@ -75,33 +75,12 @@ def fixture_forked_github_repository(
     github_repository: Repository,
 ) -> Iterator[Repository]:
     """Create a fork for a GitHub repository."""
-    forked_repository = _simple_retry(github_repository.create_fork)
+    forked_repository = github_repository.create_fork()
 
     # Wait for repo to be ready. We assume its ready if we can get the default branch.
-    _simple_retry(forked_repository.get_branch, github_repository.default_branch)
+    forked_repository.get_branch(github_repository.default_branch)
 
     yield forked_repository
-
-    _simple_retry(forked_repository.delete)
-
-
-def _simple_retry(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
-    """Retry a function 10 times before failing.
-
-    Args:
-        func: The function to retry.
-        args: The positional arguments to pass to the function.
-        kwargs: The keyword arguments to pass to the function.
-
-    Returns:
-        The result of the function.
-    """
-    for i in range(10):
-        try:
-            return func(*args, **kwargs)
-        except GithubException:
-            sleep(min(10 + i * 10, 60))
-    assert False, f"timed out while waiting for func {func.__name__} to complete"
 
 
 @pytest.fixture(name="github_branch")
