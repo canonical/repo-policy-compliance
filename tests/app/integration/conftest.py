@@ -53,13 +53,13 @@ def fixture_ci_github_token() -> str | None:
 
 @pytest.fixture(scope="session", name="ci_github_repository")
 def fixture_ci_github_repository(
-    github_repository_name: str, github_token: str | None
+    github_repository_name: str, ci_github_token: str | None
 ) -> None | Repository:
     """Returns client to the Github repository."""
-    if not github_token:
+    if not ci_github_token:
         return None
 
-    github_client = Github(auth=Token(github_token))
+    github_client = Github(auth=Token(ci_github_token))
     return github_client.get_repo(github_repository_name)
 
 
