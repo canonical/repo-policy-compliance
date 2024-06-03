@@ -4,15 +4,13 @@
 """Fixtures for integration tests."""
 
 import os
-from time import sleep
-from typing import Any, Callable, Iterator, cast
+from typing import Iterator, cast
 
 import pytest
 from github import Github
 from github.Auth import Token
 from github.Branch import Branch
 from github.Commit import Commit
-from github.GithubException import GithubException
 from github.PullRequest import PullRequest
 from github.Repository import Repository
 
@@ -20,19 +18,9 @@ import repo_policy_compliance
 from repo_policy_compliance.github_client import get_collaborators
 from repo_policy_compliance.github_client import inject as inject_github_client
 
+from ...conftest import REPOSITORY_ARGUMENT_NAME
 from . import branch_protection
 from .types_ import BranchWithProtection, RequestedCollaborator
-
-REPOSITORY_ARGUMENT_NAME = "--repository"
-
-
-def pytest_addoption(parser):
-    """Parse additional pytest options.
-
-    Args:
-        parser: Options parser.
-    """
-    parser.addoption(REPOSITORY_ARGUMENT_NAME, action="store")
 
 
 @pytest.fixture(scope="session", name="github_repository_name")
