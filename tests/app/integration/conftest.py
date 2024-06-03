@@ -39,7 +39,7 @@ def pytest_addoption(parser):
 def fixture_github_repository_name(pytestconfig: pytest.Config) -> str:
     """The name of the repository to work with."""
     return pytestconfig.getoption(
-        REPOSITORY_ARGUMENT_NAME, default="canonical/repo-policy-compliance"
+        REPOSITORY_ARGUMENT_NAME, default="canonical/repo-policy-compliance-tests"
     )
 
 
