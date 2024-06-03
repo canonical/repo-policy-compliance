@@ -26,9 +26,7 @@ from .types_ import BranchWithProtection, RequestedCollaborator
 @pytest.fixture(scope="session", name="github_repository_name")
 def fixture_github_repository_name(pytestconfig: pytest.Config) -> str:
     """The name of the repository to work with."""
-    return pytestconfig.getoption(
-        REPOSITORY_ARGUMENT_NAME, default="canonical/repo-policy-compliance-tests"
-    )
+    return pytestconfig.getoption(REPOSITORY_ARGUMENT_NAME)
 
 
 @pytest.fixture(scope="session", name="ci_github_token")
