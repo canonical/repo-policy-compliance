@@ -257,10 +257,10 @@ def fixture_collaborators_with_permission(
         permission=requested_collaborator.permission,
         repository=github_repository,
     )
+    # Change role name to the one requested.
     mixin_collabs_with_role_name = [
-        collaborator
+        {**collaborator, "role_name": requested_collaborator.role_name}
         for collaborator in mixin_collabs
-        if collaborator["role_name"] == requested_collaborator.role_name
     ]
     assert mixin_collabs_with_role_name
 
