@@ -28,6 +28,7 @@ def edit(branch: Branch, branch_with_protection: BranchWithProtection) -> None:
     else:
         branch.edit_protection(
             users_bypass_pull_request_allowances=[  # type: ignore
+                "cbartz",
                 "gregory-schiano",
                 "jdkanderson",
             ],
