@@ -34,7 +34,7 @@ db_connect_str = os.getenv("POSTGRESQL_DB_CONNECT_STRING")
 engine: sa.Engine
 # postgresql is only covered by charm integration test, which is not part of the coverage report
 if db_connect_str:  # pragma: no cover
-    engine = create_engine(db_connect_str)
+    engine = create_engine(db_connect_str, pool_pre_ping=True)
 else:
     # Using sqlite means that this app can only be used with a single worker.
     # This reduces deployment complexity as a database would otherwise be required.
