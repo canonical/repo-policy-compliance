@@ -55,7 +55,12 @@ def fixture_ci_github_token() -> str | None:
 def fixture_ci_github_repository(
     github_repository_name: str, ci_github_token: str | None
 ) -> None | Repository:
-    """Returns client to the Github repository."""
+    """Returns client to the Github repository using the CI GitHub token.
+
+    This is useful for tests where we would like the user to be a bot
+    (e.g. to ensure that the user has no collaborator permissions).
+    This only works if the test repository is the same as the CI repository.
+    """
     if not ci_github_token:
         return None
 

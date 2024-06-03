@@ -287,7 +287,7 @@ def test_pass_fork(
     pr_issue = github_repository.get_issue(pr_from_forked_github_branch.number)
 
     # In CI, add an authorization comment from the bot which checks that multiple authorization
-    # comments are correctly handled where some are not from an authorizaed user
+    # comments are correctly handled where some are not from an authorized user
     if ci_github_repository:
         ci_pr_issue = ci_github_repository.get_issue(pr_from_forked_github_branch.number)
         ci_pr_issue.create_comment(
