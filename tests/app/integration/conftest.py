@@ -44,7 +44,7 @@ def fixture_ci_github_repository(
     """Returns client to the Github repository using the CI GitHub token.
 
     This is useful for tests where we would like the user to be a bot
-    (e.g. to ensure that the user has no collaborator permissions).
+    (e.g. to test things like comments from a user that does not have write permission or above).
     This only works if the test repository is the same as the CI repository.
     """
     if not ci_github_token:

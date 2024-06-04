@@ -26,6 +26,8 @@ def edit(branch: Branch, branch_with_protection: BranchWithProtection) -> None:
             users_bypass_pull_request_allowances=[],  # type: ignore
         )
     else:
+        # Collaborators on the test repository are allowed to bypass pull
+        # requests. Ensure that a collaborator of the list is added to the test repository.
         branch.edit_protection(
             users_bypass_pull_request_allowances=[  # type: ignore
                 "cbartz",
