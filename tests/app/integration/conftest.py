@@ -4,15 +4,13 @@
 """Fixtures for integration tests."""
 
 import os
-from time import sleep
-from typing import Any, Callable, Iterator, cast
+from typing import Iterator, cast
 
 import pytest
 from github import Github
 from github.Auth import Token
 from github.Branch import Branch
 from github.Commit import Commit
-from github.GithubException import GithubException
 from github.PullRequest import PullRequest
 from github.Repository import Repository
 
@@ -20,27 +18,15 @@ import repo_policy_compliance
 from repo_policy_compliance.github_client import get_collaborators
 from repo_policy_compliance.github_client import inject as inject_github_client
 
+from ...conftest import REPOSITORY_ARGUMENT_NAME
 from . import branch_protection
 from .types_ import BranchWithProtection, RequestedCollaborator
-
-REPOSITORY_ARGUMENT_NAME = "--repository"
-
-
-def pytest_addoption(parser):
-    """Parse additional pytest options.
-
-    Args:
-        parser: Options parser.
-    """
-    parser.addoption(REPOSITORY_ARGUMENT_NAME, action="store")
 
 
 @pytest.fixture(scope="session", name="github_repository_name")
 def fixture_github_repository_name(pytestconfig: pytest.Config) -> str:
     """The name of the repository to work with."""
-    return pytestconfig.getoption(
-        REPOSITORY_ARGUMENT_NAME, default="canonical/repo-policy-compliance"
-    )
+    return pytestconfig.getoption(REPOSITORY_ARGUMENT_NAME)
 
 
 @pytest.fixture(scope="session", name="ci_github_token")
@@ -55,7 +41,12 @@ def fixture_ci_github_token() -> str | None:
 def fixture_ci_github_repository(
     github_repository_name: str, ci_github_token: str | None
 ) -> None | Repository:
-    """Returns client to the Github repository."""
+    """Returns client to the Github repository using the CI GitHub token.
+
+    This is useful for tests where we would like the user to be a bot
+    (e.g. to test things like comments from a user that does not have write permission or above).
+    This only works if the test repository is the same as the CI repository.
+    """
     if not ci_github_token:
         return None
 
@@ -75,33 +66,12 @@ def fixture_forked_github_repository(
     github_repository: Repository,
 ) -> Iterator[Repository]:
     """Create a fork for a GitHub repository."""
-    forked_repository = _simple_retry(github_repository.create_fork)
+    forked_repository = github_repository.create_fork()
 
     # Wait for repo to be ready. We assume its ready if we can get the default branch.
-    _simple_retry(forked_repository.get_branch, github_repository.default_branch)
+    forked_repository.get_branch(github_repository.default_branch)
 
     yield forked_repository
-
-    _simple_retry(forked_repository.delete)
-
-
-def _simple_retry(func: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
-    """Retry a function 10 times before failing.
-
-    Args:
-        func: The function to retry.
-        args: The positional arguments to pass to the function.
-        kwargs: The keyword arguments to pass to the function.
-
-    Returns:
-        The result of the function.
-    """
-    for i in range(10):
-        try:
-            return func(*args, **kwargs)
-        except GithubException:
-            sleep(min(10 + i * 10, 60))
-    assert False, f"timed out while waiting for func {func.__name__} to complete"
 
 
 @pytest.fixture(name="github_branch")
@@ -273,10 +243,10 @@ def fixture_collaborators_with_permission(
         permission=requested_collaborator.permission,
         repository=github_repository,
     )
+    # Change role name to the one requested.
     mixin_collabs_with_role_name = [
-        collaborator
+        {**collaborator, "role_name": requested_collaborator.role_name}
         for collaborator in mixin_collabs
-        if collaborator["role_name"] == requested_collaborator.role_name
     ]
     assert mixin_collabs_with_role_name
 

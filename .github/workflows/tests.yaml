@@ -19,7 +19,6 @@ jobs:
         id: run-tests
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
-          CI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Ensure that stdout appears as normal and redirect to file and exit depends on exit code of first command
           STDOUT_LOG=$(mktemp --suffix=stdout.log)
