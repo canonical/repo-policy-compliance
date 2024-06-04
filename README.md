@@ -55,6 +55,11 @@ Note that the tests are currently designed to work for specific Canonical reposi
 and may need to be for other repositories 
 (e.g. `tests.app.integration.test_target_branch_protection.test_fail` 
 assumes that certain collaborators are in the `users_bypass_pull_request_allowances` list).
+Also note that the forks are created in the personal space of the user whose token is being used, 
+and that the forks are not deleted after the run. 
+The reason for this is that it is only possible to create one fork of a repository, 
+and deleting it would interfere with concurrent runs, 
+which can happen for multiple PRs at the same time.
 It is also possible to pass a `CI_GITHUB_TOKEN` per env variable for a
 bot to test things like comments from a user with no write permissions or above.
 
