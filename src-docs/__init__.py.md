@@ -169,7 +169,7 @@ Sentinel to indicate which policy to use.
 **Attributes:**
  
  - <b>`ALL`</b>:  Use all policies. 
- - <b>`ALLOW_FORKS`</b>:  Use allow_fork policy. 
+ - <b>`ALLOW_FORK`</b>:  Use policy that lets forked repositories run jobs (default). 
 
 
 

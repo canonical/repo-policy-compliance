@@ -58,7 +58,7 @@ def test_invalid_policy():
     indirect=["github_branch", "protected_github_branch"],
 )
 @pytest.mark.usefixtures("protected_github_branch")
-def test_disallow_forks(
+def test_disallow_fork(
     github_branch: Branch,
     github_repository_name: str,
     forked_github_repository: Repository,

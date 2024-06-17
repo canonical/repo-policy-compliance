@@ -51,7 +51,7 @@ policy_document_path = Path(policy_document_file.name)
 # Bandit thinks this is the token value when it is the name of the environment variable with the
 # token value
 CHARM_TOKEN_ENV_NAME = "CHARM_TOKEN"  # nosec
-DISALLOW_FORKS_ENV_NAME = "DISALLOW_FORKS"  # nosec
+DISALLOW_FORK_ENV_NAME = "DISALLOW_FORK"  # nosec
 # Bandit thinks this is the token value when it is the name of the endpoint to get a one time token
 ONE_TIME_TOKEN_ENDPOINT = "/one-time-token"  # nosec
 POLICY_ENDPOINT = "/policy"
@@ -171,11 +171,11 @@ def _get_policy_document() -> dict | UsedPolicy:
     """
     if stored_policy_document_contents := policy_document_path.read_text(encoding="utf-8"):
         return cast(dict, json.loads(stored_policy_document_contents))
-    disallow_forks = (
-        os.getenv(DISALLOW_FORKS_ENV_NAME) or os.getenv(f"FLASK_{DISALLOW_FORKS_ENV_NAME}")
+    disallow_fork = (
+        os.getenv(DISALLOW_FORK_ENV_NAME) or os.getenv(f"FLASK_{DISALLOW_FORK_ENV_NAME}")
     ) == "true"
-    if not disallow_forks:
-        return UsedPolicy.ALLOW_FORKS
+    if not disallow_fork:
+        return UsedPolicy.ALLOW_FORK
     return UsedPolicy.ALL
 
 

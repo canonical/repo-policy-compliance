@@ -11,7 +11,7 @@ Module for the policy document.
 - **ENABLED_RULE**
 - **DISABLED_RULE**
 - **ALL**
-- **ALLOW_FORKS**
+- **ALLOW_FORK**
 
 ---
 
