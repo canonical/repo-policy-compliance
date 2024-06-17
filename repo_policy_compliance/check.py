@@ -304,7 +304,7 @@ def execute_job(
             ),
         )
 
-    # Check for authroization comment
+    # Check for authorization comment
     authorization_string = f"{AUTHORIZATION_STRING_PREFIX} {commit_sha}"
     authorization_comments = tuple(
         comment for comment in comments if authorization_string in remove_quote_lines(comment.body)
