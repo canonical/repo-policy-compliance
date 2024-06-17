@@ -44,7 +44,7 @@ class PullRequestInput(BaseModel):
 
 @log.call
 def pull_request(
-    input_: PullRequestInput, policy_document: dict | UsedPolicy | None = UsedPolicy.ALLOW_FORKS
+    input_: PullRequestInput, policy_document: dict | UsedPolicy = UsedPolicy.ALLOW_FORKS
 ) -> check.Report:
     """Run all the checks for pull request jobs.
 
@@ -55,16 +55,10 @@ def pull_request(
     Returns:
         Whether the run is authorized based on all the checks.
     """
-    if policy_document == UsedPolicy.ALL:
-        used_policy_document: MappingProxyType = policy.ALL
-    elif policy_document == UsedPolicy.ALLOW_FORKS:
-        used_policy_document = policy.ALLOW_FORKS
-    else:
-        # Guaranteed to be a dict due to initial if
-        policy_document = cast(dict, policy_document)
-        if not (policy_report := policy.check(document=policy_document)).result:
-            return check.Report(result=check.Result.FAIL, reason=policy_report.reason)
-        used_policy_document = MappingProxyType(policy_document)
+    try:
+        used_policy_document = _retrieve_policy_document(policy_document=policy_document)
+    except ValueError as exc:
+        return check.Report(result=check.Result.FAIL, reason=exc.args[0])
 
     if (
         policy.enabled(
@@ -135,6 +129,31 @@ def pull_request(
     return check.Report(result=check.Result.PASS, reason=None)
 
 
+def _retrieve_policy_document(
+    policy_document: dict | UsedPolicy = UsedPolicy.ALLOW_FORKS,
+) -> MappingProxyType:
+    """Get policy document from predefined UsedPolicy or custom document mapping.
+
+    Args:
+        policy_document: The predefined used policy enum or custom mapping dict.
+
+    Raises:
+        ValueError: If an invalid policy document mapping was given.
+
+    Returns:
+        Mapped policy document.
+    """
+    if policy_document == UsedPolicy.ALL:
+        return policy.ALL
+    if policy_document == UsedPolicy.ALLOW_FORKS:
+        return policy.ALLOW_FORKS
+    # Guaranteed to be a dict due to initial if
+    policy_document = cast(dict, policy_document)
+    if not (policy_report := policy.check(document=policy_document)).result:
+        raise ValueError(policy_report.reason)
+    return MappingProxyType(policy_document)
+
+
 class BranchInput(BaseModel):
     """Input arguments to check jobs running on a branch.
 
@@ -161,14 +180,10 @@ def workflow_dispatch(
     Returns:
         Whether the run is authorized based on all the checks.
     """
-    if policy_document == UsedPolicy.ALL:
-        used_policy_document: MappingProxyType = policy.ALL
-    else:
-        # Guaranteed to be a dict due to initial if
-        policy_document = cast(dict, policy_document)
-        if not (policy_report := policy.check(document=policy_document)).result:
-            return check.Report(result=check.Result.FAIL, reason=policy_report.reason)
-        used_policy_document = MappingProxyType(policy_document)
+    try:
+        used_policy_document = _retrieve_policy_document(policy_document=policy_document)
+    except ValueError as exc:
+        return check.Report(result=check.Result.FAIL, reason=exc.args[0])
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
@@ -202,14 +217,10 @@ def push(input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL)
     Returns:
         Whether the run is authorized based on all the checks.
     """
-    if policy_document == UsedPolicy.ALL:
-        used_policy_document: MappingProxyType = policy.ALL
-    else:
-        # Guaranteed to be a dict due to initial if
-        policy_document = cast(dict, policy_document)
-        if not (policy_report := policy.check(document=policy_document)).result:
-            return check.Report(result=check.Result.FAIL, reason=policy_report.reason)
-        used_policy_document = MappingProxyType(policy_document)
+    try:
+        used_policy_document = _retrieve_policy_document(policy_document=policy_document)
+    except ValueError as exc:
+        return check.Report(result=check.Result.FAIL, reason=exc.args[0])
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
@@ -245,14 +256,10 @@ def schedule(
     Returns:
         Whether the run is authorized based on all the checks.
     """
-    if policy_document == UsedPolicy.ALL:
-        used_policy_document: MappingProxyType = policy.ALL
-    else:
-        # Guaranteed to be a dict due to initial if
-        policy_document = cast(dict, policy_document)
-        if not (policy_report := policy.check(document=policy_document)).result:
-            return check.Report(result=check.Result.FAIL, reason=policy_report.reason)
-        used_policy_document = MappingProxyType(policy_document)
+    try:
+        used_policy_document = _retrieve_policy_document(policy_document=policy_document)
+    except ValueError as exc:
+        return check.Report(result=check.Result.FAIL, reason=exc.args[0])
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter

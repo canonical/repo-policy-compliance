@@ -206,18 +206,18 @@ def test_execute_job(  # pylint: disable=too-many-arguments
 
 
 @pytest.mark.parametrize(
-    "github_branch, protected_github_branch, used_policy",
+    "github_branch, protected_github_branch, pull_request_kwargs",
     [
         pytest.param(
             f"test-branch/pull_request/pass/{uuid4()}",
             BranchWithProtection(),
-            None,
+            {},
             id="default policy",
         ),
         pytest.param(
             f"test-branch/pull_request/pass/{uuid4()}",
             BranchWithProtection(),
-            UsedPolicy.ALL,
+            {"policy_document": UsedPolicy.ALL},
             id="all policy",
         ),
     ],
@@ -227,7 +227,7 @@ def test_execute_job(  # pylint: disable=too-many-arguments
 def test_pass(
     github_branch: Branch,
     github_repository_name: str,
-    used_policy: UsedPolicy,
+    pull_request_kwargs: dict,
     caplog: pytest.LogCaptureFixture,
 ):
     """
@@ -243,7 +243,8 @@ def test_pass(
             source_branch_name=github_branch.name,
             commit_sha=github_branch.commit.sha,
         ),
-        policy_document=used_policy,
+        # use kwargs to test empty default arg, None will set the arg value to None
+        **pull_request_kwargs,
     )
 
     assert report.result == Result.PASS
@@ -267,7 +268,7 @@ def test_pass(
 def test_fail(
     github_branch: Branch,
     github_repository_name: str,
-    used_policy: UsedPolicy | None,
+    used_policy: UsedPolicy,
     caplog: pytest.LogCaptureFixture,
 ):
     """
