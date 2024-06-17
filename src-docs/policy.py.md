@@ -9,11 +9,13 @@ Module for the policy document.
 ---------------
 - **ENABLED_KEY**
 - **ENABLED_RULE**
+- **DISABLED_RULE**
 - **ALL**
+- **ALLOW_FORKS**
 
 ---
 
-<a href="../repo_policy_compliance/policy.py#L85"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/policy.py#L100"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `check`
 
@@ -37,7 +39,7 @@ Check that a policy document is valid.
 
 ---
 
-<a href="../repo_policy_compliance/policy.py#L105"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/policy.py#L120"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `enabled`
 
@@ -109,6 +111,7 @@ The names of the properties for the pull request portion of the policy document.
  
  - <b>`TARGET_BRANCH_PROTECTION`</b>:  Branch protection for the target branch. 
  - <b>`COLLABORATORS`</b>:  Participants on a repository. 
+ - <b>`DISALLOW_FORK`</b>:  Whether a forked repository should not be allowed to run jobs. 
  - <b>`EXECUTE_JOB`</b>:  Whether a job should be executed. 
 
 

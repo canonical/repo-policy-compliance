@@ -206,7 +206,7 @@ def test_execute_job(  # pylint: disable=too-many-arguments
 
 
 @pytest.mark.parametrize(
-    "github_branch, protected_github_branch, used_policy",
+    "github_branch, protected_github_branch, policy",
     [
         pytest.param(
             f"test-branch/pull_request/pass/{uuid4()}",
@@ -252,7 +252,7 @@ def test_pass(
 
 
 @pytest.mark.parametrize(
-    "github_branch, protected_github_branch, used_policy",
+    "github_branch, protected_github_branch, policy",
     [
         pytest.param(
             f"test-branch/pull_request/pass/{uuid4()}",
