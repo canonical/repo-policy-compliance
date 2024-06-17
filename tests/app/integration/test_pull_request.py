@@ -221,7 +221,7 @@ def test_execute_job(  # pylint: disable=too-many-arguments
             id="all policy",
         ),
     ],
-    indirect=True,
+    indirect=["github_branch", "protected_github_branch"],
 )
 @pytest.mark.usefixtures("protected_github_branch")
 def test_pass(
@@ -261,7 +261,7 @@ def test_pass(
             id="all policy",
         ),
     ],
-    indirect=True,
+    indirect=["github_branch", "protected_github_branch"],
 )
 @pytest.mark.usefixtures("protected_github_branch")
 def test_fail(
