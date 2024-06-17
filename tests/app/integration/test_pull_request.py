@@ -38,6 +38,62 @@ def test_invalid_policy():
 
 
 @pytest.mark.parametrize(
+    "github_branch, protected_github_branch, policy_enabled, expected_result",
+    [
+        pytest.param(
+            f"test-branch/pull_request/pass/{uuid4()}",
+            BranchWithProtection(),
+            True,
+            Result.FAIL,
+            id="disallow fork",
+        ),
+        pytest.param(
+            f"test-branch/pull_request/pass/{uuid4()}",
+            BranchWithProtection(),
+            False,
+            Result.PASS,
+            id="allow fork",
+        ),
+    ],
+    indirect=["github_branch", "protected_github_branch"],
+)
+@pytest.mark.usefixtures("protected_github_branch")
+def test_disallow_forks(
+    github_branch: Branch,
+    github_repository_name: str,
+    forked_github_repository: Repository,
+    policy_enabled: bool,
+    expected_result: Result,
+):
+    """
+    arrange: given a source and target branch and repository that is not compliant
+    act: when pull_request is called
+    assert: then a fail report is returned.
+    """
+    policy_document = {
+        policy.JobType.PULL_REQUEST: {
+            policy.PullRequestProperty.DISALLOW_FORK: {policy.ENABLED_KEY: policy_enabled},
+            policy.PullRequestProperty.TARGET_BRANCH_PROTECTION: {policy.ENABLED_KEY: False},
+            policy.PullRequestProperty.COLLABORATORS: {policy.ENABLED_KEY: False},
+            policy.PullRequestProperty.EXECUTE_JOB: {policy.ENABLED_KEY: False},
+        }
+    }
+
+    report = pull_request(
+        input_=PullRequestInput(
+            repository_name=forked_github_repository.full_name,
+            source_repository_name=github_repository_name,
+            target_branch_name=github_branch.name,
+            source_branch_name=github_branch.name,
+            commit_sha=github_branch.commit.sha,
+        ),
+        policy_document=policy_document,
+    )
+
+    assert report.result == expected_result, report.reason
+
+
+@pytest.mark.parametrize(
     "github_branch, policy_enabled, expected_result",
     [
         pytest.param(
@@ -187,7 +243,8 @@ def test_execute_job(  # pylint: disable=too-many-arguments
     """
     policy_document = {
         policy.JobType.PULL_REQUEST: {
-            policy.PullRequestProperty.EXECUTE_JOB: {policy.ENABLED_KEY: policy_enabled}
+            policy.PullRequestProperty.EXECUTE_JOB: {policy.ENABLED_KEY: policy_enabled},
+            policy.PullRequestProperty.DISALLOW_FORK: {policy.ENABLED_KEY: False},
         }
     }
 
@@ -202,7 +259,9 @@ def test_execute_job(  # pylint: disable=too-many-arguments
         policy_document=policy_document,
     )
 
-    assert report.result == expected_result
+    assert (
+        report.result == expected_result
+    ), f"Unexpected result {report.reason} reason: {report.reason}"
 
 
 @pytest.mark.parametrize(
@@ -248,45 +307,5 @@ def test_pass(
     )
 
     assert report.result == Result.PASS
-    assert repr("pull_request") in caplog.text
-    assert repr(report) in caplog.text
-
-
-@pytest.mark.parametrize(
-    "github_branch, protected_github_branch, used_policy",
-    [
-        pytest.param(
-            f"test-branch/pull_request/pass/{uuid4()}",
-            BranchWithProtection(),
-            UsedPolicy.ALL,
-            id="all policy",
-        ),
-    ],
-    indirect=["github_branch", "protected_github_branch"],
-)
-@pytest.mark.usefixtures("protected_github_branch")
-def test_fail(
-    github_branch: Branch,
-    github_repository_name: str,
-    used_policy: UsedPolicy,
-    caplog: pytest.LogCaptureFixture,
-):
-    """
-    arrange: given a source and target branch and repository that is not compliant
-    act: when pull_request is called
-    assert: then a fail report is returned.
-    """
-    report = pull_request(
-        input_=PullRequestInput(
-            repository_name=f"forked/{github_repository_name}",
-            source_repository_name=github_repository_name,
-            target_branch_name=github_branch.name,
-            source_branch_name=github_branch.name,
-            commit_sha=github_branch.commit.sha,
-        ),
-        policy_document=used_policy,
-    )
-
-    assert report.result == Result.FAIL
     assert repr("pull_request") in caplog.text
     assert repr(report) in caplog.text
