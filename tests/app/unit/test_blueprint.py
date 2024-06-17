@@ -53,7 +53,7 @@ def test__get_policy_document(
     monkeypatch.setattr(
         repo_policy_compliance.blueprint, "policy_document_path", policy_document_mock
     )
-    for key, value in env:
+    for key, value in env.items():
         monkeypatch.setenv(key, value)
 
     assert repo_policy_compliance.blueprint._get_policy_document() == expected_document
