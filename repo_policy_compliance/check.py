@@ -228,30 +228,25 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
-def _branch_external_fork(repository: Repository, source_repository_name: str) -> bool:
-    """Check whether a branch is an external fork.
-
-    A external fork is a fork that is not owned by a user who has push or above permission on the
-    repository.
+@log.call
+def disallow_fork(
+    repository_name: str,
+    source_repository_name: str,
+) -> Report:
+    """Check whether a run is from a forked repository.
 
     Args:
-        repository: The repository to run the check on.
+        repository_name: The name of the repository to run the check on.
         source_repository_name: The name of the repository that contains the source branch.
 
     Returns:
-        Whether the branch is from a external fork.
+        Whether a repository is a forked repository.
     """
-    if repository.full_name == source_repository_name:
-        return False
-
-    fork_username = source_repository_name.split("/")[0]
-
-    # Check if owner of the fork already has push or higher permission (not an external user)
-    fork_user_permission = get_collaborator_permission(repository, fork_username)
-    if fork_user_permission in ("admin", "write"):
-        return False
-
-    return True
+    if repository_name != source_repository_name:
+        return Report(
+            result=Result.FAIL, reason=f"{FAILURE_MESSAGE}forked repository runs are disallowed."
+        )
+    return Report(result=Result.PASS, reason=None)
 
 
 @github_exceptions_to_fail_report
@@ -337,3 +332,29 @@ def execute_job(
         )
 
     return Report(result=Result.PASS, reason=None)
+
+
+def _branch_external_fork(repository: Repository, source_repository_name: str) -> bool:
+    """Check whether a branch is an external fork.
+
+    A external fork is a fork that is not owned by a user who has push or above permission on the
+    repository.
+
+    Args:
+        repository: The repository to run the check on.
+        source_repository_name: The name of the repository that contains the source branch.
+
+    Returns:
+        Whether the branch is from a external fork.
+    """
+    if repository.full_name == source_repository_name:
+        return False
+
+    fork_username = source_repository_name.split("/")[0]
+
+    # Check if owner of the fork already has push or higher permission (not an external user)
+    fork_user_permission = get_collaborator_permission(repository, fork_username)
+    if fork_user_permission in ("admin", "write"):
+        return False
+
+    return True

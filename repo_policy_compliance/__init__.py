@@ -17,9 +17,11 @@ class UsedPolicy(Enum):
 
     Attributes:
         ALL: Use all policies.
+        ALLOW_FORKS: Use allow_fork policy.
     """
 
     ALL = 1
+    ALLOW_FORKS = 2
 
 
 class PullRequestInput(BaseModel):
@@ -42,7 +44,7 @@ class PullRequestInput(BaseModel):
 
 @log.call
 def pull_request(
-    input_: PullRequestInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
+    input_: PullRequestInput, policy_document: dict | UsedPolicy = UsedPolicy.ALLOW_FORKS
 ) -> check.Report:
     """Run all the checks for pull request jobs.
 
@@ -55,12 +57,30 @@ def pull_request(
     """
     if policy_document == UsedPolicy.ALL:
         used_policy_document: MappingProxyType = policy.ALL
+    elif policy_document == UsedPolicy.ALLOW_FORKS:
+        used_policy_document: MappingProxyType = policy.ALLOW_FORKS
     else:
         # Guaranteed to be a dict due to initial if
         policy_document = cast(dict, policy_document)
         if not (policy_report := policy.check(document=policy_document)).result:
             return check.Report(result=check.Result.FAIL, reason=policy_report.reason)
         used_policy_document = MappingProxyType(policy_document)
+
+    if (
+        policy.enabled(
+            job_type=policy.JobType.PULL_REQUEST,
+            name=policy.PullRequestProperty.DISALLOW_FORK,
+            policy_document=used_policy_document,
+        )
+        and (
+            disallow_forks_report := check.disallow_fork(
+                repository_name=input_.repository_name,
+                source_repository_name=input_.source_repository_name,
+            )
+        ).result
+        == check.Result.FAIL
+    ):
+        return disallow_forks_report
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter

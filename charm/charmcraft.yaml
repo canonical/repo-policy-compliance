@@ -40,6 +40,13 @@ config:
         generate the subsequent one-time token authentication.
       type: string
       required: true
+    disallow_forks:
+      description: >-
+        Disable forked repository access to job runs.
+        This is used to protect private-endpoint runners for security purposes. Blocks all pull
+        request runs from a forked repository.
+      type: boolean
+      default: false
     github_token:
       description: >-
         The token to use for comms with GitHub. This can be a PAT or a fine-grained token

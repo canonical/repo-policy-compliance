@@ -9,7 +9,7 @@ import pytest
 from github.Branch import Branch
 from github.Repository import Repository
 
-from repo_policy_compliance import PullRequestInput, policy, pull_request
+from repo_policy_compliance import PullRequestInput, UsedPolicy, policy, pull_request
 from repo_policy_compliance.check import Result
 
 from .types_ import BranchWithProtection, RequestedCollaborator
@@ -206,13 +206,29 @@ def test_execute_job(  # pylint: disable=too-many-arguments
 
 
 @pytest.mark.parametrize(
-    "github_branch, protected_github_branch",
-    [(f"test-branch/pull_request/pass/{uuid4()}", BranchWithProtection())],
+    "github_branch, protected_github_branch, used_policy",
+    [
+        pytest.param(
+            f"test-branch/pull_request/pass/{uuid4()}",
+            BranchWithProtection(),
+            None,
+            id="default policy",
+        ),
+        pytest.param(
+            f"test-branch/pull_request/pass/{uuid4()}",
+            BranchWithProtection(),
+            None,
+            id="all policy",
+        ),
+    ],
     indirect=True,
 )
 @pytest.mark.usefixtures("protected_github_branch")
 def test_pass(
-    github_branch: Branch, github_repository_name: str, caplog: pytest.LogCaptureFixture
+    github_branch: Branch,
+    github_repository_name: str,
+    policy: UsedPolicy | None,
+    caplog: pytest.LogCaptureFixture,
 ):
     """
     arrange: given a source and target branch and repository that is compliant
@@ -227,8 +243,49 @@ def test_pass(
             source_branch_name=github_branch.name,
             commit_sha=github_branch.commit.sha,
         ),
+        policy_document=policy,
     )
 
     assert report.result == Result.PASS
+    assert repr("pull_request") in caplog.text
+    assert repr(report) in caplog.text
+
+
+@pytest.mark.parametrize(
+    "github_branch, protected_github_branch, used_policy",
+    [
+        pytest.param(
+            f"test-branch/pull_request/pass/{uuid4()}",
+            BranchWithProtection(),
+            None,
+            id="all policy",
+        ),
+    ],
+    indirect=True,
+)
+@pytest.mark.usefixtures("protected_github_branch")
+def test_fail(
+    github_branch: Branch,
+    github_repository_name: str,
+    policy: UsedPolicy | None,
+    caplog: pytest.LogCaptureFixture,
+):
+    """
+    arrange: given a source and target branch and repository that is not compliant
+    act: when pull_request is called
+    assert: then a fail report is returned.
+    """
+    report = pull_request(
+        input_=PullRequestInput(
+            repository_name=f"forked/{github_repository_name}",
+            source_repository_name=github_repository_name,
+            target_branch_name=github_branch.name,
+            source_branch_name=github_branch.name,
+            commit_sha=github_branch.commit.sha,
+        ),
+        policy_document=policy,
+    )
+
+    assert report.result == Result.FAIL
     assert repr("pull_request") in caplog.text
     assert repr(report) in caplog.text
