@@ -206,7 +206,7 @@ def test_execute_job(  # pylint: disable=too-many-arguments
 
 
 @pytest.mark.parametrize(
-    "github_branch, protected_github_branch, policy",
+    "github_branch, protected_github_branch, used_policy",
     [
         pytest.param(
             f"test-branch/pull_request/pass/{uuid4()}",
@@ -217,7 +217,7 @@ def test_execute_job(  # pylint: disable=too-many-arguments
         pytest.param(
             f"test-branch/pull_request/pass/{uuid4()}",
             BranchWithProtection(),
-            None,
+            UsedPolicy.ALL,
             id="all policy",
         ),
     ],
@@ -227,7 +227,7 @@ def test_execute_job(  # pylint: disable=too-many-arguments
 def test_pass(
     github_branch: Branch,
     github_repository_name: str,
-    policy: UsedPolicy | None,
+    used_policy: UsedPolicy,
     caplog: pytest.LogCaptureFixture,
 ):
     """
@@ -243,7 +243,7 @@ def test_pass(
             source_branch_name=github_branch.name,
             commit_sha=github_branch.commit.sha,
         ),
-        policy_document=policy,
+        policy_document=used_policy,
     )
 
     assert report.result == Result.PASS
@@ -252,12 +252,12 @@ def test_pass(
 
 
 @pytest.mark.parametrize(
-    "github_branch, protected_github_branch, policy",
+    "github_branch, protected_github_branch, used_policy",
     [
         pytest.param(
             f"test-branch/pull_request/pass/{uuid4()}",
             BranchWithProtection(),
-            None,
+            UsedPolicy.ALL,
             id="all policy",
         ),
     ],
@@ -267,7 +267,7 @@ def test_pass(
 def test_fail(
     github_branch: Branch,
     github_repository_name: str,
-    policy: UsedPolicy | None,
+    used_policy: UsedPolicy | None,
     caplog: pytest.LogCaptureFixture,
 ):
     """
@@ -283,7 +283,7 @@ def test_fail(
             source_branch_name=github_branch.name,
             commit_sha=github_branch.commit.sha,
         ),
-        policy_document=policy,
+        policy_document=used_policy,
     )
 
     assert report.result == Result.FAIL
