@@ -172,7 +172,7 @@ def _get_policy_document() -> dict | UsedPolicy:
     if stored_policy_document_contents := policy_document_path.read_text(encoding="utf-8"):
         return cast(dict, json.loads(stored_policy_document_contents))
     disallow_forks = (
-        os.getenv(DISALLOW_FORKS_ENV_NAME) or os.getenv(f"FLASK_{CHARM_TOKEN_ENV_NAME}")
+        os.getenv(DISALLOW_FORKS_ENV_NAME) or os.getenv(f"FLASK_{DISALLOW_FORKS_ENV_NAME}")
     ) == "true"
     if not disallow_forks:
         return UsedPolicy.ALLOW_FORKS
