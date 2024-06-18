@@ -40,7 +40,7 @@ config:
         generate the subsequent one-time token authentication.
       type: string
       required: true
-    disallow_fork:
+    disallow_fork_pull_request:
       description: >-
         Disable forked repository access to job runs.
         This is used to protect private-endpoint runners for security purposes. Blocks all pull

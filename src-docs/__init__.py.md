@@ -6,6 +6,37 @@
 Library for checking that GitHub repos comply with policy. 
 
 
+---
+
+<a href="../repo_policy_compliance/__init__.py#L134"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+## <kbd>function</kbd> `retrieve_policy_document`
+
+```python
+retrieve_policy_document(
+    policy_document: dict | UsedPolicy = <UsedPolicy.ALLOW_FORK_RUN_WITH_COMMENT: 2>
+) → mappingproxy
+```
+
+Get policy document from predefined UsedPolicy or custom document mapping. 
+
+
+
+**Args:**
+ 
+ - <b>`policy_document`</b>:  The predefined used policy enum or custom mapping dict. 
+
+
+
+**Raises:**
+ 
+ - <b>`ValueError`</b>:  If an invalid policy document mapping was given. 
+
+
+
+**Returns:**
+ Mapped policy document. 
+
 
 ---
 
@@ -169,7 +200,7 @@ Sentinel to indicate which policy to use.
 **Attributes:**
  
  - <b>`ALL`</b>:  Use all policies. 
- - <b>`ALLOW_FORK`</b>:  Use policy that lets forked repositories run jobs (default). 
+ - <b>`ALLOW_FORK_RUN_WITH_COMMENT`</b>:  Use policy that lets forked repositories run jobs with a             verified comment (default). 
 
 
 
