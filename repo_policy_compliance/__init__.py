@@ -17,9 +17,12 @@ class UsedPolicy(Enum):
 
     Attributes:
         ALL: Use all policies.
+        ALLOW_FORK_RUN_WITH_COMMENT: Use policy that lets forked repositories run jobs with a \
+            verified comment (default).
     """
 
     ALL = 1
+    ALLOW_FORK_RUN_WITH_COMMENT = 2
 
 
 class PullRequestInput(BaseModel):
@@ -42,7 +45,8 @@ class PullRequestInput(BaseModel):
 
 @log.call
 def pull_request(
-    input_: PullRequestInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
+    input_: PullRequestInput,
+    policy_document: dict | UsedPolicy = UsedPolicy.ALLOW_FORK_RUN_WITH_COMMENT,
 ) -> check.Report:
     """Run all the checks for pull request jobs.
 
@@ -53,14 +57,26 @@ def pull_request(
     Returns:
         Whether the run is authorized based on all the checks.
     """
-    if policy_document == UsedPolicy.ALL:
-        used_policy_document: MappingProxyType = policy.ALL
-    else:
-        # Guaranteed to be a dict due to initial if
-        policy_document = cast(dict, policy_document)
-        if not (policy_report := policy.check(document=policy_document)).result:
-            return check.Report(result=check.Result.FAIL, reason=policy_report.reason)
-        used_policy_document = MappingProxyType(policy_document)
+    try:
+        used_policy_document = retrieve_policy_document(policy_document=policy_document)
+    except ValueError as exc:
+        return check.Report(result=check.Result.FAIL, reason=exc.args[0])
+
+    if (
+        policy.enabled(
+            job_type=policy.JobType.PULL_REQUEST,
+            name=policy.PullRequestProperty.DISALLOW_FORK,
+            policy_document=used_policy_document,
+        )
+        and (
+            disallow_forks_report := check.disallow_fork(
+                repository_name=input_.repository_name,
+                source_repository_name=input_.source_repository_name,
+            )
+        ).result
+        == check.Result.FAIL
+    ):
+        return disallow_forks_report
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
@@ -115,6 +131,31 @@ def pull_request(
     return check.Report(result=check.Result.PASS, reason=None)
 
 
+def retrieve_policy_document(
+    policy_document: dict | UsedPolicy = UsedPolicy.ALLOW_FORK_RUN_WITH_COMMENT,
+) -> MappingProxyType:
+    """Get policy document from predefined UsedPolicy or custom document mapping.
+
+    Args:
+        policy_document: The predefined used policy enum or custom mapping dict.
+
+    Raises:
+        ValueError: If an invalid policy document mapping was given.
+
+    Returns:
+        Mapped policy document.
+    """
+    if policy_document == UsedPolicy.ALL:
+        return policy.ALL
+    if policy_document == UsedPolicy.ALLOW_FORK_RUN_WITH_COMMENT:
+        return policy.ALLOW_FORK_RUN_WITH_COMMENT
+    # Guaranteed to be a dict due to initial if
+    policy_document = cast(dict, policy_document)
+    if not (policy_report := policy.check(document=policy_document)).result:
+        raise ValueError(policy_report.reason)
+    return MappingProxyType(policy_document)
+
+
 class BranchInput(BaseModel):
     """Input arguments to check jobs running on a branch.
 
@@ -141,14 +182,10 @@ def workflow_dispatch(
     Returns:
         Whether the run is authorized based on all the checks.
     """
-    if policy_document == UsedPolicy.ALL:
-        used_policy_document: MappingProxyType = policy.ALL
-    else:
-        # Guaranteed to be a dict due to initial if
-        policy_document = cast(dict, policy_document)
-        if not (policy_report := policy.check(document=policy_document)).result:
-            return check.Report(result=check.Result.FAIL, reason=policy_report.reason)
-        used_policy_document = MappingProxyType(policy_document)
+    try:
+        used_policy_document = retrieve_policy_document(policy_document=policy_document)
+    except ValueError as exc:
+        return check.Report(result=check.Result.FAIL, reason=exc.args[0])
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
@@ -182,14 +219,10 @@ def push(input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL)
     Returns:
         Whether the run is authorized based on all the checks.
     """
-    if policy_document == UsedPolicy.ALL:
-        used_policy_document: MappingProxyType = policy.ALL
-    else:
-        # Guaranteed to be a dict due to initial if
-        policy_document = cast(dict, policy_document)
-        if not (policy_report := policy.check(document=policy_document)).result:
-            return check.Report(result=check.Result.FAIL, reason=policy_report.reason)
-        used_policy_document = MappingProxyType(policy_document)
+    try:
+        used_policy_document = retrieve_policy_document(policy_document=policy_document)
+    except ValueError as exc:
+        return check.Report(result=check.Result.FAIL, reason=exc.args[0])
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
@@ -225,14 +258,10 @@ def schedule(
     Returns:
         Whether the run is authorized based on all the checks.
     """
-    if policy_document == UsedPolicy.ALL:
-        used_policy_document: MappingProxyType = policy.ALL
-    else:
-        # Guaranteed to be a dict due to initial if
-        policy_document = cast(dict, policy_document)
-        if not (policy_report := policy.check(document=policy_document)).result:
-            return check.Report(result=check.Result.FAIL, reason=policy_report.reason)
-        used_policy_document = MappingProxyType(policy_document)
+    try:
+        used_policy_document = retrieve_policy_document(policy_document=policy_document)
+    except ValueError as exc:
+        return check.Report(result=check.Result.FAIL, reason=exc.args[0])
 
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter

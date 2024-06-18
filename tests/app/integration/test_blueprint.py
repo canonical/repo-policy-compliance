@@ -505,6 +505,29 @@ def test_policy_invalid(client: FlaskClient, charm_token: str):
 
 
 @pytest.mark.parametrize(
+    "policy_preset",
+    [
+        pytest.param("0", id="doesn't exist(0)"),
+        pytest.param("2", id="doesn't exist(2)"),
+        pytest.param("test", id="not a number"),
+    ],
+)
+def test_policy_preset_invalid(client: FlaskClient, charm_token: str, policy_preset: str):
+    """
+    arrange: given flask application with the blueprint registered and the charm token environment
+        variable set
+    act: when an invalid policy preset number is sent to the policy endpoint
+    assert: then 400 is returned.
+    """
+    response = client.post(
+        blueprint.POLICY_PRESET_ENDPOINT.replace("<preset>", policy_preset),
+        headers={"Authorization": f"Bearer {charm_token}"},
+    )
+
+    assert response.status_code == 400, response.data
+
+
+@pytest.mark.parametrize(
     "github_branch, collaborators_with_permission",
     [
         (

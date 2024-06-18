@@ -36,6 +36,7 @@ from repo_policy_compliance import (
     policy,
     pull_request,
     push,
+    retrieve_policy_document,
     schedule,
     workflow_dispatch,
 )
@@ -51,9 +52,11 @@ policy_document_path = Path(policy_document_file.name)
 # Bandit thinks this is the token value when it is the name of the environment variable with the
 # token value
 CHARM_TOKEN_ENV_NAME = "CHARM_TOKEN"  # nosec
+DISALLOW_FORK_ENV_NAME = "DISALLOW_FORK"  # nosec
 # Bandit thinks this is the token value when it is the name of the endpoint to get a one time token
 ONE_TIME_TOKEN_ENDPOINT = "/one-time-token"  # nosec
 POLICY_ENDPOINT = "/policy"
+POLICY_PRESET_ENDPOINT = "/policy/<preset>"
 CHECK_RUN_ENDPOINT = "/check-run"
 PULL_REQUEST_CHECK_RUN_ENDPOINT = "/pull_request/check-run"
 WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT = "/workflow_dispatch/check-run"
@@ -149,7 +152,7 @@ def one_time_token() -> str:
 @repo_policy_compliance.route(POLICY_ENDPOINT, methods=["POST"])
 @auth.login_required(role=CHARM_ROLE)
 def policy_endpoint() -> Response:
-    """Generate a one time token for a runner.
+    """Update the policy with custom policy document.
 
     Returns:
         Either that the policy was updated or an error if the policy is invalid.
@@ -157,8 +160,28 @@ def policy_endpoint() -> Response:
     data = cast(dict, request.json)
     if not (policy_report := policy.check(document=data)).result:
         return Response(response=policy_report.reason, status=400)
-
     policy_document_path.write_text(json.dumps(data), encoding="utf-8")
+    return Response(status=http.HTTPStatus.NO_CONTENT)
+
+
+@repo_policy_compliance.route(POLICY_PRESET_ENDPOINT, methods=["POST"])
+@auth.login_required(role=CHARM_ROLE)
+def policy_preset_endpoint(preset: int) -> Response:
+    """Update the applied policy with pre-existing policy preset.
+
+    Args:
+        preset: The name of the policy preset.
+
+    Returns:
+        Either that the policy was updated or an error if the policy is invalid.
+    """
+    try:
+        policy_num = UsedPolicy(preset)
+    except ValueError:
+        return Response(status=http.HTTPStatus.BAD_REQUEST)
+    policy_document_path.write_text(
+        json.dumps(retrieve_policy_document(policy_num)), encoding="utf-8"
+    )
     return Response(status=http.HTTPStatus.NO_CONTENT)
 
 
@@ -170,7 +193,7 @@ def _get_policy_document() -> dict | UsedPolicy:
     """
     if stored_policy_document_contents := policy_document_path.read_text(encoding="utf-8"):
         return cast(dict, json.loads(stored_policy_document_contents))
-    return UsedPolicy.ALL
+    return UsedPolicy.ALLOW_FORK_RUN_WITH_COMMENT
 
 
 # Keeping /check-run pointing to this for backwards compatibility

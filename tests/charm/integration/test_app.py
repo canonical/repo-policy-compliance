@@ -69,3 +69,17 @@ async def test_app(app: Application, ops_test: OpsTest, charm_token: str):
         with urlopen(request):  # nosec: B310
             pass
     assert exc.value.code == 401
+
+
+async def test_disallow_fork_pull_request_config(
+    app: Application, ops_test: OpsTest, charm_token: str
+):
+    """
+    arrange: given a running charm
+    act: when a token is generated and a check request is made
+    assert: then the requests succeeds.
+    """
+    unit_ips = await _get_unit_ips(ops_test=ops_test, application_name=app.name)
+    assert len(unit_ips) >= 2
+
+    assert False
