@@ -74,7 +74,7 @@ ALL = MappingProxyType(
         **_DEFAULT_POLICY_MAP,
     }
 )
-ALLOW_FORK = MappingProxyType(
+ALLOW_FORK_RUN_WITH_COMMENT = MappingProxyType(
     {
         JobType.PULL_REQUEST: {
             prop: (ENABLED_RULE if prop != PullRequestProperty.DISALLOW_FORK else DISABLED_RULE)

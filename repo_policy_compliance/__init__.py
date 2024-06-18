@@ -17,11 +17,12 @@ class UsedPolicy(Enum):
 
     Attributes:
         ALL: Use all policies.
-        ALLOW_FORK: Use policy that lets forked repositories run jobs (default).
+        ALLOW_FORK_RUN_WITH_COMMENT: Use policy that lets forked repositories run jobs with a \
+            verified comment (default).
     """
 
     ALL = 1
-    ALLOW_FORK = 2
+    ALLOW_FORK_RUN_WITH_COMMENT = 2
 
 
 class PullRequestInput(BaseModel):
@@ -44,7 +45,8 @@ class PullRequestInput(BaseModel):
 
 @log.call
 def pull_request(
-    input_: PullRequestInput, policy_document: dict | UsedPolicy = UsedPolicy.ALLOW_FORK
+    input_: PullRequestInput,
+    policy_document: dict | UsedPolicy = UsedPolicy.ALLOW_FORK_RUN_WITH_COMMENT,
 ) -> check.Report:
     """Run all the checks for pull request jobs.
 
@@ -56,7 +58,7 @@ def pull_request(
         Whether the run is authorized based on all the checks.
     """
     try:
-        used_policy_document = _retrieve_policy_document(policy_document=policy_document)
+        used_policy_document = retrieve_policy_document(policy_document=policy_document)
     except ValueError as exc:
         return check.Report(result=check.Result.FAIL, reason=exc.args[0])
 
@@ -129,8 +131,8 @@ def pull_request(
     return check.Report(result=check.Result.PASS, reason=None)
 
 
-def _retrieve_policy_document(
-    policy_document: dict | UsedPolicy = UsedPolicy.ALLOW_FORK,
+def retrieve_policy_document(
+    policy_document: dict | UsedPolicy = UsedPolicy.ALLOW_FORK_RUN_WITH_COMMENT,
 ) -> MappingProxyType:
     """Get policy document from predefined UsedPolicy or custom document mapping.
 
@@ -145,8 +147,8 @@ def _retrieve_policy_document(
     """
     if policy_document == UsedPolicy.ALL:
         return policy.ALL
-    if policy_document == UsedPolicy.ALLOW_FORK:
-        return policy.ALLOW_FORK
+    if policy_document == UsedPolicy.ALLOW_FORK_RUN_WITH_COMMENT:
+        return policy.ALLOW_FORK_RUN_WITH_COMMENT
     # Guaranteed to be a dict due to initial if
     policy_document = cast(dict, policy_document)
     if not (policy_report := policy.check(document=policy_document)).result:
@@ -181,7 +183,7 @@ def workflow_dispatch(
         Whether the run is authorized based on all the checks.
     """
     try:
-        used_policy_document = _retrieve_policy_document(policy_document=policy_document)
+        used_policy_document = retrieve_policy_document(policy_document=policy_document)
     except ValueError as exc:
         return check.Report(result=check.Result.FAIL, reason=exc.args[0])
 
@@ -218,7 +220,7 @@ def push(input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL)
         Whether the run is authorized based on all the checks.
     """
     try:
-        used_policy_document = _retrieve_policy_document(policy_document=policy_document)
+        used_policy_document = retrieve_policy_document(policy_document=policy_document)
     except ValueError as exc:
         return check.Report(result=check.Result.FAIL, reason=exc.args[0])
 
@@ -257,7 +259,7 @@ def schedule(
         Whether the run is authorized based on all the checks.
     """
     try:
-        used_policy_document = _retrieve_policy_document(policy_document=policy_document)
+        used_policy_document = retrieve_policy_document(policy_document=policy_document)
     except ValueError as exc:
         return check.Report(result=check.Result.FAIL, reason=exc.args[0])
 
