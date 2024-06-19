@@ -93,11 +93,25 @@ def pull_request(
     ):
         return collaborators_report
 
-    is_pull_request_disallow_fork_policy_enabled = policy.enabled(
-        job_type=policy.JobType.PULL_REQUEST,
-        name=policy.PullRequestProperty.PULL_REQUEST_DISALLOW_FORK,
-        policy_document=used_policy_document,
-    )
+    if (
+        policy.enabled(
+            job_type=policy.JobType.PULL_REQUEST,
+            name=policy.PullRequestProperty.PULL_REQUEST_DISALLOW_FORK,
+            policy_document=used_policy_document,
+        )
+        and (
+            pull_request_disallow_fork_report := check.pull_request_disallow_fork(
+                job_metadata=check.JobMetadata(
+                    branch_name=input_.source_branch_name,
+                    commit_sha=input_.commit_sha,
+                    repository_name=input_.repository_name,
+                    fork_or_branch_repository_name=input_.source_repository_name,
+                )
+            )
+        ).result
+        == check.Result.FAIL
+    ):
+        return pull_request_disallow_fork_report
 
     if (
         policy.enabled(
@@ -111,9 +125,8 @@ def pull_request(
                     branch_name=input_.source_branch_name,
                     commit_sha=input_.commit_sha,
                     repository_name=input_.repository_name,
-                    source_repository_name=input_.source_repository_name,
-                ),
-                disable_third_party_fork=is_pull_request_disallow_fork_policy_enabled,
+                    fork_or_branch_repository_name=input_.source_repository_name,
+                )
             )
         ).result
         == check.Result.FAIL

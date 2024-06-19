@@ -236,52 +236,39 @@ class JobMetadata:
     Attrs:
         branch_name: The branch name of the target repository.
         commit_sha: The commit SHA of the job run.
-        repository_name: The target repository to run the check on.
-        source_repository_name: The repository in which the branch/fork was sourced from.
+        repository_name: The repository running the check.
+        fork_or_branch_repository_name: The repository of the branch/fork.
     """
 
     branch_name: str
     commit_sha: str
     repository_name: str
-    source_repository_name: str
+    fork_or_branch_repository_name: str
 
 
 @github_exceptions_to_fail_report
 @inject_github_client
 @log.call
-def execute_job(
-    github_client: Github,
-    job_metadata: JobMetadata,
-    disable_third_party_fork: bool = False,
-) -> Report:
+def execute_job(github_client: Github, job_metadata: JobMetadata) -> Report:
     """Check that the execution of the workflow for a SHA has been granted for a PR from a fork.
 
     Args:
         github_client: The client to be used for GitHub API interactions.
         job_metadata: Information about the target job run to check for authorization.
-        disable_third_party_fork: Whether to disable third party fork repositories from running \
-            jobs.
 
     Returns:
         Whether the workflow run has been approved for the commit SHA.
     """
     # Not a fork (is a branch) if source and target repositories are the same. Users that can
     # create branches already have write permissions or above.
-    if job_metadata.repository_name == job_metadata.source_repository_name:
+    if job_metadata.repository_name == job_metadata.fork_or_branch_repository_name:
         return Report(result=Result.PASS, reason=None)
 
-    if not _check_fork_collaborator(
+    if _check_fork_collaborator(
         repository=(repository := github_client.get_repo(job_metadata.repository_name)),
-        source_repository_name=job_metadata.source_repository_name,
+        fork_repository_name=job_metadata.fork_or_branch_repository_name,
     ):
         return Report(result=Result.PASS, reason=None)
-
-    if disable_third_party_fork:
-        return Report(
-            result=Result.FAIL,
-            reason=f"{FAILURE_MESSAGE}"
-            f"Third party fork repositories are unauthorized to execute jobs.",
-        )
 
     return _check_authorization_comment(
         repository=repository,
@@ -290,27 +277,23 @@ def execute_job(
     )
 
 
-def _check_fork_collaborator(repository: Repository, source_repository_name: str) -> bool:
-    """Check whether a branch is an external fork.
+def _check_fork_collaborator(repository: Repository, fork_repository_name: str) -> bool:
+    """Check whether the fork's owner is authorized as a collaborator.
 
-    A external fork is a fork that is not owned by a user who has push or above permission on the
-    repository.
+    A user is authorized if he is a collaborator with write permissions and above.
 
     Args:
         repository: The repository to run the check on.
-        source_repository_name: The name of the repository that contains the source branch.
+        fork_repository_name: The name of the forked repository.
 
     Returns:
-        Whether the branch is from a external fork.
+        Whether the fork owner has write or above privileges as a collaborator.
     """
-    fork_username = source_repository_name.split("/")[0]
+    fork_username = fork_repository_name.split("/")[0]
 
     # Check if owner of the fork already has push or higher permission (not an external user)
     fork_user_permission = get_collaborator_permission(repository, fork_username)
-    if fork_user_permission in ("admin", "write"):
-        return False
-
-    return True
+    return fork_user_permission in ("admin", "write")
 
 
 def _check_authorization_comment(
@@ -383,3 +366,35 @@ def _check_authorization_comment(
         )
 
     return Report(result=Result.PASS, reason=None)
+
+
+@github_exceptions_to_fail_report
+@inject_github_client
+@log.call
+def pull_request_disallow_fork(github_client: Github, job_metadata: JobMetadata) -> Report:
+    """Check that the pull request from 3rd party is disallowed.
+
+    Args:
+        github_client: The client to be used for GitHub API interactions.
+        job_metadata: Information about the target job run to check for authorization.
+
+    Returns:
+        Whether the pull_request run is authorized as a non-3rd party fork or source repository \
+        run.
+    """
+    if job_metadata.repository_name == job_metadata.fork_or_branch_repository_name:
+        return Report(result=Result.PASS, reason=None)
+
+    if _check_fork_collaborator(
+        repository=github_client.get_repo(job_metadata.repository_name),
+        source_repository_name=job_metadata.fork_or_branch_repository_name,
+    ):
+        return Report(result=Result.PASS, reason=None)
+
+    return Report(
+        result=Result.FAIL,
+        reason=(
+            f"{FAILURE_MESSAGE}"
+            "The owner of the fork repository does not have collaborator (write/admin) privileges."
+        ),
+    )
