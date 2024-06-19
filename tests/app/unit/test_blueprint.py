@@ -21,21 +21,28 @@ from repo_policy_compliance import UsedPolicy
         pytest.param("""{"test":"content"}""", {}, {"test": "content"}, id="policy document"),
         pytest.param(
             """{"test":"content"}""",
-            {"DISALLOW_FORK": "true"},
+            {"PULL_REQUEST_DISALLOW_FORK": "true"},
             {"test": "content"},
             id="policy document & env",
         ),
         pytest.param(
             """{"test":"content"}""",
-            {"FLASK_DISALLOW_FORKS": "true"},
+            {"FLASK_PULL_REQUEST_DISALLOW_FORK": "true"},
             {"test": "content"},
             id="policy document & flask env",
         ),
-        pytest.param("", {"DISALLOW_FORK": "true"}, UsedPolicy.ALL, id="env"),
-        pytest.param("", {"FLASK_DISALLOW_FORK": "true"}, UsedPolicy.ALL, id="flask env"),
-        pytest.param("", {"DISALLOW_FORK": "false"}, UsedPolicy.ALLOW_FORK, id="env false"),
+        pytest.param("", {"PULL_REQUEST_DISALLOW_FORK": "true"}, UsedPolicy.ALL, id="env"),
         pytest.param(
-            "", {"FLASK_DISALLOW_FORK": "false"}, UsedPolicy.ALLOW_FORK, id="flask env false"
+            "", {"FLASK_PULL_REQUEST_DISALLOW_FORK": "true"}, UsedPolicy.ALL, id="flask env"
+        ),
+        pytest.param(
+            "", {"PULL_REQUEST_DISALLOW_FORK": "false"}, UsedPolicy.ALLOW_FORK, id="env false"
+        ),
+        pytest.param(
+            "",
+            {"FLASK_PULL_REQUEST_DISALLOW_FORK": "false"},
+            UsedPolicy.ALLOW_FORK,
+            id="flask env false",
         ),
     ],
 )

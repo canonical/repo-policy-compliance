@@ -60,22 +60,6 @@ def pull_request(
     except ValueError as exc:
         return check.Report(result=check.Result.FAIL, reason=exc.args[0])
 
-    if (
-        policy.enabled(
-            job_type=policy.JobType.PULL_REQUEST,
-            name=policy.PullRequestProperty.DISALLOW_FORK,
-            policy_document=used_policy_document,
-        )
-        and (
-            disallow_forks_report := check.disallow_fork(
-                repository_name=input_.repository_name,
-                source_repository_name=input_.source_repository_name,
-            )
-        ).result
-        == check.Result.FAIL
-    ):
-        return disallow_forks_report
-
     # The github_client argument is injected, disabling missing arguments check for this function
     # pylint: disable=no-value-for-parameter
     if policy.enabled(
@@ -108,6 +92,12 @@ def pull_request(
     ):
         return collaborators_report
 
+    is_pull_request_disallow_fork_policy_enabled = policy.enabled(
+        job_type=policy.JobType.PULL_REQUEST,
+        name=policy.PullRequestProperty.PULL_REQUEST_DISALLOW_FORK,
+        policy_document=used_policy_document,
+    )
+
     if (
         policy.enabled(
             job_type=policy.JobType.PULL_REQUEST,
@@ -116,10 +106,13 @@ def pull_request(
         )
         and (
             execute_job_report := check.execute_job(
-                repository_name=input_.repository_name,
-                source_repository_name=input_.source_repository_name,
-                branch_name=input_.source_branch_name,
-                commit_sha=input_.commit_sha,
+                job_metadata=check.JobMetadata(
+                    branch_name=input_.source_branch_name,
+                    commit_sha=input_.commit_sha,
+                    repository_name=input_.repository_name,
+                    source_repository_name=input_.source_repository_name,
+                ),
+                disable_third_party_fork=is_pull_request_disallow_fork_policy_enabled,
             )
         ).result
         == check.Result.FAIL

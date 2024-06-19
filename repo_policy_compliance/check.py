@@ -3,6 +3,7 @@
 
 """Individual checks used to compose job checks."""
 
+import dataclasses
 import functools
 from enum import Enum
 from typing import Callable, NamedTuple, ParamSpec, TypeVar
@@ -228,25 +229,21 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
-@log.call
-def disallow_fork(
-    repository_name: str,
-    source_repository_name: str,
-) -> Report:
-    """Check whether a run is from a forked repository.
+@dataclasses.dataclass
+class JobMetadata:
+    """Information about the target job run to check for authorization.
 
-    Args:
-        repository_name: The name of the repository to run the check on.
-        source_repository_name: The name of the repository that contains the source branch.
-
-    Returns:
-        Whether a repository is a forked repository.
+    Attrs:
+        branch_name: The branch name of the target repository.
+        commit_sha: The commit SHA of the job run.
+        repository_name: The target repository to run the check on.
+        source_repository_name: The repository in which the branch/fork was sourced from.
     """
-    if repository_name != source_repository_name:
-        return Report(
-            result=Result.FAIL, reason=f"{FAILURE_MESSAGE}forked repository runs are disallowed."
-        )
-    return Report(result=Result.PASS, reason=None)
+
+    branch_name: str
+    commit_sha: str
+    repository_name: str
+    source_repository_name: str
 
 
 @github_exceptions_to_fail_report
@@ -254,34 +251,86 @@ def disallow_fork(
 @log.call
 def execute_job(
     github_client: Github,
-    repository_name: str,
-    source_repository_name: str,
-    branch_name: str,
-    commit_sha: str,
+    job_metadata: JobMetadata,
+    disable_third_party_fork: bool = False,
 ) -> Report:
     """Check that the execution of the workflow for a SHA has been granted for a PR from a fork.
 
     Args:
         github_client: The client to be used for GitHub API interactions.
-        repository_name: The name of the repository to run the check on.
-        source_repository_name: The name of the repository that contains the source branch.
-        branch_name: The name of the branch that has the PR.
-        commit_sha: The SHA of the commit that the workflow run is on.
+        job_metadata: Information about the target job run to check for authorization.
+        disable_third_party_fork: Whether to disable third party fork repositories from running \
+            jobs.
 
     Returns:
         Whether the workflow run has been approved for the commit SHA.
     """
-    repository = github_client.get_repo(repository_name)
+    repository = github_client.get_repo(job_metadata.repository_name)
+    if not _branch_external_fork(
+        repository=repository, source_repository_name=job_metadata.source_repository_name
+    ):
+        return Report(result=Result.PASS, reason=None)
+
+    if disable_third_party_fork:
+        return Report(
+            result=Result.FAIL,
+            reason=f"{FAILURE_MESSAGE}"
+            f"Third party fork repositories are unauthorized to execute jobs.",
+        )
+
+    return _check_authorization_comment(
+        repository=repository,
+        branch_name=job_metadata.branch_name,
+        commit_sha=job_metadata.commit_sha,
+    )
+
+
+def _branch_external_fork(repository: Repository, source_repository_name: str) -> bool:
+    """Check whether a branch is an external fork.
+
+    A external fork is a fork that is not owned by a user who has push or above permission on the
+    repository.
+
+    Args:
+        repository: The repository to run the check on.
+        source_repository_name: The name of the repository that contains the source branch.
+
+    Returns:
+        Whether the branch is from a external fork.
+    """
+    if repository.full_name == source_repository_name:
+        return False
+
+    fork_username = source_repository_name.split("/")[0]
+
+    # Check if owner of the fork already has push or higher permission (not an external user)
+    fork_user_permission = get_collaborator_permission(repository, fork_username)
+    if fork_user_permission in ("admin", "write"):
+        return False
+
+    return True
+
+
+def _check_authorization_comment(
+    repository: Repository, branch_name: str, commit_sha: str
+) -> Report:
+    """Check whether a comment from a person with collaborator status has authorized a run with \
+        an authorization comment for a particular commit.
+
+    Args:
+        repository: The repository to run the check on.
+        branch_name: The name of the branch that has the PR.
+        commit_sha: The SHA of the commit that the workflow run is on.
+
+    Returns:
+        A report whether the check has succeeded or failed.
+    """
     push_logins = {
         collaborator["login"]
         for collaborator in get_collaborators(
             repository=repository, permission="push", affiliation="all"
         )
     }
-    if not _branch_external_fork(
-        repository=repository, source_repository_name=source_repository_name
-    ):
-        return Report(result=Result.PASS, reason=None)
 
     # Retrieve PR for the branch
     pulls = repository.get_pulls(state="open")
@@ -332,29 +381,3 @@ def execute_job(
         )
 
     return Report(result=Result.PASS, reason=None)
-
-
-def _branch_external_fork(repository: Repository, source_repository_name: str) -> bool:
-    """Check whether a branch is an external fork.
-
-    A external fork is a fork that is not owned by a user who has push or above permission on the
-    repository.
-
-    Args:
-        repository: The repository to run the check on.
-        source_repository_name: The name of the repository that contains the source branch.
-
-    Returns:
-        Whether the branch is from a external fork.
-    """
-    if repository.full_name == source_repository_name:
-        return False
-
-    fork_username = source_repository_name.split("/")[0]
-
-    # Check if owner of the fork already has push or higher permission (not an external user)
-    fork_user_permission = get_collaborator_permission(repository, fork_username)
-    if fork_user_permission in ("admin", "write"):
-        return False
-
-    return True

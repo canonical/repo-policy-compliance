@@ -34,13 +34,13 @@ class PullRequestProperty(str, Enum):
     Attributes:
         TARGET_BRANCH_PROTECTION: Branch protection for the target branch.
         COLLABORATORS: Participants on a repository.
-        DISALLOW_FORK: Whether a forked repository should not be allowed to run jobs.
+        PULL_REQUEST_DISALLOW_FORK: Whether a forked repository should not be allowed to run jobs.
         EXECUTE_JOB: Whether a job should be executed.
     """
 
     TARGET_BRANCH_PROTECTION = "target_branch_protection"
     COLLABORATORS = "collaborators"
-    DISALLOW_FORK = "disallow_fork"
+    PULL_REQUEST_DISALLOW_FORK = "pull_request_disallow_fork"
     EXECUTE_JOB = "execute_job"
 
 
@@ -77,7 +77,11 @@ ALL = MappingProxyType(
 ALLOW_FORK = MappingProxyType(
     {
         JobType.PULL_REQUEST: {
-            prop: (ENABLED_RULE if prop != PullRequestProperty.DISALLOW_FORK else DISABLED_RULE)
+            prop: (
+                ENABLED_RULE
+                if prop != PullRequestProperty.PULL_REQUEST_DISALLOW_FORK
+                else DISABLED_RULE
+            )
             for prop in PullRequestProperty
         },
         **_DEFAULT_POLICY_MAP,

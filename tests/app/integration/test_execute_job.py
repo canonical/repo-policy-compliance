@@ -15,7 +15,12 @@ from github.PullRequest import PullRequest
 from github.Repository import Repository
 
 import repo_policy_compliance
-from repo_policy_compliance.check import AUTHORIZATION_STRING_PREFIX, Result, execute_job
+from repo_policy_compliance.check import (
+    AUTHORIZATION_STRING_PREFIX,
+    JobMetadata,
+    Result,
+    execute_job,
+)
 from tests import assert_
 
 
@@ -35,15 +40,47 @@ def test_fail_forked_no_pr(
     """
     # The github_client is injected
     report = execute_job(  # pylint: disable=no-value-for-parameter
-        repository_name=github_repository_name,
-        source_repository_name=forked_github_repository.full_name,
-        branch_name=forked_github_branch.name,
-        commit_sha=forked_github_branch.commit.sha,
+        job_metadata=JobMetadata(
+            repository_name=github_repository_name,
+            source_repository_name=forked_github_repository.full_name,
+            branch_name=forked_github_branch.name,
+            commit_sha=forked_github_branch.commit.sha,
+        )
     )
 
     assert report.result == Result.FAIL
     assert report.reason, "expected a reason along with the fail result"
     assert_.substrings_in_string(("no", "pull request"), report.reason)
+
+
+@pytest.mark.parametrize(
+    "forked_github_branch",
+    [f"test-branch/execute-job/disabled-third-party-fork/{uuid4()}"],
+    indirect=True,
+)
+@pytest.mark.usefixtures("make_fork_branch_external")
+def test_fail_forked_disable_third_party_fork(
+    forked_github_repository: Repository, forked_github_branch: Branch, github_repository_name: str
+):
+    """
+    arrange: given a fork branch from a third party user and third party fork runs disabled
+    act: when execute_job is called
+    assert: then a fail report is returned.
+    """
+    # The github_client is injected
+    report = execute_job(  # pylint: disable=no-value-for-parameter
+        job_metadata=JobMetadata(
+            repository_name=github_repository_name,
+            source_repository_name=forked_github_repository.full_name,
+            branch_name=forked_github_branch.name,
+            commit_sha=forked_github_branch.commit.sha,
+        ),
+        disable_third_party_fork=True,
+    )
+
+    assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
+    assert_.substrings_in_string(("Third party fork", "unauthorized"), report.reason)
 
 
 @pytest.mark.parametrize(
@@ -62,10 +99,12 @@ def test_fail_forked_no_comment_on_pr(
     """
     # The github_client is injected
     report = execute_job(  # pylint: disable=no-value-for-parameter
-        repository_name=github_repository_name,
-        source_repository_name=forked_github_repository.full_name,
-        branch_name=forked_github_branch.name,
-        commit_sha=forked_github_branch.commit.sha,
+        job_metadata=JobMetadata(
+            repository_name=github_repository_name,
+            source_repository_name=forked_github_repository.full_name,
+            branch_name=forked_github_branch.name,
+            commit_sha=forked_github_branch.commit.sha,
+        )
     )
 
     assert report.result == Result.FAIL
@@ -97,10 +136,12 @@ def test_fail_forked_wrong_comment_on_pr(
 
     # The github_client is injected
     report = execute_job(  # pylint: disable=no-value-for-parameter
-        repository_name=github_repository_name,
-        source_repository_name=forked_github_repository.full_name,
-        branch_name=forked_github_branch.name,
-        commit_sha=commit_on_forked_github_branch.sha,
+        job_metadata=JobMetadata(
+            repository_name=github_repository_name,
+            source_repository_name=forked_github_repository.full_name,
+            branch_name=forked_github_branch.name,
+            commit_sha=commit_on_forked_github_branch.sha,
+        )
     )
 
     assert report.result == Result.FAIL
@@ -133,10 +174,12 @@ def test_fail_forked_wrong_commit_sha_on_pr(
 
     # The github_client is injected
     report = execute_job(  # pylint: disable=no-value-for-parameter
-        repository_name=github_repository_name,
-        source_repository_name=forked_github_repository.full_name,
-        branch_name=forked_github_branch.name,
-        commit_sha=commit_on_forked_github_branch.sha,
+        job_metadata=JobMetadata(
+            repository_name=github_repository_name,
+            source_repository_name=forked_github_repository.full_name,
+            branch_name=forked_github_branch.name,
+            commit_sha=commit_on_forked_github_branch.sha,
+        )
     )
 
     assert report.result == Result.FAIL
@@ -168,10 +211,12 @@ def test_fail_forked_quoted_authorizationr(
 
     # The github_client is injected
     report = execute_job(  # pylint: disable=no-value-for-parameter
-        repository_name=github_repository_name,
-        source_repository_name=forked_github_repository.full_name,
-        branch_name=forked_github_branch.name,
-        commit_sha=commit_on_forked_github_branch.sha,
+        job_metadata=JobMetadata(
+            repository_name=github_repository_name,
+            source_repository_name=forked_github_repository.full_name,
+            branch_name=forked_github_branch.name,
+            commit_sha=commit_on_forked_github_branch.sha,
+        )
     )
 
     assert report.result == Result.FAIL
@@ -220,10 +265,12 @@ def test_fail_forked_comment_from_wrong_user_on_pr(
 
     # The github_client is injected
     report = execute_job(  # pylint: disable=no-value-for-parameter
-        repository_name=github_repository_name,
-        source_repository_name=forked_github_repository.full_name,
-        branch_name=forked_github_branch.name,
-        commit_sha=commit_on_forked_github_branch.sha,
+        job_metadata=JobMetadata(
+            repository_name=github_repository_name,
+            source_repository_name=forked_github_repository.full_name,
+            branch_name=forked_github_branch.name,
+            commit_sha=commit_on_forked_github_branch.sha,
+        )
     )
 
     assert report.result == Result.FAIL
@@ -251,10 +298,12 @@ def test_pass_main_repo(
 
     # The github_client is injected
     report = execute_job(  # pylint: disable=no-value-for-parameter
-        repository_name=github_repository_name,
-        source_repository_name=github_repository_name,
-        branch_name=github_branch.name,
-        commit_sha=main_branch.commit.sha,
+        job_metadata=JobMetadata(
+            repository_name=github_repository_name,
+            source_repository_name=github_repository_name,
+            branch_name=github_branch.name,
+            commit_sha=main_branch.commit.sha,
+        )
     )
 
     assert report.reason is None
@@ -301,10 +350,12 @@ def test_pass_fork(
 
     # The github_client is injected
     report = execute_job(  # pylint: disable=no-value-for-parameter
-        repository_name=github_repository_name,
-        source_repository_name=forked_github_repository.full_name,
-        branch_name=forked_github_branch.name,
-        commit_sha=commit_on_forked_github_branch.sha,
+        job_metadata=JobMetadata(
+            repository_name=github_repository_name,
+            source_repository_name=forked_github_repository.full_name,
+            branch_name=forked_github_branch.name,
+            commit_sha=commit_on_forked_github_branch.sha,
+        )
     )
 
     assert report.reason is None
@@ -330,10 +381,12 @@ def test_pass_fork_collaborator_no_comment(
     """
     # The github_client is injected
     report = execute_job(  # pylint: disable=no-value-for-parameter
-        repository_name=github_repository_name,
-        source_repository_name=forked_github_repository.full_name,
-        branch_name=forked_github_branch.name,
-        commit_sha=commit_on_forked_github_branch.sha,
+        job_metadata=JobMetadata(
+            repository_name=github_repository_name,
+            source_repository_name=forked_github_repository.full_name,
+            branch_name=forked_github_branch.name,
+            commit_sha=commit_on_forked_github_branch.sha,
+        )
     )
 
     assert report.reason is None

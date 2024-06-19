@@ -58,7 +58,7 @@ def test_invalid_policy():
     indirect=["github_branch", "protected_github_branch"],
 )
 @pytest.mark.usefixtures("protected_github_branch")
-def test_disallow_fork(
+def test_pull_request_disallow_fork(
     github_branch: Branch,
     github_repository_name: str,
     forked_github_repository: Repository,
@@ -72,7 +72,9 @@ def test_disallow_fork(
     """
     policy_document = {
         policy.JobType.PULL_REQUEST: {
-            policy.PullRequestProperty.DISALLOW_FORK: {policy.ENABLED_KEY: policy_enabled},
+            policy.PullRequestProperty.PULL_REQUEST_DISALLOW_FORK: {
+                policy.ENABLED_KEY: policy_enabled
+            },
             policy.PullRequestProperty.TARGET_BRANCH_PROTECTION: {policy.ENABLED_KEY: False},
             policy.PullRequestProperty.COLLABORATORS: {policy.ENABLED_KEY: False},
             policy.PullRequestProperty.EXECUTE_JOB: {policy.ENABLED_KEY: False},
@@ -244,7 +246,7 @@ def test_execute_job(  # pylint: disable=too-many-arguments
     policy_document = {
         policy.JobType.PULL_REQUEST: {
             policy.PullRequestProperty.EXECUTE_JOB: {policy.ENABLED_KEY: policy_enabled},
-            policy.PullRequestProperty.DISALLOW_FORK: {policy.ENABLED_KEY: False},
+            policy.PullRequestProperty.PULL_REQUEST_DISALLOW_FORK: {policy.ENABLED_KEY: False},
         }
     }
 
