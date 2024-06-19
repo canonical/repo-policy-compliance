@@ -8,6 +8,7 @@
 from unittest.mock import MagicMock
 
 import pytest
+from github.Repository import Repository
 
 import repo_policy_compliance
 from repo_policy_compliance.check import JobMetadata, Result, pull_request_disallow_fork
@@ -39,10 +40,15 @@ def test_execute_job_same_repository():
         pytest.param(True, id="Collaborator"),
     ],
 )
-def test_execute_job_collaborator_status(is_collaborator: bool, monkeypatch: pytest.MonkeyPatch):
+def test_pull_request_disallow_fork_collaborator_status(
+    is_collaborator: bool,
+    monkeypatch: pytest.MonkeyPatch,
+    forked_github_repository: Repository,
+    github_repository: Repository,
+):
     """
     arrange: given a repository that is not a fork.
-    act: when execute_job is called.
+    act: when pull_request_disallow_fork is called.
     assert: a pass report is returned.
     """
     monkeypatch.setattr(
@@ -53,8 +59,8 @@ def test_execute_job_collaborator_status(is_collaborator: bool, monkeypatch: pyt
     # The github_client is injected
     report = pull_request_disallow_fork(  # pylint: disable=no-value-for-parameter
         job_metadata=JobMetadata(
-            repository_name="test_repository",
-            fork_or_branch_repository_name="fork_repository",
+            repository_name=github_repository.full_name,
+            fork_or_branch_repository_name=forked_github_repository.full_name,
             branch_name="test/branchname",
             commit_sha="test_commit_sha",
         )
