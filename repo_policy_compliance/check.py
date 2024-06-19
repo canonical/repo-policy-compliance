@@ -387,7 +387,7 @@ def pull_request_disallow_fork(github_client: Github, job_metadata: JobMetadata)
 
     if _check_fork_collaborator(
         repository=github_client.get_repo(job_metadata.repository_name),
-        source_repository_name=job_metadata.fork_or_branch_repository_name,
+        fork_repository_name=job_metadata.fork_or_branch_repository_name,
     ):
         return Report(result=Result.PASS, reason=None)
 

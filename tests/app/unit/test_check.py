@@ -92,7 +92,7 @@ def test__check_fork_collaborator(
     )
 
     returned_result = repo_policy_compliance.check._check_fork_collaborator(
-        repository=mocked_repository, source_repository_name=source_repository_name
+        repository=mocked_repository, fork_repository_name=source_repository_name
     )
 
     assert returned_result == expected_result

@@ -4,7 +4,6 @@
 """Tests for the pull_request_disallow_fork function."""
 
 # The tests in this file have to rely on many fixtures, need access to private function to test it
-# pylint: disable=too-many-arguments
 
 from unittest.mock import MagicMock
 
@@ -23,8 +22,8 @@ def test_execute_job_same_repository():
     # The github_client is injected
     report = pull_request_disallow_fork(  # pylint: disable=no-value-for-parameter
         job_metadata=JobMetadata(
-            repository_name="test_repository",
-            fork_or_branch_repository_name="test_repository",
+            repository_name="test_repository_disallow_fork",
+            fork_or_branch_repository_name="test_repository_disallow_fork",
             branch_name="test/branchname",
             commit_sha="test_commit_sha",
         )
