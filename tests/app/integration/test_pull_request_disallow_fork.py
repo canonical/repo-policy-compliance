@@ -34,10 +34,10 @@ def test_execute_job_same_repository():
 
 
 @pytest.mark.parametrize(
-    "is_collaborator",
+    "is_collaborator, expected_result",
     [
-        pytest.param(False, id="Not a collaborator"),
-        pytest.param(True, id="Collaborator"),
+        pytest.param(False, Result.FAIL, id="Not a collaborator"),
+        pytest.param(True, Result.PASS, id="Collaborator"),
     ],
 )
 def test_pull_request_disallow_fork_collaborator_status(
@@ -45,6 +45,7 @@ def test_pull_request_disallow_fork_collaborator_status(
     monkeypatch: pytest.MonkeyPatch,
     forked_github_repository: Repository,
     github_repository: Repository,
+    expected_result: Result,
 ):
     """
     arrange: given a repository that is not a fork.
@@ -66,4 +67,6 @@ def test_pull_request_disallow_fork_collaborator_status(
         )
     )
 
-    assert report.result == Result.PASS
+    assert (
+        report.result == expected_result
+    ), f"Expected result: {expected_result}, got: {report.result}"
