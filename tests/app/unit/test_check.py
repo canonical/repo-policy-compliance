@@ -40,13 +40,12 @@ def test_github_exceptions_to_fail_report():
 @pytest.mark.parametrize(
     "repository_name, source_repository_name, expected_user_permission, expected_result",
     [
-        pytest.param("repo-1/name-1", "repo-1/name-1", "none", False, id="repo names match"),
         pytest.param(
             "repo-1/name-1",
             "user-1/name-1",
             "none",
             True,
-            id="repo names don't match, o owner none permission",
+            id="repo names don't match, owner none permission",
         ),
         pytest.param(
             "repo-1/name-1",

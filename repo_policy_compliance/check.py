@@ -265,7 +265,8 @@ def execute_job(
     Returns:
         Whether the workflow run has been approved for the commit SHA.
     """
-    # Not a fork (branch) if source and target repositories are the same.
+    # Not a fork (is a branch) if source and target repositories are the same. Users that can
+    # create branches already have write permissions or above.
     if job_metadata.repository_name == job_metadata.source_repository_name:
         return Report(result=Result.PASS, reason=None)
 
