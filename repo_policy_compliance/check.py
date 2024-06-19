@@ -265,9 +265,13 @@ def execute_job(
     Returns:
         Whether the workflow run has been approved for the commit SHA.
     """
-    repository = github_client.get_repo(job_metadata.repository_name)
-    if not _branch_external_fork(
-        repository=repository, source_repository_name=job_metadata.source_repository_name
+    # Not a fork (branch) if source and target repositories are the same.
+    if job_metadata.repository_name == job_metadata.source_repository_name:
+        return Report(result=Result.PASS, reason=None)
+
+    if not _check_fork_collaborator(
+        repository=(repository := github_client.get_repo(job_metadata.repository_name)),
+        source_repository_name=job_metadata.source_repository_name,
     ):
         return Report(result=Result.PASS, reason=None)
 
@@ -285,7 +289,7 @@ def execute_job(
     )
 
 
-def _branch_external_fork(repository: Repository, source_repository_name: str) -> bool:
+def _check_fork_collaborator(repository: Repository, source_repository_name: str) -> bool:
     """Check whether a branch is an external fork.
 
     A external fork is a fork that is not owned by a user who has push or above permission on the
@@ -298,9 +302,6 @@ def _branch_external_fork(repository: Repository, source_repository_name: str) -
     Returns:
         Whether the branch is from a external fork.
     """
-    if repository.full_name == source_repository_name:
-        return False
-
     fork_username = source_repository_name.split("/")[0]
 
     # Check if owner of the fork already has push or higher permission (not an external user)

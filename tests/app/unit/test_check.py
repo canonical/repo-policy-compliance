@@ -71,7 +71,7 @@ def test_github_exceptions_to_fail_report():
         ),
     ],
 )
-def test__branch_external_fork(
+def test__check_fork_collaborator(
     monkeypatch: pytest.MonkeyPatch,
     repository_name: str,
     source_repository_name: str,
@@ -81,7 +81,7 @@ def test__branch_external_fork(
     """
     arrange: given repository name, source repository name and push logins
     act: when repository name, source repository name and push logins are passed to
-        _branch_external_fork
+        _check_fork_collaborator
     assert: then the expected result is returned.
     """
     mocked_repository = MagicMock(spec=Repository)
@@ -92,7 +92,7 @@ def test__branch_external_fork(
         lambda *_args, **_kwargs: expected_user_permission,
     )
 
-    returned_result = repo_policy_compliance.check._branch_external_fork(
+    returned_result = repo_policy_compliance.check._check_fork_collaborator(
         repository=mocked_repository, source_repository_name=source_repository_name
     )
 

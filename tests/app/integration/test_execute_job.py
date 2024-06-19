@@ -24,6 +24,25 @@ from repo_policy_compliance.check import (
 from tests import assert_
 
 
+def test_execute_job_not_fork():
+    """
+    arrange: given a repository that is not a fork.
+    act: when execute_job is called.
+    assert: a pass report is returned.
+    """
+    # The github_client is injected
+    report = execute_job(  # pylint: disable=no-value-for-parameter
+        job_metadata=JobMetadata(
+            repository_name="test_repository",
+            source_repository_name="test_repository",
+            branch_name="test/branchname",
+            commit_sha="test_commit_sha",
+        )
+    )
+
+    assert report.result == Result.PASS
+
+
 @pytest.mark.parametrize(
     "forked_github_branch",
     [f"test-branch/execute-job/no-pr/{uuid4()}"],
