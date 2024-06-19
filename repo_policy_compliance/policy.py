@@ -63,7 +63,7 @@ ScheduleProperty = BranchJobProperty
 ENABLED_KEY = "enabled"
 ENABLED_RULE = MappingProxyType({ENABLED_KEY: True})
 DISABLED_RULE = MappingProxyType({ENABLED_KEY: False})
-_DEFAULT_POLICY_MAP = {
+_BASE_POLICY_MAP = {
     JobType.WORKFLOW_DISPATCH: {prop: ENABLED_RULE for prop in WorkflowDispatchProperty},
     JobType.PUSH: {prop: ENABLED_RULE for prop in PushProperty},
     JobType.SCHEDULE: {prop: ENABLED_RULE for prop in ScheduleProperty},
@@ -71,7 +71,7 @@ _DEFAULT_POLICY_MAP = {
 ALL = MappingProxyType(
     {
         JobType.PULL_REQUEST: {prop: ENABLED_RULE for prop in PullRequestProperty},
-        **_DEFAULT_POLICY_MAP,
+        **_BASE_POLICY_MAP,
     }
 )
 ALLOW_FORK = MappingProxyType(
@@ -84,7 +84,7 @@ ALLOW_FORK = MappingProxyType(
             )
             for prop in PullRequestProperty
         },
-        **_DEFAULT_POLICY_MAP,
+        **_BASE_POLICY_MAP,
     }
 )
 
