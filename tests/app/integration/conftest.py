@@ -261,10 +261,10 @@ def fixture_collaborators_with_permission(
 
 
 @pytest.fixture
-def make_fork_from_collaborator(monkeypatch: pytest.MonkeyPatch):
-    """Make sure that _check_fork_collaborator returns True."""
+def make_fork_from_non_collaborator(monkeypatch: pytest.MonkeyPatch):
+    """Make sure that _check_fork_collaborator return False."""
     monkeypatch.setattr(
         repo_policy_compliance.check,
         "_check_fork_collaborator",
-        lambda *_args, **_kwargs: True,
+        lambda *_args, **_kwargs: False,
     )
