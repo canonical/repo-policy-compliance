@@ -176,7 +176,7 @@ def _get_policy_document() -> dict | UsedPolicy:
         or os.getenv(f"FLASK_{PULL_REQUEST_DISALLOW_FORK_ENV_NAME}")
     ) == "true"
     if not pull_request_disallow_fork:
-        return UsedPolicy.ALLOW_FORK
+        return UsedPolicy.PULL_REQUEST_ALLOW_FORK
     return UsedPolicy.ALL
 
 

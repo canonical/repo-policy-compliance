@@ -17,11 +17,11 @@ class UsedPolicy(Enum):
 
     Attributes:
         ALL: Use all policies.
-        ALLOW_FORK: Use policy that lets forked repositories run jobs (default).
+        PULL_REQUEST_ALLOW_FORK: Use policy that lets forked repositories run jobs (default).
     """
 
     ALL = 1
-    ALLOW_FORK = 2
+    PULL_REQUEST_ALLOW_FORK = 2
 
 
 class PullRequestInput(BaseModel):
@@ -44,7 +44,8 @@ class PullRequestInput(BaseModel):
 
 @log.call
 def pull_request(
-    input_: PullRequestInput, policy_document: dict | UsedPolicy = UsedPolicy.ALLOW_FORK
+    input_: PullRequestInput,
+    policy_document: dict | UsedPolicy = UsedPolicy.PULL_REQUEST_ALLOW_FORK,
 ) -> check.Report:
     """Run all the checks for pull request jobs.
 
@@ -123,7 +124,7 @@ def pull_request(
 
 
 def _retrieve_policy_document(
-    policy_document: dict | UsedPolicy = UsedPolicy.ALLOW_FORK,
+    policy_document: dict | UsedPolicy = UsedPolicy.PULL_REQUEST_ALLOW_FORK,
 ) -> MappingProxyType:
     """Get policy document from predefined UsedPolicy or custom document mapping.
 
@@ -138,7 +139,7 @@ def _retrieve_policy_document(
     """
     if policy_document == UsedPolicy.ALL:
         return policy.ALL
-    if policy_document == UsedPolicy.ALLOW_FORK:
+    if policy_document == UsedPolicy.PULL_REQUEST_ALLOW_FORK:
         return policy.ALLOW_FORK
     # Guaranteed to be a dict due to initial if
     policy_document = cast(dict, policy_document)

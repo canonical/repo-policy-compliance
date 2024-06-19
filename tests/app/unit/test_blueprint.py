@@ -17,7 +17,7 @@ from repo_policy_compliance import UsedPolicy
 @pytest.mark.parametrize(
     "policy_content, env, expected_document",
     [
-        pytest.param("", {}, UsedPolicy.ALLOW_FORK, id="all defaults"),
+        pytest.param("", {}, UsedPolicy.PULL_REQUEST_ALLOW_FORK, id="all defaults"),
         pytest.param("""{"test":"content"}""", {}, {"test": "content"}, id="policy document"),
         pytest.param(
             """{"test":"content"}""",
@@ -36,12 +36,15 @@ from repo_policy_compliance import UsedPolicy
             "", {"FLASK_PULL_REQUEST_DISALLOW_FORK": "true"}, UsedPolicy.ALL, id="flask env"
         ),
         pytest.param(
-            "", {"PULL_REQUEST_DISALLOW_FORK": "false"}, UsedPolicy.ALLOW_FORK, id="env false"
+            "",
+            {"PULL_REQUEST_DISALLOW_FORK": "false"},
+            UsedPolicy.PULL_REQUEST_ALLOW_FORK,
+            id="env false",
         ),
         pytest.param(
             "",
             {"FLASK_PULL_REQUEST_DISALLOW_FORK": "false"},
-            UsedPolicy.ALLOW_FORK,
+            UsedPolicy.PULL_REQUEST_ALLOW_FORK,
             id="flask env false",
         ),
     ],
