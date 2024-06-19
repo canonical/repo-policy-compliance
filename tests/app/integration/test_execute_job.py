@@ -48,7 +48,7 @@ def test_execute_job_not_fork():
     [f"test-branch/execute-job/no-pr/{uuid4()}"],
     indirect=True,
 )
-@pytest.mark.usefixtures("make_fork_branch_external")
+@pytest.mark.usefixtures("make_fork_from_collaborator")
 def test_fail_forked_no_pr(
     forked_github_repository: Repository, forked_github_branch: Branch, github_repository_name: str
 ):
@@ -77,7 +77,7 @@ def test_fail_forked_no_pr(
     [f"test-branch/execute-job/disabled-third-party-fork/{uuid4()}"],
     indirect=True,
 )
-@pytest.mark.usefixtures("make_fork_branch_external")
+@pytest.mark.usefixtures("make_fork_from_collaborator")
 def test_fail_forked_disable_third_party_fork(
     forked_github_repository: Repository, forked_github_branch: Branch, github_repository_name: str
 ):
@@ -107,7 +107,7 @@ def test_fail_forked_disable_third_party_fork(
     [f"test-branch/execute-job/no-comment-on-pr/{uuid4()}"],
     indirect=True,
 )
-@pytest.mark.usefixtures("pr_from_forked_github_branch", "make_fork_branch_external")
+@pytest.mark.usefixtures("pr_from_forked_github_branch", "make_fork_from_collaborator")
 def test_fail_forked_no_comment_on_pr(
     forked_github_repository: Repository, forked_github_branch: Branch, github_repository_name: str
 ):
@@ -136,7 +136,7 @@ def test_fail_forked_no_comment_on_pr(
     [f"test-branch/execute-job/wrong-comment-on-pr/{uuid4()}"],
     indirect=True,
 )
-@pytest.mark.usefixtures("make_fork_branch_external")
+@pytest.mark.usefixtures("make_fork_from_collaborator")
 def test_fail_forked_wrong_comment_on_pr(
     forked_github_repository: Repository,
     github_repository: Repository,
@@ -173,7 +173,7 @@ def test_fail_forked_wrong_comment_on_pr(
     [f"test-branch/execute-job/wrong-commit-sha-on-pr/{uuid4()}"],
     indirect=True,
 )
-@pytest.mark.usefixtures("make_fork_branch_external")
+@pytest.mark.usefixtures("make_fork_from_collaborator")
 def test_fail_forked_wrong_commit_sha_on_pr(
     forked_github_repository: Repository,
     github_repository: Repository,
@@ -211,7 +211,7 @@ def test_fail_forked_wrong_commit_sha_on_pr(
     [f"test-branch/execute-job/quoted-authorization/{uuid4()}"],
     indirect=True,
 )
-@pytest.mark.usefixtures("make_fork_branch_external")
+@pytest.mark.usefixtures("make_fork_from_collaborator")
 def test_fail_forked_quoted_authorizationr(
     forked_github_repository: Repository,
     github_repository: Repository,
@@ -248,7 +248,7 @@ def test_fail_forked_quoted_authorizationr(
     [f"test-branch/execute-job/comment-from-wrong-user-on-pr/{uuid4()}"],
     indirect=True,
 )
-@pytest.mark.usefixtures("make_fork_branch_external")
+@pytest.mark.usefixtures("make_fork_from_collaborator")
 def test_fail_forked_comment_from_wrong_user_on_pr(
     forked_github_repository: Repository,
     github_repository: Repository,
@@ -336,7 +336,7 @@ def test_pass_main_repo(
     [f"test-branch/execute-job/fork-branch/{uuid4()}"],
     indirect=True,
 )
-@pytest.mark.usefixtures("make_fork_branch_external")
+@pytest.mark.usefixtures("make_fork_from_collaborator")
 def test_pass_fork(
     forked_github_repository: Repository,
     github_repository: Repository,
