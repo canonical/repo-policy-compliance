@@ -96,7 +96,7 @@ def pull_request(
     if (
         policy.enabled(
             job_type=policy.JobType.PULL_REQUEST,
-            name=policy.PullRequestProperty.PULL_REQUEST_DISALLOW_FORK,
+            name=policy.PullRequestProperty.DISALLOW_FORK,
             policy_document=used_policy_document,
         )
         and (

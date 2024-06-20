@@ -172,9 +172,9 @@ def _get_policy_document() -> dict | UsedPolicy:
     if stored_policy_document_contents := policy_document_path.read_text(encoding="utf-8"):
         return cast(dict, json.loads(stored_policy_document_contents))
     pull_request_disallow_fork = (
-        os.getenv(PULL_REQUEST_DISALLOW_FORK_ENV_NAME)
-        or os.getenv(f"FLASK_{PULL_REQUEST_DISALLOW_FORK_ENV_NAME}")
-    ) == "true"
+        os.getenv(PULL_REQUEST_DISALLOW_FORK_ENV_NAME, "")
+        or os.getenv(f"FLASK_{PULL_REQUEST_DISALLOW_FORK_ENV_NAME}", "")
+    ).lower() == "true"
     if not pull_request_disallow_fork:
         return UsedPolicy.PULL_REQUEST_ALLOW_FORK
     return UsedPolicy.ALL

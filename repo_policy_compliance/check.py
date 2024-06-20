@@ -233,7 +233,7 @@ def collaborators(github_client: Github, repository_name: str) -> Report:
 class JobMetadata:
     """Information about the target job run to check for authorization.
 
-    Attrs:
+    Attributes:
         branch_name: The branch name of the target repository.
         commit_sha: The commit SHA of the job run.
         repository_name: The repository running the check.

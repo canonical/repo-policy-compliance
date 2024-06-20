@@ -10,7 +10,7 @@ properties:
         $ref: "#/$defs/rule"
       collaborators:
         $ref: "#/$defs/rule"
-      pull_request_disallow_fork:
+      disallow_fork:
         $ref: "#/$defs/rule"
       execute_job:
         $ref: "#/$defs/rule"

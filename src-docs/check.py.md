@@ -43,7 +43,14 @@ Catch exceptions and convert to failed report with reason.
 ## <kbd>class</kbd> `JobMetadata`
 Information about the target job run to check for authorization. 
 
-Attrs:  branch_name: The branch name of the target repository.  commit_sha: The commit SHA of the job run.  repository_name: The repository running the check.  fork_or_branch_repository_name: The repository of the branch/fork. 
+
+
+**Attributes:**
+ 
+ - <b>`branch_name`</b>:  The branch name of the target repository. 
+ - <b>`commit_sha`</b>:  The commit SHA of the job run. 
+ - <b>`repository_name`</b>:  The repository running the check. 
+ - <b>`fork_or_branch_repository_name`</b>:  The repository of the branch/fork. 
 
 
 
