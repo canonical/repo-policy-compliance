@@ -48,9 +48,9 @@ def test_pull_request_disallow_fork_collaborator_status(
     expected_result: Result,
 ):
     """
-    arrange: given a repository that is not a fork.
+    arrange: given a repository that is a fork with a monkeypatched _check_fork_collaborator.
     act: when pull_request_disallow_fork is called.
-    assert: a pass report is returned.
+    assert: a expected result is returned.
     """
     monkeypatch.setattr(
         repo_policy_compliance.check,

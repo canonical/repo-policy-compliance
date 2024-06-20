@@ -136,31 +136,6 @@ def pull_request(
     return check.Report(result=check.Result.PASS, reason=None)
 
 
-def _retrieve_policy_document(
-    policy_document: dict | UsedPolicy = UsedPolicy.PULL_REQUEST_ALLOW_FORK,
-) -> MappingProxyType:
-    """Get policy document from predefined UsedPolicy or custom document mapping.
-
-    Args:
-        policy_document: The predefined used policy enum or custom mapping dict.
-
-    Raises:
-        ValueError: If an invalid policy document mapping was given.
-
-    Returns:
-        Mapped policy document.
-    """
-    if policy_document == UsedPolicy.ALL:
-        return policy.ALL
-    if policy_document == UsedPolicy.PULL_REQUEST_ALLOW_FORK:
-        return policy.ALLOW_FORK
-    # Guaranteed to be a dict due to initial if
-    policy_document = cast(dict, policy_document)
-    if not (policy_report := policy.check(document=policy_document)).result:
-        raise ValueError(policy_report.reason)
-    return MappingProxyType(policy_document)
-
-
 class BranchInput(BaseModel):
     """Input arguments to check jobs running on a branch.
 
@@ -284,3 +259,28 @@ def schedule(
         return collaborators_report
 
     return check.Report(result=check.Result.PASS, reason=None)
+
+
+def _retrieve_policy_document(
+    policy_document: dict | UsedPolicy = UsedPolicy.PULL_REQUEST_ALLOW_FORK,
+) -> MappingProxyType:
+    """Get policy document from predefined UsedPolicy or custom document mapping.
+
+    Args:
+        policy_document: The predefined used policy enum or custom mapping dict.
+
+    Raises:
+        ValueError: If an invalid policy document mapping was given.
+
+    Returns:
+        Mapped policy document.
+    """
+    if policy_document == UsedPolicy.ALL:
+        return policy.ALL
+    if policy_document == UsedPolicy.PULL_REQUEST_ALLOW_FORK:
+        return policy.ALLOW_FORK
+    # Guaranteed to be a dict due to initial if statements
+    policy_document = cast(dict, policy_document)
+    if not (policy_report := policy.check(document=policy_document)).result:
+        raise ValueError(policy_report.reason)
+    return MappingProxyType(policy_document)

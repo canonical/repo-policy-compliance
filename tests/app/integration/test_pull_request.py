@@ -66,9 +66,9 @@ def test_pull_request_disallow_fork(
     expected_result: Result,
 ):
     """
-    arrange: given a source and target branch and repository that is not compliant
+    arrange: given a forked repository and a disable_fork policy enabled/disabled.
     act: when pull_request is called
-    assert: then a fail report is returned.
+    assert: then a expected result is returned.
     """
     policy_document = {
         policy.JobType.PULL_REQUEST: {
