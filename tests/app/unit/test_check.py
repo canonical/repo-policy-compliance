@@ -40,38 +40,37 @@ def test_github_exceptions_to_fail_report():
 @pytest.mark.parametrize(
     "repository_name, source_repository_name, expected_user_permission, expected_result",
     [
-        pytest.param("repo-1/name-1", "repo-1/name-1", "none", False, id="repo names match"),
         pytest.param(
             "repo-1/name-1",
             "user-1/name-1",
             "none",
-            True,
-            id="repo names don't match, o owner none permission",
+            False,
+            id="repo names don't match, owner none permission",
         ),
         pytest.param(
             "repo-1/name-1",
             "user-1/name-1",
             "read",
-            True,
+            False,
             id="repo names don't match, owner read permission",
         ),
         pytest.param(
             "repo-1/name-1",
             "user-1/name-1",
             "write",
-            False,
+            True,
             id="repo names don't match, owner write permissions",
         ),
         pytest.param(
             "repo-1/name-1",
             "user-1/name-1",
             "admin",
-            False,
+            True,
             id="repo names don't match, owner admin permissions",
         ),
     ],
 )
-def test__branch_external_fork(
+def test__check_fork_collaborator(
     monkeypatch: pytest.MonkeyPatch,
     repository_name: str,
     source_repository_name: str,
@@ -81,7 +80,7 @@ def test__branch_external_fork(
     """
     arrange: given repository name, source repository name and push logins
     act: when repository name, source repository name and push logins are passed to
-        _branch_external_fork
+        _check_fork_collaborator
     assert: then the expected result is returned.
     """
     mocked_repository = MagicMock(spec=Repository)
@@ -92,8 +91,8 @@ def test__branch_external_fork(
         lambda *_args, **_kwargs: expected_user_permission,
     )
 
-    returned_result = repo_policy_compliance.check._branch_external_fork(
-        repository=mocked_repository, source_repository_name=source_repository_name
+    returned_result = repo_policy_compliance.check._check_fork_collaborator(
+        repository=mocked_repository, fork_repository_name=source_repository_name
     )
 
     assert returned_result == expected_result
