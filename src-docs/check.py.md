@@ -14,7 +14,7 @@ Individual checks used to compose job checks.
 
 ---
 
-<a href="../repo_policy_compliance/check.py#L80"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/check.py#L81"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `github_exceptions_to_fail_report`
 
@@ -36,6 +36,24 @@ Catch exceptions and convert to failed report with reason.
 
 **Returns:**
  The function where any exceptions raised would be converted to a failed result. 
+
+
+---
+
+## <kbd>class</kbd> `JobMetadata`
+Information about the target job run to check for authorization. 
+
+
+
+**Attributes:**
+ 
+ - <b>`branch_name`</b>:  The branch name of the target repository. 
+ - <b>`commit_sha`</b>:  The commit SHA of the job run. 
+ - <b>`repository_name`</b>:  The repository running the check. 
+ - <b>`fork_or_branch_repository_name`</b>:  The repository of the branch/fork. 
+
+
+
 
 
 ---

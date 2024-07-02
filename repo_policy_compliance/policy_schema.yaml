@@ -10,6 +10,8 @@ properties:
         $ref: "#/$defs/rule"
       collaborators:
         $ref: "#/$defs/rule"
+      disallow_fork:
+        $ref: "#/$defs/rule"
       execute_job:
         $ref: "#/$defs/rule"
     additionalProperties: false

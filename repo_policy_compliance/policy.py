@@ -34,11 +34,13 @@ class PullRequestProperty(str, Enum):
     Attributes:
         TARGET_BRANCH_PROTECTION: Branch protection for the target branch.
         COLLABORATORS: Participants on a repository.
+        DISALLOW_FORK: Whether a forked repository should not be allowed to run jobs.
         EXECUTE_JOB: Whether a job should be executed.
     """
 
     TARGET_BRANCH_PROTECTION = "target_branch_protection"
     COLLABORATORS = "collaborators"
+    DISALLOW_FORK = "disallow_fork"
     EXECUTE_JOB = "execute_job"
 
 
@@ -60,12 +62,25 @@ ScheduleProperty = BranchJobProperty
 # Using MappingProxyType to make these immutable
 ENABLED_KEY = "enabled"
 ENABLED_RULE = MappingProxyType({ENABLED_KEY: True})
+DISABLED_RULE = MappingProxyType({ENABLED_KEY: False})
+_BASE_POLICY_MAP = {
+    JobType.WORKFLOW_DISPATCH: {prop: ENABLED_RULE for prop in WorkflowDispatchProperty},
+    JobType.PUSH: {prop: ENABLED_RULE for prop in PushProperty},
+    JobType.SCHEDULE: {prop: ENABLED_RULE for prop in ScheduleProperty},
+}
 ALL = MappingProxyType(
     {
         JobType.PULL_REQUEST: {prop: ENABLED_RULE for prop in PullRequestProperty},
-        JobType.WORKFLOW_DISPATCH: {prop: ENABLED_RULE for prop in WorkflowDispatchProperty},
-        JobType.PUSH: {prop: ENABLED_RULE for prop in PushProperty},
-        JobType.SCHEDULE: {prop: ENABLED_RULE for prop in ScheduleProperty},
+        **_BASE_POLICY_MAP,
+    }
+)
+ALLOW_FORK = MappingProxyType(
+    {
+        JobType.PULL_REQUEST: {
+            prop: (ENABLED_RULE if prop != PullRequestProperty.DISALLOW_FORK else DISABLED_RULE)
+            for prop in PullRequestProperty
+        },
+        **_BASE_POLICY_MAP,
     }
 )
 
