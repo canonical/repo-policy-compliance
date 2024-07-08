@@ -279,9 +279,9 @@ Jinja2==3.1.4; python_full_version >= "3.10.0" and python_full_version < "4.0.0"
 jsonschema-specifications==2023.12.1 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
     --hash=sha256:48a76787b3e70f5ed53f1160d2b81f586e4ca6d1548c5de7085d1682674764cc \
     --hash=sha256:87e4fdf3a94858b8a2ba2778d9ba57d8a9cafca7c7489c46ba0d30a8bc6a9c3c
-jsonschema==4.22.0; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
-    --hash=sha256:5b22d434a45935119af990552c862e5d6d564e8f6601206b305a61fdf661a2b7 \
-    --hash=sha256:ff4cfd6b1367a40e7bc6411caec72effadd3db0bbe5017de188f2d6108335802
+jsonschema==4.23.0; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
+    --hash=sha256:d71497fef26351a33265337fa77ffeb82423f3ea21283cd9467bb03999266bc4 \
+    --hash=sha256:fbadb6f8b144a8f8cf9f0b89ba94501d143e50411a1278633f56a7acf7fd5566
 Mako==1.3.5; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
     --hash=sha256:260f1dbc3a519453a9c856dedfe4beb4e50bd5a26d96386cb6c80856556bb91a \
     --hash=sha256:48dbc20568c1d276a2698b36d968fa76161bf127194907ea6fc594fa81f943bc
