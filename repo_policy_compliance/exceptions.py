@@ -23,6 +23,14 @@ class GithubClientError(BaseError):
 class GithubApiNotFoundError(GithubClientError):
     """Error occurred on Github API that the resource is not found."""
 
+    def __init__(self, api_message: str | None = None):
+        """Initialize the exception.
+
+        Args:
+            api_message: The message from the Github API. Should be something with "not found".
+        """
+        self.api_message = api_message
+
 
 class RetryableGithubClientError(GithubClientError):
     """Error occurred on Github API that can be retried on user's end."""

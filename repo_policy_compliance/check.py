@@ -113,7 +113,8 @@ def github_exceptions_to_fail_report(func: Callable[P, R]) -> Callable[P, R | Re
             return Report(
                 result=Result.FAIL,
                 reason=f"The repository is not set up correctly. "
-                f"A particular GitHub resource could not be found. The API returned: {exc} ",
+                f"A particular GitHub resource could not be found. "
+                f"{('The API returned:' + exc.api_message) if exc.api_message else ''} ",
             )
         except GithubClientError:
             return Report(

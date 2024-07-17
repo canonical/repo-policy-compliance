@@ -30,6 +30,22 @@ There is a problem with configuration.
 ## <kbd>class</kbd> `GithubApiNotFoundError`
 Error occurred on Github API that the resource is not found. 
 
+<a href="../repo_policy_compliance/exceptions.py#L26"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+
+### <kbd>function</kbd> `__init__`
+
+```python
+__init__(api_message: str | None = None)
+```
+
+Initialize the exception. 
+
+
+
+**Args:**
+ 
+ - <b>`api_message`</b>:  The message from the Github API. Should be something with "not found". 
+
 
 
 
