@@ -218,9 +218,9 @@ def target_branch_protection(
     return Report(result=Result.PASS, reason=None)
 
 
+@log.call
 @github_exceptions_to_fail_report
 @inject_github_client
-@log.call
 def collaborators(github_client: Github, repository_name: str) -> Report:
     """Check that no outside contributors have higher access than read.
 
@@ -272,9 +272,9 @@ class JobMetadata:
     fork_or_branch_repository_name: str
 
 
+@log.call
 @github_exceptions_to_fail_report
 @inject_github_client
-@log.call
 def execute_job(github_client: Github, job_metadata: JobMetadata) -> Report:
     """Check that the execution of the workflow for a SHA has been granted for a PR from a fork.
 
@@ -394,9 +394,9 @@ def _check_authorization_comment(
     return Report(result=Result.PASS, reason=None)
 
 
+@log.call
 @github_exceptions_to_fail_report
 @inject_github_client
-@log.call
 def pull_request_disallow_fork(github_client: Github, job_metadata: JobMetadata) -> Report:
     """Check that the pull request from 3rd party is disallowed.
 
