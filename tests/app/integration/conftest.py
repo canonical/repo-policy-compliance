@@ -212,7 +212,6 @@ def fixture_ruleset_protected_github_branch(
         "name": f"{github_branch.name}-ruleset",
         "target": "branch",
         "enforcement": "active",
-        "bypass_actors": [{"actor_id": 234, "actor_type": "Team", "bypass_mode": "always"}],
         "conditions": {
             "ref_name": {
                 "include": [f"refs/heads/{github_branch.name}"],
