@@ -150,9 +150,9 @@ def branch_protected(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
+@log.call
 @github_exceptions_to_fail_report
 @inject_github_client
-@log.call
 def target_branch_protection(
     github_client: Github, repository_name: str, branch_name: str, source_repository_name: str
 ) -> Report:
