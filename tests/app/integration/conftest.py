@@ -7,6 +7,7 @@ import os
 from typing import Iterator, cast
 
 import pytest
+import requests
 from github import Github
 from github.Auth import Token
 from github.Branch import Branch
@@ -15,7 +16,7 @@ from github.PullRequest import PullRequest
 from github.Repository import Repository
 
 import repo_policy_compliance
-from repo_policy_compliance.github_client import get_collaborators
+from repo_policy_compliance.github_client import GITHUB_TOKEN_ENV_NAME, get_collaborators
 from repo_policy_compliance.github_client import inject as inject_github_client
 
 from ...conftest import REPOSITORY_ARGUMENT_NAME
@@ -193,6 +194,47 @@ def fixture_protected_github_branch(
 
     if branch_with_protection.branch_protection_enabled:
         github_branch.remove_protection()
+
+
+@pytest.fixture(name="ruleset_protected_github_branch")
+def fixture_ruleset_protected_github_branch(
+    github_branch: Branch, github_repository: Repository
+) -> Iterator[Branch]:
+    """Add ruleset protection for a branch."""
+    github_token = os.getenv(GITHUB_TOKEN_ENV_NAME) or os.getenv(f"FLASK_{GITHUB_TOKEN_ENV_NAME}")
+    url = (
+        f"https://api.github.com/repos/{github_repository.owner}/{github_repository.name}/rulesets"
+    )
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {github_token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    data = {
+        "name": f"{github_branch.name}-ruleset",
+        "target": "branch",
+        "enforcement": "active",
+        "bypass_actors": [{"actor_id": 234, "actor_type": "Team", "bypass_mode": "always"}],
+        "conditions": {
+            "ref_name": {
+                "include": [f"refs/heads/{github_branch.name}"],
+            }
+        },
+    }
+
+    response = requests.post(url, headers=headers, json=data, timeout=10)
+    response.raise_for_status()
+
+    yield github_branch
+
+    # delete the ruleset
+    ruleset_id = response.json()["id"]
+    url = (
+        f"https://api.github.com/repos/{github_repository.owner}/{github_repository.name}/"
+        f"rulesets/{ruleset_id}"
+    )
+    response = requests.delete(url, headers=headers, timeout=10)
+    response.raise_for_status()
 
 
 @pytest.fixture(name="pull_request_review_not_required")

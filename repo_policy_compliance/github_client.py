@@ -9,7 +9,13 @@ import os
 from typing import Callable, Concatenate, Literal, ParamSpec, TypeVar, cast
 from urllib import parse
 
-from github import BadCredentialsException, Github, GithubException, RateLimitExceededException
+from github import (
+    BadCredentialsException,
+    Github,
+    GithubException,
+    RateLimitExceededException,
+    UnknownObjectException,
+)
 from github.Auth import Token
 from github.Branch import Branch
 from github.Repository import Repository
@@ -17,6 +23,7 @@ from urllib3 import Retry
 
 from repo_policy_compliance.exceptions import (
     ConfigurationError,
+    GithubApiNotFoundError,
     GithubClientError,
     RetryableGithubClientError,
 )
@@ -75,6 +82,7 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
             kwargs: The keywords arguments passed to the method
 
         Raises:
+            GithubApiNotFoundError: If the GitHub API returns a 404.
             GithubClientError: If the Github client encountered an error.
             RetryableGithubClientError: If the error raised is retryable on the users's end.
 
@@ -98,6 +106,8 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
                 "The github client is returning a Rate Limit Exceeded error, "
                 "please wait before retrying."
             ) from exc
+        except UnknownObjectException as exc:
+            raise GithubApiNotFoundError(exc.message) from exc
         except GithubException as exc:
             logging.error("Github client error: %s", exc, exc_info=exc)
             raise GithubClientError("The github client encountered an error.") from exc

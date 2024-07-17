@@ -20,5 +20,9 @@ class GithubClientError(BaseError):
     """Error occurred on Github API."""
 
 
+class GithubApiNotFoundError(GithubClientError):
+    """Error occurred on Github API that the resource is not found."""
+
+
 class RetryableGithubClientError(GithubClientError):
     """Error occurred on Github API that can be retried on user's end."""

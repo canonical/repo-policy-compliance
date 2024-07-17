@@ -11,7 +11,7 @@ Module for GitHub client.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L31"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L38"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get`
 
@@ -35,7 +35,7 @@ Get a GitHub client.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L58"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L65"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `inject`
 
@@ -59,7 +59,7 @@ Injects a GitHub client as the first argument to a function.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L108"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L118"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_collaborators`
 
@@ -89,7 +89,7 @@ Get collaborators with a given affiliation and permission.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L143"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L153"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_branch`
 
@@ -119,7 +119,7 @@ Get the branch for the check.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L158"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L168"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_collaborator_permission`
 

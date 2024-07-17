@@ -21,3 +21,5 @@ jobs:
       charmcraft-channel: latest/edge
       test-tox-env: charm-integration-test
       trivy-image-config: "trivy.yaml"
+      modules: '["test_target_branch_protection"]'  # TODO: speed up by running only one test, remove this line before merging
+

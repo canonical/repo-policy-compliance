@@ -27,6 +27,15 @@ There is a problem with configuration.
 
 ---
 
+## <kbd>class</kbd> `GithubApiNotFoundError`
+Error occurred on Github API that the resource is not found. 
+
+
+
+
+
+---
+
 ## <kbd>class</kbd> `GithubClientError`
 Error occurred on Github API. 
 
