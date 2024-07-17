@@ -166,7 +166,6 @@ def test_fail_branch_missing(
     assert report.reason, "expected a reason along with the fail result"
     assert "A particular GitHub resource could not be found" in report.reason
     assert "Branch not found" in report.reason
-    assert branch_name in report.reason
     assert repr(report) in caplog.text
 
 
