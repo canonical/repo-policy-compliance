@@ -170,7 +170,7 @@ def test_fail_branch_missing(
 
 
 @pytest.mark.parametrize(
-    "github_branch",
+    "github_branch, protected_github_branch",
     [
         (
             f"test-branch/target-branch/not-protected/{uuid4()}",
