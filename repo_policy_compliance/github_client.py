@@ -102,7 +102,7 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
             ) from exc
         except GithubException as exc:
             if exc.status == 404:
-                raise GithubApiNotFoundError(exc.message) from exc
+                raise GithubApiNotFoundError(exc.data.get("message", "")) from exc
             logging.error("Github client error: %s", exc, exc_info=exc)
             raise GithubClientError("The github client encountered an error.") from exc
 
