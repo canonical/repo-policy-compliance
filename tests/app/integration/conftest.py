@@ -202,9 +202,7 @@ def fixture_ruleset_protected_github_branch(
 ) -> Iterator[Branch]:
     """Add ruleset protection for a branch."""
     github_token = os.getenv(GITHUB_TOKEN_ENV_NAME) or os.getenv(f"FLASK_{GITHUB_TOKEN_ENV_NAME}")
-    url = (
-        f"https://api.github.com/repos/{github_repository.owner}/{github_repository.name}/rulesets"
-    )
+    url = f"https://api.github.com/repos/{github_repository.full_name}/rulesets"
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {github_token}",
@@ -229,10 +227,7 @@ def fixture_ruleset_protected_github_branch(
 
     # delete the ruleset
     ruleset_id = response.json()["id"]
-    url = (
-        f"https://api.github.com/repos/{github_repository.owner}/{github_repository.name}/"
-        f"rulesets/{ruleset_id}"
-    )
+    url = f"https://api.github.com/repos/{github_repository.full_name}/rulesets/{ruleset_id}"
     response = requests.delete(url, headers=headers, timeout=10)
     response.raise_for_status()
 

@@ -9,13 +9,7 @@ import os
 from typing import Callable, Concatenate, Literal, ParamSpec, TypeVar, cast
 from urllib import parse
 
-from github import (
-    BadCredentialsException,
-    Github,
-    GithubException,
-    RateLimitExceededException,
-    UnknownObjectException,
-)
+from github import BadCredentialsException, Github, GithubException, RateLimitExceededException
 from github.Auth import Token
 from github.Branch import Branch
 from github.Repository import Repository
@@ -106,9 +100,9 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
                 "The github client is returning a Rate Limit Exceeded error, "
                 "please wait before retrying."
             ) from exc
-        except UnknownObjectException as exc:
-            raise GithubApiNotFoundError(exc.message) from exc
         except GithubException as exc:
+            if exc.status == 404:
+                raise GithubApiNotFoundError(exc.message) from exc
             logging.error("Github client error: %s", exc, exc_info=exc)
             raise GithubClientError("The github client encountered an error.") from exc
 

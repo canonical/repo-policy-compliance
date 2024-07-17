@@ -8,7 +8,7 @@ import functools
 from enum import Enum
 from typing import Callable, NamedTuple, ParamSpec, TypeVar
 
-from github import Github, UnknownObjectException
+from github import Github, GithubException
 from github.Branch import Branch
 from github.Repository import Repository
 
@@ -113,7 +113,7 @@ def github_exceptions_to_fail_report(func: Callable[P, R]) -> Callable[P, R | Re
             return Report(
                 result=Result.FAIL,
                 reason=f"The repository is not set up correctly. "
-                f"A particular GitHub resource could not be found: {exc} ",
+                f"A particular GitHub resource could not be found. The API returned: {exc} ",
             )
         except GithubClientError:
             return Report(
@@ -165,6 +165,9 @@ def target_branch_protection(
 
     Returns:
         Whether the branch has appropriate protections.
+
+    Raises:
+        GithubException: If there is a non-404 error on getting the branch protection.
     """
     branch = get_branch(
         github_client=github_client, repository_name=repository_name, branch_name=branch_name
@@ -182,15 +185,17 @@ def target_branch_protection(
             # the branch protection API in which case the branch protection API will return
             # a 404 error
             protection = branch.get_protection()
-        except UnknownObjectException:
-            return Report(
-                result=Result.FAIL,
-                reason=(
-                    f"{FAILURE_MESSAGE}branch protection not enabled "
-                    "(maybe rulesets have been defined instead of branch protection),"
-                    f" {branch_name=!r}"
-                ),
-            )
+        except GithubException as exc:
+            if exc.status == 404:
+                return Report(
+                    result=Result.FAIL,
+                    reason=(
+                        f"{FAILURE_MESSAGE}branch protection not enabled "
+                        "(maybe rulesets have been defined instead of branch protection),"
+                        f" {branch_name=!r}"
+                    ),
+                )
+            raise
         pull_request_reviews = protection.required_pull_request_reviews
         if pull_request_reviews is None:
             return Report(
