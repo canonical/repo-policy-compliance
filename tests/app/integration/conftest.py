@@ -215,9 +215,10 @@ def fixture_ruleset_protected_github_branch(
         "conditions": {
             "ref_name": {
                 "include": [f"refs/heads/{github_branch.name}"],
-                "exclude": ["refs/heads/dev*"],
+                "exclude": [],
             }
         },
+        "rules": [{"type": "deletion"}, {"type": "non_fast_forward"}],
     }
 
     response = requests.post(url, headers=headers, json=data, timeout=10)
