@@ -109,8 +109,10 @@ def test_target_branch_protection_get_protections_raises_non_404_error(
     assert: a report with error result is returned.
     """
     branch_mock = MagicMock(spec=Branch)
-    branch_mock.get_protection.side_effect = GithubException(status=500)
-    monkeypatch.setattr(repo_policy_compliance.check, "get_branch", branch_mock)
+    branch_mock.get_protection = MagicMock(side_effect=GithubException(status=500))
+    monkeypatch.setattr(
+        repo_policy_compliance.check, "get_branch", lambda *_args, **_kwargs: branch_mock
+    )
     monkeypatch.setattr(
         repo_policy_compliance.check,
         "branch_protected",
@@ -121,10 +123,12 @@ def test_target_branch_protection_get_protections_raises_non_404_error(
     repo_mock.default_branch = secrets.token_hex(16)
     github_client_mock = MagicMock(spec=Github)
     github_client_mock.get_repo.return_value = repo_mock
+    monkeypatch.setattr(
+        "repo_policy_compliance.github_client.get", lambda *_args, **_kwargs: github_client_mock
+    )
 
-    # mypy complains about the keyword-args, maybe due to the use of decorators?
-    report = repo_policy_compliance.check.target_branch_protection(  # type: ignore
-        github_client=github_client_mock,
+    # github_client is injected, therefore we don't need to pass it.
+    report = repo_policy_compliance.check.target_branch_protection(  # pylint: disable=no-value-for-parameter
         repository_name="this/test",
         branch_name=secrets.token_hex(16),
         source_repository_name="other/test",
