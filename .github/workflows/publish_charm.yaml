@@ -11,6 +11,5 @@ jobs:
     uses: canonical/operator-workflows/.github/workflows/publish_charm.yaml@main
     secrets: inherit
     with:
-      channel: latest/edge
       charmcraft-channel: "latest/edge"
       resource-mapping: '{"repo-policy-compliance": "flask-app-image"}'
