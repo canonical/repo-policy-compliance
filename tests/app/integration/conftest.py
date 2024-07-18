@@ -30,6 +30,14 @@ def fixture_github_repository_name(pytestconfig: pytest.Config) -> str:
     return pytestconfig.getoption(REPOSITORY_ARGUMENT_NAME)
 
 
+@pytest.fixture(scope="session", name="github_token")
+def fixutre_github_token() -> str:
+    """Get the GitHub token from the environment."""
+    github_token = os.getenv(GITHUB_TOKEN_ENV_NAME)
+    assert github_token, f"GitHub must be set in the environment variable {GITHUB_TOKEN_ENV_NAME}"
+    return github_token
+
+
 @pytest.fixture(scope="session", name="ci_github_token")
 def fixture_ci_github_token() -> str | None:
     """Get the GitHub token from the CI environment."""
@@ -198,10 +206,9 @@ def fixture_protected_github_branch(
 
 @pytest.fixture(name="ruleset_protected_github_branch")
 def fixture_ruleset_protected_github_branch(
-    github_branch: Branch, github_repository: Repository
+    github_token: str, github_branch: Branch, github_repository: Repository
 ) -> Iterator[Branch]:
     """Add ruleset protection for a branch."""
-    github_token = os.getenv(GITHUB_TOKEN_ENV_NAME) or os.getenv(f"FLASK_{GITHUB_TOKEN_ENV_NAME}")
     url = f"https://api.github.com/repos/{github_repository.full_name}/rulesets"
     headers = {
         "Accept": "application/vnd.github+json",
