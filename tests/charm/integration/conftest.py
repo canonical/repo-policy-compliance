@@ -89,7 +89,6 @@ async def app_fixture(
             "plugin_hstore_enable": "true",
             "plugin_pg_trgm_enable": "true",
         },
-        revision=239
     )
     await model.integrate(app_name, f"{database_name}:database")
     await model.wait_for_idle(apps=[app_name, database_name], status="active")
