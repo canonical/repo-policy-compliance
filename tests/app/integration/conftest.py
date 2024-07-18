@@ -209,6 +209,9 @@ def fixture_ruleset_protected_github_branch(
     github_token: str, github_branch: Branch, github_repository: Repository
 ) -> Iterator[Branch]:
     """Add ruleset protection for a branch."""
+    # pygithub does not support the rulesets API yet:
+    # https://github.com/PyGithub/PyGithub/issues/2718
+    # We use the GitHub API with the requests module to create the ruleset
     url = f"https://api.github.com/repos/{github_repository.full_name}/rulesets"
     headers = {
         "Accept": "application/vnd.github+json",
