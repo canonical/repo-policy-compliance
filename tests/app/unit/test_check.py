@@ -2,18 +2,20 @@
 # See LICENSE file for licensing details.
 
 """Tests for the check module."""
-
-# internal functions are being accessed for testing.
-# pylint: disable=protected-access
-
+import secrets
 from unittest.mock import MagicMock
 
 import pytest
+from github import Github, GithubException
+from github.Branch import Branch
 from github.Repository import Repository
 
 import repo_policy_compliance
-from repo_policy_compliance.check import Result
+from repo_policy_compliance.check import Report, Result
 from repo_policy_compliance.exceptions import GithubClientError
+
+# internal functions are being accessed for testing.
+# pylint: disable=protected-access
 
 
 def test_github_exceptions_to_fail_report():
@@ -96,3 +98,37 @@ def test__check_fork_collaborator(
     )
 
     assert returned_result == expected_result
+
+
+def test_target_branch_protection_get_protections_raises_non_404_error(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """
+    arrange: that branch.get_protection raises an error (non 404 status code)
+    act: call target_branch_protection
+    assert: a report with error result is returned.
+    """
+    branch_mock = MagicMock(spec=Branch)
+    branch_mock.get_protection.side_effect = GithubException(status=500)
+    monkeypatch.setattr(repo_policy_compliance.check, "get_branch", branch_mock)
+    monkeypatch.setattr(
+        repo_policy_compliance.check,
+        "branch_protected",
+        lambda *_args, **_kwargs: Report(Result.PASS, "Branch is protected"),
+    )
+
+    repo_mock = MagicMock(spec=Repository)
+    repo_mock.default_branch = secrets.token_hex(16)
+    github_client_mock = MagicMock(spec=Github)
+    github_client_mock.get_repo.return_value = repo_mock
+
+    # mypy complains about the keyword-args, maybe due to the use of decorators?
+    report = repo_policy_compliance.check.target_branch_protection(  # type: ignore
+        github_client=github_client_mock,
+        repository_name="this/test",
+        branch_name=secrets.token_hex(16),
+        source_repository_name="other/test",
+    )
+
+    assert report.result == Result.ERROR
+    assert "Something went wrong" in str(report.reason)
