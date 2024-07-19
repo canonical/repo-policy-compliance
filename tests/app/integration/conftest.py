@@ -7,6 +7,7 @@ import os
 from typing import Iterator, cast
 
 import pytest
+import requests
 from github import Github
 from github.Auth import Token
 from github.Branch import Branch
@@ -15,7 +16,7 @@ from github.PullRequest import PullRequest
 from github.Repository import Repository
 
 import repo_policy_compliance
-from repo_policy_compliance.github_client import get_collaborators
+from repo_policy_compliance.github_client import GITHUB_TOKEN_ENV_NAME, get_collaborators
 from repo_policy_compliance.github_client import inject as inject_github_client
 
 from ...conftest import REPOSITORY_ARGUMENT_NAME
@@ -27,6 +28,14 @@ from .types_ import BranchWithProtection, RequestedCollaborator
 def fixture_github_repository_name(pytestconfig: pytest.Config) -> str:
     """The name of the repository to work with."""
     return pytestconfig.getoption(REPOSITORY_ARGUMENT_NAME)
+
+
+@pytest.fixture(scope="session", name="github_token")
+def fixutre_github_token() -> str:
+    """Get the GitHub token from the environment."""
+    github_token = os.getenv(GITHUB_TOKEN_ENV_NAME)
+    assert github_token, f"GitHub must be set in the environment variable {GITHUB_TOKEN_ENV_NAME}"
+    return github_token
 
 
 @pytest.fixture(scope="session", name="ci_github_token")
@@ -193,6 +202,45 @@ def fixture_protected_github_branch(
 
     if branch_with_protection.branch_protection_enabled:
         github_branch.remove_protection()
+
+
+@pytest.fixture(name="ruleset_protected_github_branch")
+def fixture_ruleset_protected_github_branch(
+    github_token: str, github_branch: Branch, github_repository: Repository
+) -> Iterator[Branch]:
+    """Add ruleset protection for a branch."""
+    # pygithub does not support the rulesets API yet:
+    # https://github.com/PyGithub/PyGithub/issues/2718
+    # We use the GitHub API with the requests module to create the ruleset
+    url = f"https://api.github.com/repos/{github_repository.full_name}/rulesets"
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {github_token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    data = {
+        "name": f"{github_branch.name}-ruleset",
+        "target": "branch",
+        "enforcement": "active",
+        "conditions": {
+            "ref_name": {
+                "include": [f"refs/heads/{github_branch.name}"],
+                "exclude": [],
+            }
+        },
+        "rules": [{"type": "deletion"}, {"type": "non_fast_forward"}],
+    }
+
+    response = requests.post(url, headers=headers, json=data, timeout=10)
+    response.raise_for_status()
+
+    yield github_branch
+
+    # delete the ruleset
+    ruleset_id = response.json()["id"]
+    url = f"https://api.github.com/repos/{github_repository.full_name}/rulesets/{ruleset_id}"
+    response = requests.delete(url, headers=headers, timeout=10)
+    response.raise_for_status()
 
 
 @pytest.fixture(name="pull_request_review_not_required")

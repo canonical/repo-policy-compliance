@@ -17,6 +17,7 @@ from urllib3 import Retry
 
 from repo_policy_compliance.exceptions import (
     ConfigurationError,
+    GithubApiNotFoundError,
     GithubClientError,
     RetryableGithubClientError,
 )
@@ -75,6 +76,7 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
             kwargs: The keywords arguments passed to the method
 
         Raises:
+            GithubApiNotFoundError: If the GitHub API returns a 404.
             GithubClientError: If the Github client encountered an error.
             RetryableGithubClientError: If the error raised is retryable on the users's end.
 
@@ -99,6 +101,8 @@ def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
                 "please wait before retrying."
             ) from exc
         except GithubException as exc:
+            if exc.status == 404:
+                raise GithubApiNotFoundError(api_message=exc.data.get("message")) from exc
             logging.error("Github client error: %s", exc, exc_info=exc)
             raise GithubClientError("The github client encountered an error.") from exc
 
