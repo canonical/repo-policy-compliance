@@ -81,7 +81,7 @@ async def app_fixture(
     database_name = "postgresql-k8s"
     await model.deploy(
         database_name,
-        channel="14/stable",
+        channel="14/edge",
         series="jammy",
         trust=True,
         config={
