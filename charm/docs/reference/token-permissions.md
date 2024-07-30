@@ -9,7 +9,7 @@ You can either choose to use a personal access token (PAT) or a fine-grained acc
 **Note**: In addition to having a token with the necessary permissions, the user who owns the
 token also must have admin access to the organisation or repository.
 
-For fine-grained access control, the following repository scopes are required:
+For fine-grained access control, the following repository permissions are required:
 
 - Administration: read
 - Contents: read (if you want to check private repositories)
