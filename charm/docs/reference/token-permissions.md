@@ -12,6 +12,7 @@ token also must have admin access to the organisation or repository.
 For fine-grained access control, the following repository scopes are required:
 
 - Administration: read
+- Contents: read (if you want to check private repositories)
 - Pull requests: read (if you want to check private repositories)
 
 ## Personal access token scopes

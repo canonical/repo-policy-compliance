@@ -51,5 +51,6 @@ config:
     github_token:
       description: >-
         The token to use for communication with GitHub. This can be a PAT (with repo scope)
-        or a fine-grained token with read permission for Administration and Pull requests 
-        (the latter is only required for private repos).
+        or a fine-grained token with read permission for Administration. If private repositories 
+        are checked, the fine-grained token does also need read permission for Contents and 
+        Pull request.
