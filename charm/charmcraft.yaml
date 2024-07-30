@@ -50,8 +50,6 @@ config:
       default: false
     github_token:
       description: >-
-        The token to use for comms with GitHub. This can be a PAT or a fine-grained token
-        with permissions to read collaborators (and collaborators' permissions) and branches 
-        for all repositories that need to be checked.
-      type: string
-      required: true
+        The token to use for communication with GitHub. This can be a PAT (with repo scope)
+        or a fine-grained token with read permission for Administration and Pull requests 
+        (the latter is only required for private repos).
