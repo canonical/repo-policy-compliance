@@ -46,11 +46,14 @@ AuthenticationMethod = namedtuple(
     name="setup_github_auth_method",
     autouse=True,
     params=[
-        AuthenticationMethod(
-            github_token=os.getenv(TEST_GITHUB_TOKEN_ENV_NAME),
-            app_id=None,
-            installation_id=None,
-            private_key=None,
+        pytest.param(
+            AuthenticationMethod(
+                github_token=os.getenv(TEST_GITHUB_TOKEN_ENV_NAME),
+                app_id=None,
+                installation_id=None,
+                private_key=None,
+            ),
+            id="Using GitHub Token authentication",
         ),
         pytest.param(
             AuthenticationMethod(
@@ -66,7 +69,8 @@ AuthenticationMethod = namedtuple(
                         os.getenv(TEST_GITHUB_APP_INSTALLATION_ID_ENV_NAME),
                         os.getenv(TEST_GITHUB_APP_PRIVATE_KEY_ENV_NAME),
                     ]
-                )
+                ),
+                reason="GitHub App Auth environment variables are not set",
             ),
             id="Using GitHub App authentication",
         ),
