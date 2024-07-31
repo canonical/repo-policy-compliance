@@ -7,6 +7,7 @@ from unittest.mock import MagicMock
 
 import pytest
 from github import BadCredentialsException, Github, GithubException, RateLimitExceededException
+from github.Auth import AppInstallationAuth
 from github.Repository import Repository
 
 import repo_policy_compliance.github_client
@@ -123,9 +124,9 @@ def test_get_client_configuration_error(  # pylint: disable=too-many-arguments
     monkeypatch: pytest.MonkeyPatch,
 ):
     """
-    arrange: Given a mocked get_client_configuration function that returns invalid value.
-    act: when get_client_configuration is called.
-    assert: GithubClientError is raised.
+    arrange: Given a mocked environment with invalid github auth configuration.
+    act: Call github_client.get.
+    assert: ConfigurationError is raised.
     """
     if github_app_id:
         monkeypatch.setenv("GITHUB_APP_ID", github_app_id)
@@ -140,3 +141,21 @@ def test_get_client_configuration_error(  # pylint: disable=too-many-arguments
         # The github_client is injected
         repo_policy_compliance.github_client.get()
     assert expected_message in str(error.value)
+
+
+def test_get_client_github_app_auth(monkeypatch: pytest.MonkeyPatch):
+    """
+    arrange: Given a mocked environment with github app configuration and a mocked Github object.
+    act: Call github_client.get.
+    assert: The auth parameter of the Github object is an instance of AppInstallationAuth.
+    """
+    monkeypatch.setenv("GITHUB_APP_ID", "123")
+    monkeypatch.setenv("GITHUB_APP_INSTALLATION_ID", "456")
+    monkeypatch.setenv("GITHUB_APP_PRIVATE_KEY", "private")
+    github_class_mock = MagicMock(spec=Github)
+    monkeypatch.setattr(repo_policy_compliance.github_client, "Github", github_class_mock)
+
+    repo_policy_compliance.github_client.get()
+    github_class_mock.assert_called_once()
+    auth = github_class_mock.call_args[1]["auth"]
+    assert isinstance(auth, AppInstallationAuth)
