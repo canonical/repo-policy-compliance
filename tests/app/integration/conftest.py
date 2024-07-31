@@ -37,7 +37,7 @@ TEST_GITHUB_APP_PRIVATE_KEY_ENV_NAME = f"AUTH_{GITHUB_APP_PRIVATE_KEY_ENV_NAME}"
 TEST_GITHUB_TOKEN_ENV_NAME = f"AUTH_{GITHUB_TOKEN_ENV_NAME}"
 
 
-@pytest.fixture(scope="session", name="randomize_github_auth_method", autouse=True)
+@pytest.fixture(scope="function", name="randomize_github_auth_method", autouse=True)
 def fixture_randomize_github_auth_method(monkeypatch: pytest.MonkeyPatch) -> None:
     """Randomize the GitHub authentication method.
 
