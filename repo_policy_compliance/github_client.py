@@ -27,19 +27,19 @@ R = TypeVar("R")
 
 # Bandit thinks this constant is the real Github token
 GITHUB_TOKEN_ENV_NAME = "GITHUB_TOKEN"  # nosec
-GITHUB_APP_ID_NAME = "GITHUB_APP_ID"
-GITHUB_APP_INSTALLATION_ID_NAME = "GITHUB_APP_INSTALLATION_ID"
-GITHUB_APP_PRIVATE_KEY_NAME = "GITHUB_APP_PRIVATE_KEY"
+GITHUB_APP_ID_ENV_NAME = "GITHUB_APP_ID"
+GITHUB_APP_INSTALLATION_ID_ENV_NAME = "GITHUB_APP_INSTALLATION_ID"
+GITHUB_APP_PRIVATE_KEY_ENV_NAME = "GITHUB_APP_PRIVATE_KEY"
 
 MISSING_GITHUB_CONFIG_ERR_MSG = (
-    f"Either the {GITHUB_TOKEN_ENV_NAME} or not all of {GITHUB_APP_ID_NAME},"
-    f" {GITHUB_APP_INSTALLATION_ID_NAME}, {GITHUB_APP_PRIVATE_KEY_NAME} "
+    f"Either the {GITHUB_TOKEN_ENV_NAME} or not all of {GITHUB_APP_ID_ENV_NAME},"
+    f" {GITHUB_APP_INSTALLATION_ID_ENV_NAME}, {GITHUB_APP_PRIVATE_KEY_ENV_NAME} "
     f"environment variables were not provided or empty, "
     "it is needed for interactions with GitHub, "
 )
 NOT_ALL_GITHUB_APP_CONFIG_ERR_MSG = (
-    f"Not all of {GITHUB_APP_ID_NAME}, {GITHUB_APP_INSTALLATION_ID_NAME},"
-    f" {GITHUB_APP_PRIVATE_KEY_NAME} environment variables were provided, "
+    f"Not all of {GITHUB_APP_ID_ENV_NAME}, {GITHUB_APP_INSTALLATION_ID_ENV_NAME},"
+    f" {GITHUB_APP_PRIVATE_KEY_ENV_NAME} environment variables were provided, "
 )
 # the following is no hardcoded password
 PROVIDED_GITHUB_TOKEN_AND_APP_CONFIG_ERR_MSG = (  # nosec
@@ -77,12 +77,14 @@ def _get_auth() -> Auth:
         A GitHub auth object that is configured with a token from the environment.
     """
     github_token = os.getenv(GITHUB_TOKEN_ENV_NAME) or os.getenv(f"FLASK_{GITHUB_TOKEN_ENV_NAME}")
-    github_app_id = os.getenv(GITHUB_APP_ID_NAME) or os.getenv(f"FLASK_{GITHUB_APP_ID_NAME}")
-    github_app_installation_id_str = os.getenv(GITHUB_APP_INSTALLATION_ID_NAME) or os.getenv(
-        f"FLASK_{GITHUB_APP_INSTALLATION_ID_NAME}"
+    github_app_id = os.getenv(GITHUB_APP_ID_ENV_NAME) or os.getenv(
+        f"FLASK_{GITHUB_APP_ID_ENV_NAME}"
     )
-    github_app_private_key = os.getenv(GITHUB_APP_PRIVATE_KEY_NAME) or os.getenv(
-        f"FLASK_{GITHUB_APP_PRIVATE_KEY_NAME}"
+    github_app_installation_id_str = os.getenv(GITHUB_APP_INSTALLATION_ID_ENV_NAME) or os.getenv(
+        f"FLASK_{GITHUB_APP_INSTALLATION_ID_ENV_NAME}"
+    )
+    github_app_private_key = os.getenv(GITHUB_APP_PRIVATE_KEY_ENV_NAME) or os.getenv(
+        f"FLASK_{GITHUB_APP_PRIVATE_KEY_ENV_NAME}"
     )
 
     _ensure_either_github_token_or_app_config(
