@@ -246,7 +246,7 @@ def test_execute_job(  # pylint: disable=too-many-arguments
     # which would require a separate installation id for the app auth to be passed to the test,
     # which is currently not supported (few tests which requires it so the overhead
     # of adding it is not worth it)
-    if github_auth.GITHUB_APP:
+    if github_auth == AuthenticationMethod.GITHUB_APP:
         pytest.skip("This test requires a personal fork to be accessible by the Github App Auth.")
 
     policy_document = {
