@@ -4,7 +4,7 @@
 """Fixtures for integration tests."""
 import logging
 import os
-import random
+from collections import namedtuple
 from typing import Iterator, cast
 
 import pytest
@@ -36,33 +36,63 @@ TEST_GITHUB_APP_INSTALLATION_ID_ENV_NAME = f"AUTH_{GITHUB_APP_INSTALLATION_ID_EN
 TEST_GITHUB_APP_PRIVATE_KEY_ENV_NAME = f"AUTH_{GITHUB_APP_PRIVATE_KEY_ENV_NAME}"
 TEST_GITHUB_TOKEN_ENV_NAME = f"AUTH_{GITHUB_TOKEN_ENV_NAME}"
 
+AuthenticationMethod = namedtuple(
+    "AuthenticationMethod", ["app_id", "installation_id", "private_key", "github_token"]
+)
 
-@pytest.fixture(scope="function", name="randomize_github_auth_method", autouse=True)
-def fixture_randomize_github_auth_method(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Randomize the GitHub authentication method.
 
-    Either use Github Token auth or Github App auth if the latter is set.
-    This is achieved by monkeypatching the environment variables.
+@pytest.fixture(
+    scope="function",
+    name="setup_github_auth_method",
+    autouse=True,
+    params=[
+        AuthenticationMethod(
+            github_token=os.getenv(TEST_GITHUB_TOKEN_ENV_NAME),
+            app_id=None,
+            installation_id=None,
+            private_key=None,
+        ),
+        pytest.param(
+            AuthenticationMethod(
+                app_id=os.getenv(TEST_GITHUB_APP_ID_ENV_NAME),
+                installation_id=os.getenv(TEST_GITHUB_APP_INSTALLATION_ID_ENV_NAME),
+                private_key=os.getenv(TEST_GITHUB_APP_PRIVATE_KEY_ENV_NAME),
+                github_token=None,
+            ),
+            marks=pytest.mark.skipif(
+                not all(
+                    [
+                        os.getenv(TEST_GITHUB_APP_ID_ENV_NAME),
+                        os.getenv(TEST_GITHUB_APP_INSTALLATION_ID_ENV_NAME),
+                        os.getenv(TEST_GITHUB_APP_PRIVATE_KEY_ENV_NAME),
+                    ]
+                )
+            ),
+            id="Using GitHub App authentication",
+        ),
+    ],
+)
+def fixture_setup_github_auth_method(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Setup the GitHub authentication method.
+
+    We want to test with GitHub Token authentication and optionally GitHub App authentication,
+    if the environment variables are set.
+    This is achieved by monkeypatching the respective environment variables.
     """
-    app_id = os.getenv(TEST_GITHUB_APP_ID_ENV_NAME)
-    app_install_id = os.getenv(TEST_GITHUB_APP_INSTALLATION_ID_ENV_NAME)
-    app_private_key = os.getenv(TEST_GITHUB_APP_PRIVATE_KEY_ENV_NAME)
-    github_token = os.getenv(TEST_GITHUB_TOKEN_ENV_NAME)
+    app_id = request.param.app_id
+    app_install_id = request.param.installation_id
+    app_private_key = request.param.private_key
+    github_token = request.param.github_token
 
-    # random is not used for security purposes
-    if random.random() < 0.5 and app_id and app_install_id and app_private_key:  # nosec
-        monkeypatch.delenv(GITHUB_TOKEN_ENV_NAME, raising=False)
+    if app_id:
         monkeypatch.setenv(GITHUB_APP_ID_ENV_NAME, app_id)
+    if app_install_id:
         monkeypatch.setenv(GITHUB_APP_INSTALLATION_ID_ENV_NAME, app_install_id)
+    if app_private_key:
         monkeypatch.setenv(GITHUB_APP_PRIVATE_KEY_ENV_NAME, app_private_key)
-        logger.info("Using GitHub App authentication for this test.")
-    else:
-        assert (
-            github_token
-        ), f"GitHub token must be set in the environment variable {TEST_GITHUB_TOKEN_ENV_NAME}"
-        monkeypatch.delenv(GITHUB_APP_ID_ENV_NAME, raising=False)
-        monkeypatch.delenv(GITHUB_APP_INSTALLATION_ID_ENV_NAME, raising=False)
-        monkeypatch.delenv(GITHUB_APP_PRIVATE_KEY_ENV_NAME, raising=False)
+    if github_token:
         monkeypatch.setenv(GITHUB_TOKEN_ENV_NAME, github_token)
 
 
