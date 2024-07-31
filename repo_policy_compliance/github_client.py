@@ -10,7 +10,7 @@ from typing import Callable, Concatenate, Literal, ParamSpec, TypeVar, cast
 from urllib import parse
 
 from github import BadCredentialsException, Github, GithubException, RateLimitExceededException
-from github.Auth import Token
+from github.Auth import AppAuth, AppInstallationAuth, Auth, Token
 from github.Branch import Branch
 from github.Repository import Repository
 from urllib3 import Retry
@@ -27,6 +27,24 @@ R = TypeVar("R")
 
 # Bandit thinks this constant is the real Github token
 GITHUB_TOKEN_ENV_NAME = "GITHUB_TOKEN"  # nosec
+GITHUB_APP_ID_NAME = "GITHUB_APP_ID"
+GITHUB_APP_INSTALLATION_ID_NAME = "GITHUB_APP_INSTALLATION_ID"
+GITHUB_APP_PRIVATE_KEY_NAME = "GITHUB_APP_PRIVATE_KEY"
+
+MISSING_GITHUB_CONFIG_ERR_MSG = (
+    f"Either the {GITHUB_TOKEN_ENV_NAME} or not all of {GITHUB_APP_ID_NAME},"
+    f" {GITHUB_APP_INSTALLATION_ID_NAME}, {GITHUB_APP_PRIVATE_KEY_NAME} "
+    f"environment variables were not provided or empty, "
+    "it is needed for interactions with GitHub, "
+)
+NOT_ALL_GITHUB_APP_CONFIG_ERR_MSG = (
+    f"Not all of {GITHUB_APP_ID_NAME}, {GITHUB_APP_INSTALLATION_ID_NAME},"
+    f" {GITHUB_APP_PRIVATE_KEY_NAME} environment variables were provided, "
+)
+# the following is no hardcoded password
+PROVIDED_GITHUB_TOKEN_AND_APP_CONFIG_ERR_MSG = (  # nosec
+    "Provided github app config and github token, only one of them should be provided, "
+)
 
 
 def get() -> Github:
@@ -36,14 +54,10 @@ def get() -> Github:
         A GitHub client that is configured with a token from the environment.
 
     Raises:
-        ConfigurationError: If the GitHub token environment variable is not provided or empty.
-    """
-    github_token = os.getenv(GITHUB_TOKEN_ENV_NAME) or os.getenv(f"FLASK_{GITHUB_TOKEN_ENV_NAME}")
-    if not github_token:
-        raise ConfigurationError(
-            f"The {GITHUB_TOKEN_ENV_NAME} environment variable was not provided or empty, "
-            f"it is needed for interactions with GitHub, got: {github_token!r}"
-        )
+        ConfigurationError: If the GitHub auth config is not valid.
+    """  # noqa: DCO051 error raised is useful to know for the user of the public interface
+    auth = _get_auth()
+
     # Only retry on 5xx and only retry once after 20 secs
     retry_config = Retry(
         total=1,
@@ -53,7 +67,117 @@ def get() -> Github:
         raise_on_status=False,
         raise_on_redirect=False,
     )
-    return Github(auth=Token(github_token), retry=retry_config)
+    return Github(auth=auth, retry=retry_config)
+
+
+def _get_auth() -> Auth:
+    """Get a GitHub auth object.
+
+    Returns:
+        A GitHub auth object that is configured with a token from the environment.
+    """
+    github_token = os.getenv(GITHUB_TOKEN_ENV_NAME) or os.getenv(f"FLASK_{GITHUB_TOKEN_ENV_NAME}")
+    github_app_id = os.getenv(GITHUB_APP_ID_NAME) or os.getenv(f"FLASK_{GITHUB_APP_ID_NAME}")
+    github_app_installation_id_str = os.getenv(GITHUB_APP_INSTALLATION_ID_NAME) or os.getenv(
+        f"FLASK_{GITHUB_APP_INSTALLATION_ID_NAME}"
+    )
+    github_app_private_key = os.getenv(GITHUB_APP_PRIVATE_KEY_NAME) or os.getenv(
+        f"FLASK_{GITHUB_APP_PRIVATE_KEY_NAME}"
+    )
+
+    _ensure_either_github_token_or_app_config(
+        github_token=github_token,
+        github_app_id=github_app_id,
+        github_app_installation_id_str=github_app_installation_id_str,
+        github_app_private_key=github_app_private_key,
+    )
+
+    auth: Auth
+    # we use asserts here to make mypy happy, we have already checked that the values are not None
+    # we know asserts are optimised away in production, so ignore bandit warnings
+    if github_app_id:
+        assert github_app_installation_id_str is not None  # nosec
+        assert github_app_private_key is not None  # nosec
+        auth = _get_github_app_installation_auth(
+            github_app_id=github_app_id,
+            github_app_installation_id_str=github_app_installation_id_str,
+            github_app_private_key=github_app_private_key,
+        )
+    else:
+        assert github_token is not None  # nosec
+        auth = Token(github_token)
+
+    return auth
+
+
+def _ensure_either_github_token_or_app_config(
+    github_token: str | None,
+    github_app_id: str | None,
+    github_app_installation_id_str: str | None,
+    github_app_private_key: str | None,
+) -> None:
+    """Ensure that only one of github_token or github app config is provided and is valid.
+
+    Args:
+        github_token: The GitHub token.
+        github_app_id: The GitHub App ID or Client ID.
+        github_app_installation_id_str: The GitHub App Installation ID as a string.
+        github_app_private_key: The GitHub App private key.
+
+    Raises:
+        ConfigurationError: If both github_token and github app config are provided.
+    """
+    if not github_token and not (
+        github_app_id or github_app_installation_id_str or github_app_private_key
+    ):
+        raise ConfigurationError(
+            f"{MISSING_GITHUB_CONFIG_ERR_MSG}"
+            f"got: {github_token!r}, {github_app_id!r},"
+            f" {github_app_installation_id_str!r}, {github_app_private_key!r}"
+        )
+    if github_token and (
+        github_app_id or github_app_installation_id_str or github_app_private_key
+    ):
+        raise ConfigurationError(
+            f"{PROVIDED_GITHUB_TOKEN_AND_APP_CONFIG_ERR_MSG}"
+            f"got: {github_token!r}, {github_app_id!r}, {github_app_installation_id_str!r},"
+            f" {github_app_private_key!r}"
+        )
+
+    if github_app_id or github_app_installation_id_str or github_app_private_key:
+        if not (github_app_id and github_app_installation_id_str and github_app_private_key):
+            raise ConfigurationError(
+                f"{NOT_ALL_GITHUB_APP_CONFIG_ERR_MSG}"
+                f"got: {github_app_id!r}, {github_app_installation_id_str!r}, "
+                f"{github_app_private_key!r}"
+            )
+
+
+def _get_github_app_installation_auth(
+    github_app_id: str, github_app_installation_id_str: str, github_app_private_key: str
+) -> AppInstallationAuth:
+    """Get a GitHub App Installation Auth object.
+
+    Args:
+        github_app_id: The GitHub App ID or Client ID.
+        github_app_installation_id_str: The GitHub App Installation ID as a string.
+        github_app_private_key: The GitHub App private key.
+
+    Returns:
+        A GitHub App Installation Auth object.
+
+    Raises:
+        ConfigurationError: If the GitHub App Installation Auth config is not valid.
+    """
+    try:
+        github_app_installation_id = int(github_app_installation_id_str)
+    except ValueError as exc:
+        raise ConfigurationError(
+            f"Invalid github app installation id {github_app_installation_id_str!r}, "
+            f"it should be an integer."
+        ) from exc
+    app_auth = AppAuth(app_id=github_app_id, private_key=github_app_private_key)
+    return AppInstallationAuth(app_auth=app_auth, installation_id=github_app_installation_id)
 
 
 def inject(func: Callable[Concatenate[Github, P], R]) -> Callable[P, R]:
