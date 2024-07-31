@@ -51,8 +51,7 @@ should be a token of a user with full repo permissions for the test repository.
 You can also pass in `AUTH_APP_ID`, `AUTH_INSTALLATION_ID`, and `AUTH_PRIVATE_KEY` 
 to test the authentication using GitHub App Auth. In that case, the tests will additionally
 be executed using GitHub App auth. Note that the GitHub app should be installed
-in the test repository organisation/user namespace, with access granted to the test repository
-and in the user namespace that owns the GitHub token with access to the forked repository.
+in the test repository organisation/user namespace, with access granted to the test repository.
 
 The command `tox -e test` can be used to run all tests, which are primarily integration tests.
 You can also select the repository against which to run the tests by setting

@@ -2,9 +2,11 @@
 # See LICENSE file for licensing details.
 
 """Fixtures for integration tests."""
+import enum
 import logging
 import os
 from collections import namedtuple
+from enum import Enum
 from typing import Iterator, cast
 
 import pytest
@@ -36,18 +38,31 @@ TEST_GITHUB_APP_INSTALLATION_ID_ENV_NAME = f"AUTH_{GITHUB_APP_INSTALLATION_ID_EN
 TEST_GITHUB_APP_PRIVATE_KEY_ENV_NAME = f"AUTH_{GITHUB_APP_PRIVATE_KEY_ENV_NAME}"
 TEST_GITHUB_TOKEN_ENV_NAME = f"AUTH_{GITHUB_TOKEN_ENV_NAME}"
 
-AuthenticationMethod = namedtuple(
-    "AuthenticationMethod", ["app_id", "installation_id", "private_key", "github_token"]
+
+class AuthenticationMethod(Enum):
+    """The authentication method to use.
+
+    Attributes:
+        GITHUB_TOKEN: Use GitHub token authentication.
+        GITHUB_APP: Use GitHub App authentication.
+    """
+
+    GITHUB_TOKEN = enum.auto()
+    GITHUB_APP = enum.auto()
+
+
+_AuthenticationMethodParams = namedtuple(
+    "_AuthenticationMethodParams", ["app_id", "installation_id", "private_key", "github_token"]
 )
 
 
 @pytest.fixture(
     scope="function",
-    name="setup_github_auth_method",
+    name="github_auth",
     autouse=True,
     params=[
         pytest.param(
-            AuthenticationMethod(
+            _AuthenticationMethodParams(
                 github_token=os.getenv(TEST_GITHUB_TOKEN_ENV_NAME),
                 app_id=None,
                 installation_id=None,
@@ -56,7 +71,7 @@ AuthenticationMethod = namedtuple(
             id="Using GitHub Token authentication",
         ),
         pytest.param(
-            AuthenticationMethod(
+            _AuthenticationMethodParams(
                 app_id=os.getenv(TEST_GITHUB_APP_ID_ENV_NAME),
                 installation_id=os.getenv(TEST_GITHUB_APP_INSTALLATION_ID_ENV_NAME),
                 private_key=os.getenv(TEST_GITHUB_APP_PRIVATE_KEY_ENV_NAME),
@@ -76,28 +91,36 @@ AuthenticationMethod = namedtuple(
         ),
     ],
 )
-def fixture_setup_github_auth_method(
+def fixture_github_auth(
     request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
-) -> None:
+) -> AuthenticationMethod:
     """Setup the GitHub authentication method.
 
     We want to test with GitHub Token authentication and optionally GitHub App authentication,
     if the environment variables are set.
     This is achieved by monkeypatching the respective environment variables.
+
+    Returns:
+        The authentication method to use.
     """
     app_id = request.param.app_id
     app_install_id = request.param.installation_id
     app_private_key = request.param.private_key
     github_token = request.param.github_token
 
+    auth_method = AuthenticationMethod.GITHUB_TOKEN
+
     if app_id:
         monkeypatch.setenv(GITHUB_APP_ID_ENV_NAME, app_id)
+        auth_method = AuthenticationMethod.GITHUB_APP
     if app_install_id:
         monkeypatch.setenv(GITHUB_APP_INSTALLATION_ID_ENV_NAME, app_install_id)
     if app_private_key:
         monkeypatch.setenv(GITHUB_APP_PRIVATE_KEY_ENV_NAME, app_private_key)
     if github_token:
         monkeypatch.setenv(GITHUB_TOKEN_ENV_NAME, github_token)
+
+    return auth_method
 
 
 @pytest.fixture(scope="session", name="github_repository_name")

@@ -2,7 +2,6 @@
 # See LICENSE file for licensing details.
 
 """Tests for the pull_request function."""
-
 from uuid import uuid4
 
 import pytest
@@ -12,6 +11,7 @@ from github.Repository import Repository
 from repo_policy_compliance import PullRequestInput, UsedPolicy, policy, pull_request
 from repo_policy_compliance.check import Result
 
+from .conftest import AuthenticationMethod
 from .types_ import BranchWithProtection, RequestedCollaborator
 
 
@@ -234,6 +234,7 @@ def test_execute_job(  # pylint: disable=too-many-arguments
     forked_github_repository: Repository,
     policy_enabled: bool,
     expected_result: Result,
+    github_auth: AuthenticationMethod,
 ):
     """
     arrange: given a target and repository that is compliant and a source branch that is a fork and
@@ -241,6 +242,13 @@ def test_execute_job(  # pylint: disable=too-many-arguments
     act: when pull_request is called with the policy
     assert: then the expected report is returned.
     """
+    # this test requires the github auth method to have access to the personal fork
+    # which would require a separate installation id for the app auth to be passed to the test,
+    # which is currently not supported (few tests which requires it so the overhead
+    # of adding it is not worth it)
+    if github_auth.GITHUB_APP:
+        pytest.skip("This test requires a personal fork to be accessible by the Github App Auth.")
+
     policy_document = {
         policy.JobType.PULL_REQUEST: {
             policy.PullRequestProperty.EXECUTE_JOB: {policy.ENABLED_KEY: policy_enabled},
