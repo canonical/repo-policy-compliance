@@ -135,7 +135,7 @@ def fixture_github_token() -> str:
     github_token = os.getenv(TEST_GITHUB_TOKEN_ENV_NAME)
     assert (
         github_token
-    ), f"GitHub must be set in the environment variable {TEST_GITHUB_TOKEN_ENV_NAME}"
+    ), f"GitHub token must be set in the environment variable {TEST_GITHUB_TOKEN_ENV_NAME}"
     return github_token
 
 

@@ -30,7 +30,7 @@ Get a GitHub client.
 
 
 **Returns:**
-  A GitHub client that is configured with a token from the environment. 
+  A GitHub client that is configured with a token or GitHub app from the environment. 
 
 
 

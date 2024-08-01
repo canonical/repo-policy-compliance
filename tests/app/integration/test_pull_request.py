@@ -234,7 +234,7 @@ def test_collaborators(
     indirect=["github_branch", "protected_github_branch", "forked_github_branch"],
 )
 @pytest.mark.usefixtures("protected_github_branch", "make_fork_from_non_collaborator")
-# All the arguments are required for the test
+# we use a lot of arguments, but it seems not worth to introduce a capsulating object for this
 def test_execute_job(  # pylint: disable=too-many-arguments
     github_branch: Branch,
     github_repository_name: str,

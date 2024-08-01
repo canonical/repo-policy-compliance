@@ -50,7 +50,7 @@ To run the application tests, the `AUTH_GITHUB_TOKEN` environment variable must 
 should be a token of a user with full repo permissions for the test repository. 
 You can also pass in `AUTH_APP_ID`, `AUTH_INSTALLATION_ID`, and `AUTH_PRIVATE_KEY` 
 to test the authentication using GitHub App Auth. In that case, the tests will additionally
-be executed using GitHub App auth. Note that the GitHub app should be installed
+be executed using GitHub app auth. Note that the GitHub app should be installed
 in the test repository organisation/user namespace, with access granted to the test repository.
 
 The command `tox -e test` can be used to run all tests, which are primarily integration tests.
@@ -73,7 +73,7 @@ GitHub actions should have access to the GitHub token via a secret
 called `PERSONAL_GITHUB_TOKEN`. It is recommended to use either a fine-grained PAT or a 
 token that is short-lived, e.g. 7 days. When it expires, a new token must be set.
 For the GitHub App Auth, the `TEST_GITHUB_APP_ID`, `TEST_GIHUB_APP_INSTALLATION_ID`, and
-`TEST_GITHUB_APPP_RIVATE_KEY` should be set as secrets.
+`TEST_GITHUB_APP_PRIVATE_KEY` should be set as secrets.
 
 ### Charm tests
 

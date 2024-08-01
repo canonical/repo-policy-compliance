@@ -34,8 +34,8 @@ GITHUB_APP_PRIVATE_KEY_ENV_NAME = "GITHUB_APP_PRIVATE_KEY"
 MISSING_GITHUB_CONFIG_ERR_MSG = (
     f"Either the {GITHUB_TOKEN_ENV_NAME} or not all of {GITHUB_APP_ID_ENV_NAME},"
     f" {GITHUB_APP_INSTALLATION_ID_ENV_NAME}, {GITHUB_APP_PRIVATE_KEY_ENV_NAME} "
-    f"environment variables were not provided or empty, "
-    "it is needed for interactions with GitHub, "
+    f"environment variables were provided or are empty, "
+    "the variables are needed for interactions with GitHub, "
 )
 NOT_ALL_GITHUB_APP_CONFIG_ERR_MSG = (
     f"Not all of {GITHUB_APP_ID_ENV_NAME}, {GITHUB_APP_INSTALLATION_ID_ENV_NAME},"
@@ -51,7 +51,7 @@ def get() -> Github:
     """Get a GitHub client.
 
     Returns:
-        A GitHub client that is configured with a token from the environment.
+        A GitHub client that is configured with a token or GitHub app from the environment.
 
     Raises:
         ConfigurationError: If the GitHub auth config is not valid.
@@ -118,7 +118,7 @@ def _ensure_either_github_token_or_app_config(
     github_app_installation_id_str: str | None,
     github_app_private_key: str | None,
 ) -> None:
-    """Ensure that only one of github_token or github app config is provided and is valid.
+    """Ensure that only one of github_token or GitHub App config is provided and is valid.
 
     Args:
         github_token: The GitHub token.
@@ -127,7 +127,7 @@ def _ensure_either_github_token_or_app_config(
         github_app_private_key: The GitHub App private key.
 
     Raises:
-        ConfigurationError: If both github_token and github app config are provided.
+        ConfigurationError: If the configuration is not valid.
     """
     if not github_token and not (
         github_app_id or github_app_installation_id_str or github_app_private_key

@@ -114,7 +114,7 @@ def test_get_collaborator_permission_error():
             id="not all github app config provided",
         ),
     ],
-)  # we use a lot of arguments but it seems not worth to introduce a capsulating object for this
+)  # we use a lot of arguments, but it seems not worth to introduce a capsulating object for this
 def test_get_client_configuration_error(  # pylint: disable=too-many-arguments
     github_app_id: str,
     github_app_installation_id: str,
