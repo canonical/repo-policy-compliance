@@ -57,9 +57,10 @@ The command `tox -e test` can be used to run all tests, which are primarily inte
 You can also select the repository against which to run the tests by setting
 the `--repository` flag. The tests will fork the repository and create PRs against it.
 Note that the tests are currently designed to work for specific Canonical repositories, 
-and may need to be for other repositories 
+and may need to be adapted for other repositories 
 (e.g. `tests.app.integration.test_target_branch_protection.test_fail` 
-assumes that certain collaborators are in the `users_bypass_pull_request_allowances` list).
+assumes that certain collaborators are in the `users_bypass_pull_request_allowances` list). 
+The test repository must also have a branch protection defined for the main branch.
 Also note that the forks are created in the personal space of the user whose token is being used, 
 and that the forks are not deleted after the run. 
 The reason for this is that it is only possible to create one fork of a repository, 
