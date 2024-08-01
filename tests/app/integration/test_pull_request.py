@@ -57,19 +57,27 @@ def test_invalid_policy():
     ],
     indirect=["github_branch", "protected_github_branch"],
 )
-@pytest.mark.usefixtures("protected_github_branch")
-def test_pull_request_disallow_fork(
+@pytest.mark.usefixtures("protected_github_branch")  # All the arguments are required for the test
+def test_pull_request_disallow_fork(  # pylint: disable=too-many-arguments
     github_branch: Branch,
     github_repository_name: str,
     forked_github_repository: Repository,
     policy_enabled: bool,
     expected_result: Result,
+    github_auth: AuthenticationMethod,
 ):
     """
     arrange: given a forked repository and a disable_fork policy enabled/disabled.
     act: when pull_request is called
     assert: then a expected result is returned.
     """
+    # this test requires the github auth method to have access to the personal fork
+    # which would require a separate installation id for the app auth to be passed to the test,
+    # which is currently not supported (few tests which requires it so the overhead
+    # of adding it is not worth it)
+    if github_auth == AuthenticationMethod.GITHUB_APP:
+        pytest.skip("This test requires a personal fork to be accessible by the Github App Auth.")
+
     policy_document = {
         policy.JobType.PULL_REQUEST: {
             policy.PullRequestProperty.DISALLOW_FORK: {policy.ENABLED_KEY: policy_enabled},
