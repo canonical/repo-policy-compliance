@@ -2,10 +2,11 @@
 # See LICENSE file for licensing details.
 
 """Module for GitHub client."""
-
+import enum
 import functools
 import logging
 import os
+from enum import Enum
 from typing import Callable, Concatenate, Literal, ParamSpec, TypeVar, cast
 from urllib import parse
 
@@ -45,6 +46,18 @@ NOT_ALL_GITHUB_APP_CONFIG_ERR_MSG = (
 PROVIDED_GITHUB_TOKEN_AND_APP_CONFIG_ERR_MSG = (  # nosec
     "Provided github app config and github token, only one of them should be provided, "
 )
+
+
+class _AuthMode(Enum):
+    """Enum to represent the auth mode to use.
+
+    Attributes:
+        TOKEN: Using GitHub token auth.
+        APP: Using GitHub App auth.
+    """
+
+    TOKEN = enum.auto()
+    APP = enum.auto()
 
 
 def get() -> Github:
@@ -87,7 +100,7 @@ def _get_auth() -> Auth:
         f"FLASK_{GITHUB_APP_PRIVATE_KEY_ENV_NAME}"
     )
 
-    _ensure_either_github_token_or_app_config(
+    auth_mode = _get_auth_mode(
         github_token=github_token,
         github_app_id=github_app_id,
         github_app_installation_id_str=github_app_installation_id_str,
@@ -95,15 +108,11 @@ def _get_auth() -> Auth:
     )
 
     auth: Auth
-    # we use asserts here to make mypy happy, we have already checked that the values are not None
-    # we know asserts are optimised away in production, so ignore bandit warnings
-    if github_app_id:
-        assert github_app_installation_id_str is not None  # nosec
-        assert github_app_private_key is not None  # nosec
+    if auth_mode == _AuthMode.APP:
         auth = _get_github_app_installation_auth(
-            github_app_id=github_app_id,
-            github_app_installation_id_str=github_app_installation_id_str,
-            github_app_private_key=github_app_private_key,
+            github_app_id=cast(str, github_app_id),
+            github_app_installation_id_str=cast(str, github_app_installation_id_str),
+            github_app_private_key=cast(str, github_app_private_key),
         )
     else:
         assert github_token is not None  # nosec
@@ -112,13 +121,13 @@ def _get_auth() -> Auth:
     return auth
 
 
-def _ensure_either_github_token_or_app_config(
+def _get_auth_mode(
     github_token: str | None,
     github_app_id: str | None,
     github_app_installation_id_str: str | None,
     github_app_private_key: str | None,
-) -> None:
-    """Ensure that only one of github_token or GitHub App config is provided and is valid.
+) -> _AuthMode:
+    """Get the auth mode to use.
 
     Args:
         github_token: The GitHub token.
@@ -127,7 +136,11 @@ def _ensure_either_github_token_or_app_config(
         github_app_private_key: The GitHub App private key.
 
     Raises:
-        ConfigurationError: If the configuration is not valid.
+        ConfigurationError: If the configuration is not valid, e.g. if both a token and app config
+            are provided.
+
+    Returns:
+        The auth mode to use.
     """
     if not github_token and not (
         github_app_id or github_app_installation_id_str or github_app_private_key
@@ -153,6 +166,10 @@ def _ensure_either_github_token_or_app_config(
                 f"got: {github_app_id!r}, {github_app_installation_id_str!r}, "
                 f"{github_app_private_key!r}"
             )
+
+    if github_token:
+        return _AuthMode.TOKEN
+    return _AuthMode.APP
 
 
 def _get_github_app_installation_auth(
