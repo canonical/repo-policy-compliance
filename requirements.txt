@@ -517,9 +517,9 @@ pydantic==2.8.0 ; python_full_version >= "3.10.0" and python_full_version < "4.0
 pygithub==2.3.0 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
     --hash=sha256:0148d7347a1cdeed99af905077010aef81a4dad988b0ba51d4108bf66b443f7e \
     --hash=sha256:65b499728be3ce7b0cd2cd760da3b32f0f4d7bc55e5e0677617f90f6564e793e
-pyjwt[crypto]==2.8.0 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
-    --hash=sha256:57e28d156e3d5c10088e0c68abb90bfac3df82b40a71bd0daa20c65ccd5c23de \
-    --hash=sha256:59127c392cc44c2da5bb3192169a91f429924e17aff6534d70fdc02ab3e04320
+PyJWT[crypto]==2.9.0; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
+    --hash=sha256:3b02fb0f44517787776cf48f2ae25d8e14f300e6d7545a4315cee571a415e850 \
+    --hash=sha256:7e1e5b56cc735432a7369cbfa0efe50fa113ebecdc04ae6922deba8b84582d0c
 pynacl==1.5.0 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
     --hash=sha256:06b8f6fa7f5de8d5d2f7573fe8c863c051225a27b61e6860fd047b1775807858 \
     --hash=sha256:0c84947a22519e013607c9be43706dd42513f9e6ae5d39d3613ca1e142fba44d \
