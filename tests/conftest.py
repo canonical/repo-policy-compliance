@@ -26,5 +26,5 @@ def pytest_addoption(parser: Parser) -> None:
         REPOSITORY_ARGUMENT_NAME,
         action="store",
         help="Name of the GitHub repository you want to run tests against.",
-        default="cbartz-org/cbartz-repo-policy-compliance-tests",  # TODO: revert me
+        default="canonical/repo-policy-compliance-tests",
     )
