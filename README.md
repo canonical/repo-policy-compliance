@@ -46,15 +46,21 @@ failing check to be used for testing purposes.
 There are two types of test: the application test and the charm test.
 
 ### Application tests
-To run the application tests, the `GITHUB_TOKEN` environment variable must be set. This
+To run the application tests, the `AUTH_GITHUB_TOKEN` environment variable must be set. This
 should be a token of a user with full repo permissions for the test repository. 
+You can also pass in `AUTH_APP_ID`, `AUTH_INSTALLATION_ID`, and `AUTH_PRIVATE_KEY` 
+to test the authentication using GitHub App Auth. In that case, the tests will additionally
+be executed using GitHub app auth. Note that the GitHub app should be installed
+in the test repository organisation/user namespace, with access granted to the test repository.
+
 The command `tox -e test` can be used to run all tests, which are primarily integration tests.
 You can also select the repository against which to run the tests by setting
 the `--repository` flag. The tests will fork the repository and create PRs against it.
 Note that the tests are currently designed to work for specific Canonical repositories, 
-and may need to be for other repositories 
+and may need to be adapted for other repositories 
 (e.g. `tests.app.integration.test_target_branch_protection.test_fail` 
-assumes that certain collaborators are in the `users_bypass_pull_request_allowances` list).
+assumes that certain collaborators are in the `users_bypass_pull_request_allowances` list). 
+The test repository must also have a branch protection defined for the main branch.
 Also note that the forks are created in the personal space of the user whose token is being used, 
 and that the forks are not deleted after the run. 
 The reason for this is that it is only possible to create one fork of a repository, 
@@ -66,6 +72,8 @@ bot to test things like comments from a user with no write permissions or above.
 GitHub actions should have access to the GitHub token via a secret
 called `PERSONAL_GITHUB_TOKEN`. It is recommended to use either a fine-grained PAT or a 
 token that is short-lived, e.g. 7 days. When it expires, a new token must be set.
+For the GitHub App Auth, the `TEST_GITHUB_APP_ID`, `TEST_GIHUB_APP_INSTALLATION_ID`, and
+`TEST_GITHUB_APP_PRIVATE_KEY` should be set as secrets.
 
 ### Charm tests
 

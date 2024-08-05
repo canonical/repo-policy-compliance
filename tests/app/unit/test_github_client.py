@@ -7,11 +7,12 @@ from unittest.mock import MagicMock
 
 import pytest
 from github import BadCredentialsException, Github, GithubException, RateLimitExceededException
+from github.Auth import AppInstallationAuth
 from github.Repository import Repository
 
 import repo_policy_compliance.github_client
 from repo_policy_compliance.check import Result, target_branch_protection
-from repo_policy_compliance.exceptions import GithubClientError
+from repo_policy_compliance.exceptions import ConfigurationError, GithubClientError
 
 GITHUB_REPOSITORY_NAME = "test/repository"
 GITHUB_BRANCH_NAME = "arbitrary"
@@ -74,3 +75,87 @@ def test_get_collaborator_permission_error():
             mock_repository, "test_user"
         )
     assert "Invalid collaborator permission" in str(error.value)
+
+
+@pytest.mark.parametrize(
+    "github_app_id, github_app_installation_id, github_app_private_key, github_token, "
+    "expected_message",
+    [
+        pytest.param(
+            "123",
+            "456",
+            "private",
+            "github_token",
+            repo_policy_compliance.github_client.PROVIDED_GITHUB_TOKEN_AND_APP_CONFIG_ERR_MSG,
+            id="github app config and github token",
+        ),
+        pytest.param(
+            None,
+            None,
+            None,
+            None,
+            repo_policy_compliance.github_client.MISSING_GITHUB_CONFIG_ERR_MSG,
+            id="no github app config or github token",
+        ),
+        pytest.param(
+            "eda",
+            "no int",
+            "private",
+            None,
+            "Invalid github app installation id",
+            id="invalid github app installation id",
+        ),
+        pytest.param(
+            "eda",
+            "123",
+            None,
+            None,
+            repo_policy_compliance.github_client.NOT_ALL_GITHUB_APP_CONFIG_ERR_MSG,
+            id="not all github app config provided",
+        ),
+    ],
+)  # we use a lot of arguments, but it seems not worth to introduce a capsulating object for this
+def test_get_client_configuration_error(  # pylint: disable=too-many-arguments
+    github_app_id: str,
+    github_app_installation_id: str,
+    github_app_private_key: str,
+    github_token: str,
+    expected_message: str,
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """
+    arrange: Given a mocked environment with invalid github auth configuration.
+    act: Call github_client.get.
+    assert: ConfigurationError is raised.
+    """
+    if github_app_id:
+        monkeypatch.setenv("GITHUB_APP_ID", github_app_id)
+    if github_app_installation_id:
+        monkeypatch.setenv("GITHUB_APP_INSTALLATION_ID", github_app_installation_id)
+    if github_app_private_key:
+        monkeypatch.setenv("GITHUB_APP_PRIVATE_KEY", github_app_private_key)
+    if github_token:
+        monkeypatch.setenv("GITHUB_TOKEN", github_token)
+
+    with pytest.raises(ConfigurationError) as error:
+        # The github_client is injected
+        repo_policy_compliance.github_client.get()
+    assert expected_message in str(error.value)
+
+
+def test_get_client_github_app_auth(monkeypatch: pytest.MonkeyPatch):
+    """
+    arrange: Given a mocked environment with github app configuration and a mocked Github object.
+    act: Call github_client.get.
+    assert: The auth parameter of the Github object is an instance of AppInstallationAuth.
+    """
+    monkeypatch.setenv("GITHUB_APP_ID", "123")
+    monkeypatch.setenv("GITHUB_APP_INSTALLATION_ID", "456")
+    monkeypatch.setenv("GITHUB_APP_PRIVATE_KEY", "private")
+    github_class_mock = MagicMock(spec=Github)
+    monkeypatch.setattr(repo_policy_compliance.github_client, "Github", github_class_mock)
+
+    repo_policy_compliance.github_client.get()
+    github_class_mock.assert_called_once()
+    auth = github_class_mock.call_args[1]["auth"]
+    assert isinstance(auth, AppInstallationAuth)
