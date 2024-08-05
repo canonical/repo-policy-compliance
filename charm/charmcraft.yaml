@@ -48,9 +48,35 @@ config:
         write and higher permissions for the repository to run jobs from forks.
       type: boolean
       default: false
+    github_app_id:
+      description: >-
+        The app or client ID of the GitHub App to use for communication with GitHub.
+        If provided, the other github_app_* options must also be provided.
+        The Github App needs to have read permission for Administration. If private repositories
+        are checked, the Github App does also need read permission for Contents and Pull request.
+        Either this or the github_token must be provided.
+      type: string
+    github_app_installation_id:
+      description: >-
+        The installation ID of the GitHub App to use for communication with GitHub.
+        If provided, the other github_app_* options must also be provided.
+        The Github App needs to have read permission for Administration. If private repositories
+        are checked, the Github App does also need read permission for Contents and Pull request.
+        Either this or the github_token must be provided.
+      type: string
+    github_app_private_key:
+      # this will become a juju user secret once paas-app-charmer supports it
+      description: >-
+        The private key of the GitHub App to use for communication with GitHub.
+        If provided, the other github_app_* options must also be provided.
+        The Github App needs to have read permission for Administration. If private repositories
+        are checked, the Github App does also need read permission for Contents and Pull request.
+        Either this or the github_token must be provided.
+      type: string
     github_token:
       description: >-
         The token to use for communication with GitHub. This can be a PAT (with repo scope)
         or a fine-grained token with read permission for Administration. If private repositories 
         are checked, the fine-grained token does also need read permission for Contents and 
         Pull request.
+        Either this or the GitHub App configuration must be provided.

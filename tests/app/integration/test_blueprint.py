@@ -19,6 +19,7 @@ from github.Repository import Repository
 from repo_policy_compliance import blueprint, github_client, policy
 from tests import assert_
 
+from .conftest import AuthenticationMethod
 from .types_ import RequestedCollaborator
 
 EXPECTED_PULL_REQUEST_KEYS = (
@@ -786,13 +787,21 @@ def test_always_fail(client: FlaskClient, runner_token: str):
 @pytest.mark.parametrize(
     "invalid_token", [pytest.param("", id="empty"), pytest.param("invalid", id="invalid")]
 )
-def test_health_fail(client: FlaskClient, invalid_token: str, monkeypatch: pytest.MonkeyPatch):
+def test_health_fail(
+    client: FlaskClient,
+    invalid_token: str,
+    monkeypatch: pytest.MonkeyPatch,
+    github_auth: AuthenticationMethod,
+):
     """
     arrange: given flask application with the blueprint registered and invalid token set in
         GITHUB_TOKEN environment variable
     act: when the health check endpoint is requested
     assert: then 500 is returned.
     """
+    if github_auth == AuthenticationMethod.GITHUB_APP:
+        pytest.skip("This test is not applicable for GitHub App authentication.")
+
     monkeypatch.setenv(github_client.GITHUB_TOKEN_ENV_NAME, invalid_token)
 
     response = client.get(blueprint.HEALTH_ENDPOINT)
@@ -864,6 +873,7 @@ def test_internal_server_error(
     assert: 500 error is returned with reason.
     """
     monkeypatch.setenv(github_client.GITHUB_TOKEN_ENV_NAME, "")
+    monkeypatch.setenv(github_client.GITHUB_APP_PRIVATE_KEY_ENV_NAME, "")
     main_branch = github_repository.get_branch(github_repository.default_branch)
     request_data = {
         "repository_name": github_repository.full_name,

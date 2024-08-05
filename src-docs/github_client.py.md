@@ -8,10 +8,16 @@ Module for GitHub client.
 **Global Variables**
 ---------------
 - **GITHUB_TOKEN_ENV_NAME**
+- **GITHUB_APP_ID_ENV_NAME**
+- **GITHUB_APP_INSTALLATION_ID_ENV_NAME**
+- **GITHUB_APP_PRIVATE_KEY_ENV_NAME**
+- **MISSING_GITHUB_CONFIG_ERR_MSG**
+- **NOT_ALL_GITHUB_APP_CONFIG_ERR_MSG**
+- **PROVIDED_GITHUB_TOKEN_AND_APP_CONFIG_ERR_MSG**
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L32"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L63"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get`
 
@@ -24,18 +30,18 @@ Get a GitHub client.
 
 
 **Returns:**
-  A GitHub client that is configured with a token from the environment. 
+  A GitHub client that is configured with a token or GitHub app from the environment. 
 
 
 
 **Raises:**
  
- - <b>`ConfigurationError`</b>:  If the GitHub token environment variable is not provided or empty. 
+ - <b>`ConfigurationError`</b>:  If the GitHub auth config is not valid. 
 
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L59"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L202"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `inject`
 
@@ -59,7 +65,7 @@ Injects a GitHub client as the first argument to a function.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L112"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L255"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_collaborators`
 
@@ -89,7 +95,7 @@ Get collaborators with a given affiliation and permission.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L147"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L290"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_branch`
 
@@ -119,7 +125,7 @@ Get the branch for the check.
 
 ---
 
-<a href="../repo_policy_compliance/github_client.py#L162"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/github_client.py#L305"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `get_collaborator_permission`
 
