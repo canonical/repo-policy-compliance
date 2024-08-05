@@ -13,6 +13,7 @@ from github.Repository import Repository
 from repo_policy_compliance.check import Result, target_branch_protection
 from tests import assert_
 
+from .conftest import AuthenticationMethod
 from .types_ import BranchWithProtection
 
 
@@ -118,13 +119,21 @@ def test_pass(
 
 
 def test_fail_default_branch(
-    forked_github_repository: Repository, caplog: pytest.LogCaptureFixture
+    forked_github_repository: Repository,
+    caplog: pytest.LogCaptureFixture,
+    github_auth: AuthenticationMethod,
 ):
     """
     arrange: given a default branch branch that is not compliant.
     act: when target_branch_protection is called with the name of the branch.
     assert: then a fail report is returned.
     """
+    # this test requires the github auth method to have access to the personal fork
+    # which would require a separate installation id for the app auth to be passed to the test,
+    # which is currently not supported (few tests which requires it so the overhead
+    # of adding it is not worth it)
+    if github_auth == AuthenticationMethod.GITHUB_APP:
+        pytest.skip("This test requires a personal fork to be accessible by the Github App Auth.")
     default_branch = forked_github_repository.get_branch(forked_github_repository.default_branch)
     default_branch.edit_protection()
     default_branch.remove_required_pull_request_reviews()
