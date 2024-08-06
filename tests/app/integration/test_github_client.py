@@ -7,6 +7,7 @@ import pytest
 
 from repo_policy_compliance.check import Result, target_branch_protection
 from repo_policy_compliance.github_client import GITHUB_TOKEN_ENV_NAME
+from tests.app.integration.conftest import AuthenticationMethod
 
 
 @pytest.mark.parametrize(
@@ -34,12 +35,15 @@ def test_github_token(
     fail_reason: str,
     github_repository_name: str,
     monkeypatch: pytest.MonkeyPatch,
+    github_auth: AuthenticationMethod,
 ):
     """
     arrange: A github repository name and a missing or invalid github token.
     act: when the github client is injected to target_branch_protection.
     assert: An expected error is raised with a specific error message.
     """
+    if github_auth == AuthenticationMethod.GITHUB_APP:
+        pytest.skip("This test is not applicable for GitHub App authentication.")
     monkeypatch.setenv(GITHUB_TOKEN_ENV_NAME, str(github_token_value))
     # The github_client is injected
     report = target_branch_protection(  # pylint: disable=no-value-for-parameter
