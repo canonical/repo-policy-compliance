@@ -29,7 +29,7 @@ requires:
 
 config:
   options:
-    # Both token configuration options should be juju user secrets:
+    # Both token configuration options should be juju user secrets:TEST
     # https://juju.is/docs/juju/secret#heading--user
     # This is not currently supported on paas-app-charmer, but as soon as it is,
     # this should be updated.
