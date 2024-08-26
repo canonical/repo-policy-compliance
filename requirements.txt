@@ -524,9 +524,9 @@ pydantic-core==2.20.0 ; python_full_version >= "3.10.0" and python_full_version 
 pydantic==2.8.0 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
     --hash=sha256:d970ffb9d030b710795878940bd0489842c638e7252fc4a19c3ae2f7da4d6141 \
     --hash=sha256:ead4f3a1e92386a734ca1411cb25d94147cf8778ed5be6b56749047676d6364e
-pygithub==2.3.0 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
-    --hash=sha256:0148d7347a1cdeed99af905077010aef81a4dad988b0ba51d4108bf66b443f7e \
-    --hash=sha256:65b499728be3ce7b0cd2cd760da3b32f0f4d7bc55e5e0677617f90f6564e793e
+PyGithub==2.4.0; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
+    --hash=sha256:6601e22627e87bac192f1e2e39c6e6f69a43152cfb8f307cee575879320b3051 \
+    --hash=sha256:81935aa4bdc939fba98fee1cb47422c09157c56a27966476ff92775602b9ee24
 PyJWT[crypto]==2.9.0; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
     --hash=sha256:3b02fb0f44517787776cf48f2ae25d8e14f300e6d7545a4315cee571a415e850 \
     --hash=sha256:7e1e5b56cc735432a7369cbfa0efe50fa113ebecdc04ae6922deba8b84582d0c
