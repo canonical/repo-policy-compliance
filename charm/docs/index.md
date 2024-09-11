@@ -47,13 +47,11 @@ juju deploy postgresql-k8s --trust --channel 14/edge
 juju deploy repo-policy-compliance repo-policy --config charm_token=abc --config github_token="github_pat_foobar" --channel latest/edge
 ```
 	
-[note]
-For `repo-policy-compliance` to work, the `charm_token` and `github_token` configurations must be set. The `charm_token` is chosen by you and must be shared with the authenticating client to generate one-time token authentication. 
 
-The `github_token` is either a GitHub Personal Access Token (with repo scope) or a fine-grained token with read permission for Administration. 
-
-Read more about the allowed GitHub authentication in [Reference](https://github.com/canonical/repo-policy-compliance/blob/main/charm/docs/reference/github-auth.md).
-[/note]
+> NOTE: For `repo-policy-compliance` to work, the `charm_token` and `github_token` configurations must be set. The `charm_token` is
+> chosen by you and must be shared with the authenticating client to generate one-time token authentication. 
+> The `github_token` is either a GitHub Personal Access Token (with repo scope) or a fine-grained token with read permission for Administration. 
+> Read more about allowed GitHub authentication methods in the [Reference document](https://github.com/canonical/repo-policy-compliance/blob/main/charm/docs/reference/github-auth.md).
 
 Integrate PostgreSQL and `repo-policy-compliance`:
 
@@ -78,7 +76,7 @@ repo-policy/0*     active    idle   10.1.72.167
 
 ### Generate an authentication token and test <a name="token"></a>
 
-Generate a one-time authentication token for `repo-policy-compliance` using `curl` and save it as the `ONE_TIME_TOKEN` environment variable. You will need the IP address of the `repo-policy-compliance` Unit; in the above output, the IP address is `10.1.72.167`. You will also need the `charm_token` configuration. 
+Generate a one-time authentication token for `repo-policy-compliance` using `curl` and save it as the `ONE_TIME_TOKEN` environment variable. You will need the IP address of the Unit for the `repo-policy-compliance` charm; in the example output above, 10.1.72.167 is the necessary IP address. You will also need the token used for `charm_token` configuration (in this example, "abc"). 
 
 ```
 ONE_TIME_TOKEN = curl http://10.1.72.167:8000/one-time-token -H"Authorization: Bearer abc" 
@@ -89,7 +87,7 @@ The variable should look similar to the following:
 d156dda1f03df9d42fd788d93799c57b4275ca5facccce92ef9b91cf4fc13f6a%
 ```
 
-Finally, use the `repo-policy-compliance` IP address and one-time token to check for compliance on a GitHub repository `repository_name`. The repository name should be formatted as `OWNER/REPO`. 
+Finally, use the `repo-policy-compliance` Unit IP address and the one-time token to check for compliance on a GitHub repository formatted as `OWNER/REPO`. 
 
 ```
 curl -i http://10.1.72.167:8000/push/check-run -H"Authorization: Bearer $ONE_TIME_TOKEN" --data '{"repository_name": "OWNER/REPO"}' -H"Content-Type: application/json"
@@ -104,6 +102,8 @@ Date: Wed, 11 Sep 2024 12:09:11 GMT
 Connection: close
 Content-Type: text/html; charset=utf-8
 ```
+
+"NO CONTENT" indicates that the repository is compliant.
 
 ## Integrations <a name="integrations"></a>
 
