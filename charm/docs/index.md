@@ -40,13 +40,14 @@ juju add-model prod-repo-policy-compliance
 ```
 
 ### Deploy <a name="deploy"></a>
-	Deploy the charms:
-	```
-	juju deploy postgresql-k8s --trust --channel 14/edge
+Deploy the charms:
+
+```
+juju deploy postgresql-k8s --trust --channel 14/edge
 juju deploy repo-policy-compliance repo-policy --config charm_token=abc --config github_token="github_pat_foobar" --channel latest/edge
-	```
+```
 	
-	[note]
+[note]
 For `repo-policy-compliance` to work, the `charm_token` and `github_token` configurations must be set. The `charm_token` is chosen by you and must be shared with the authenticating client to generate one-time token authentication. 
 
 The `github_token` is either a GitHub Personal Access Token (with repo scope) or a fine-grained token with read permission for Administration. 
@@ -54,10 +55,11 @@ The `github_token` is either a GitHub Personal Access Token (with repo scope) or
 Read more about the allowed GitHub authentication in [Reference](https://github.com/canonical/repo-policy-compliance/blob/main/charm/docs/reference/github-auth.md).
 [/note]
 
-	Integrate PostgreSQL and `repo-policy-compliance`:
-	```
-	juju integrate postgresql-k8s repo-policy
-	```
+Integrate PostgreSQL and `repo-policy-compliance`:
+
+```
+juju integrate postgresql-k8s repo-policy
+```
 
 Wait for both charms to reach an active idle state by monitoring `juju status`. The output should look similar to the following:
 
