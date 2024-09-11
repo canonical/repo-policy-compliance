@@ -1,15 +1,15 @@
 # Table of Contents
 1. [repo-policy-compliance](#introduction) 
 2. [Get started](#get-started)
-  1. [What you'll need](#what-youll-need) 
-  2. [Set up](#set-up)
-  3. [Deploy](#deploy)
-  4. [Generate an authentication token and test](#token)
+    1. [What you'll need](#what-youll-need) 
+    2. [Set up](#set-up)
+    3. [Deploy](#deploy)
+    4. [Generate an authentication token and test](#token)
 3. [Integrations](#integrations)
 4. [Next steps](#next-steps)
-5. [Learn more](#learn-more)
-6. [Join the community](#join-the-community)
-7. [License](#license)
+    1. [Learn more](#learn-more)
+    2. [Join the community](#join-the-community)
+5. [License](#license)
 
 ------------------------------------------------------------------------------------------------
 
