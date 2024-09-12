@@ -31,7 +31,6 @@ See the [Actions](https://charmhub.io/repo-policy-compliance/actions) and [Confi
 ### What you'll need <a name="what-youll-need"></a>
 * A Kubernetes cloud.
 * Juju 3 installed and a controller created.
-* NGINX Ingress Controller. If you’re using MicroK8s, this can be done by running the command `microk8s enable ingress`. 
 
 ### Set up <a name="set-up"></a>
 Create a Juju model:
