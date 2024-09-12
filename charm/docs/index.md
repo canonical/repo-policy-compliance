@@ -78,7 +78,7 @@ repo-policy/0*     active    idle   10.1.72.167
 Generate a one-time authentication token for `repo-policy-compliance` using `curl` and save it as the `ONE_TIME_TOKEN` environment variable. You will need the IP address of the Unit for the `repo-policy-compliance` charm; in the example output above, 10.1.72.167 is the necessary IP address. You will also need the token used for `charm_token` configuration (in this example, "abc"). 
 
 ```
-ONE_TIME_TOKEN = curl http://10.1.72.167:8000/one-time-token -H"Authorization: Bearer abc" 
+ONE_TIME_TOKEN=$(curl http://10.1.72.167:8000/one-time-token -H"Authorization: Bearer abc" )
 ```
 
 The variable should look similar to the following:
