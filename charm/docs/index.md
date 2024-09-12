@@ -102,7 +102,7 @@ Connection: close
 Content-Type: text/html; charset=utf-8
 ```
 
-"NO CONTENT" indicates that the repository is compliant.
+The `204` status code indicates that the repository is compliant.
 
 ## Integrations <a name="integrations"></a>
 
