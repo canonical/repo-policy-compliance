@@ -285,9 +285,9 @@ greenlet==3.1.0; python_full_version >= "3.10.0" and python_full_version < "4.0.
     --hash=sha256:f9671e7282d8c6fcabc32c0fb8d7c0ea8894ae85cee89c9aadc2d7129e1a9954 \
     --hash=sha256:fad7a051e07f64e297e6e8399b4d6a3bdcad3d7297409e9a06ef8cbccff4f501 \
     --hash=sha256:ffb08f2a1e59d38c7b8b9ac8083c9c8b9875f0955b1e9b9b9a965607a51f8e54
-idna==3.9; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
-    --hash=sha256:69297d5da0cc9281c77efffb4e730254dd45943f45bbfb461de5991713989b1e \
-    --hash=sha256:e5c5dafde284f26e9e0f28f6ea2d6400abd5ca099864a67f576f3981c6476124
+idna==3.10; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
+    --hash=sha256:12f65c9b470abda6dc35cf8e63cc574b1c52b11df2c86030af0ac09b01b13ea9 \
+    --hash=sha256:946d195a0d259cbba61165e88e65941f16e9b36ea6ddb97f00452bae8b1287d3
 itsdangerous==2.2.0 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
     --hash=sha256:c6242fc49e35958c8b15141343aa660db5fc54d4f13a1db01a3f5891b98700ef \
     --hash=sha256:e0050c0b7da1eea53ffaf149c0cfbb5c6e2e2b69c4bef22c81fa6eb73e5f6173
