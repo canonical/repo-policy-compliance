@@ -127,4 +127,9 @@ The `repo-policy-compliance` charm is a member of the Ubuntu family. It’s an o
 
 
 ## License <a name="license"></a>
-The `repo-policy-compliance` charm is free software, distributed under the Apache Software License, version 2.0. 
+The `repo-policy-compliance` charm is free software, distributed under the Apache Software License, version 2.0.
+
+# Contents
+
+1. [Reference](reference)
+  1. [GitHub Authentication](reference/github-auth.md)
