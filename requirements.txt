@@ -178,7 +178,7 @@ click==8.1.7 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0"
 colorama==0.4.6 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0" and platform_system == "Windows" \
     --hash=sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44 \
     --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
-cryptography==43.0.1; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
+cryptography==43.0.3; python_full_version >= "3.10.0" and python_full_version < "4.0.0" \
     --hash=sha256:014f58110f53237ace6a408b5beb6c427b64e084eb451ef25a28308270086494 \
     --hash=sha256:1bbcce1a551e262dfbafb6e6252f1ae36a248e615ca44ba302df077a846a8806 \
     --hash=sha256:203e92a75716d8cfb491dc47c79e17d0d9207ccffcbcb35f598fbe463ae3444d \
