@@ -2,7 +2,7 @@
 # See LICENSE file for licensing details.
 
 name: repo-policy-compliance
-base: ubuntu@22.04
+base: ubuntu@24.04
 version: '1.10.3'
 summary: Check the repository setup for policy compliance
 description: |
