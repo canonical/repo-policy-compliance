@@ -17,6 +17,6 @@ Applicable spec: <link>
 - [ ] The [contributing guide](https://github.com/canonical/is-charms-contributing-guide) was applied
 - [ ] The documentation is generated using `src-docs`
 - [ ] The PR is tagged with appropriate label (`urgent`, `trivial`, `complex`)
-- [ ] Version has been incremented on `pyproject.toml`
+- [ ] Version has been incremented on `pyproject.toml` and `rockcraft.yaml`
 
 <!-- Explanation for any unchecked items above -->

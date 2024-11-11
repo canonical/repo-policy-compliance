@@ -3,7 +3,7 @@
 
 [tool.poetry]
 name = "repo-policy-compliance"
-version = "1.9.0"
+version = "1.10.3"
 description = "Checks GitHub repository settings for compliance with policy"
 authors = ["Canonical IS DevOps <launchpad.net/~canonical-is-devops>"]
 license = "Apache 2.0"
@@ -32,7 +32,7 @@ SQLAlchemy = "^2.0.29"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
-pytest-operator = "^0.35.0"
+pytest-operator = "^0.38.0"
 
 [build-system]
 requires = ["poetry-core"]

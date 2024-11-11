@@ -13,6 +13,7 @@ from github.Repository import Repository
 from repo_policy_compliance.check import Result, target_branch_protection
 from tests import assert_
 
+from .conftest import AuthenticationMethod
 from .types_ import BranchWithProtection
 
 
@@ -118,13 +119,21 @@ def test_pass(
 
 
 def test_fail_default_branch(
-    forked_github_repository: Repository, caplog: pytest.LogCaptureFixture
+    forked_github_repository: Repository,
+    caplog: pytest.LogCaptureFixture,
+    github_auth: AuthenticationMethod,
 ):
     """
     arrange: given a default branch branch that is not compliant.
     act: when target_branch_protection is called with the name of the branch.
     assert: then a fail report is returned.
     """
+    # this test requires the github auth method to have access to the personal fork
+    # which would require a separate installation id for the app auth to be passed to the test,
+    # which is currently not supported (few tests which requires it so the overhead
+    # of adding it is not worth it)
+    if github_auth == AuthenticationMethod.GITHUB_APP:
+        pytest.skip("This test requires a personal fork to be accessible by the Github App Auth.")
     default_branch = forked_github_repository.get_branch(forked_github_repository.default_branch)
     default_branch.edit_protection()
     default_branch.remove_required_pull_request_reviews()
@@ -143,6 +152,60 @@ def test_fail_default_branch(
         report.reason,
     )
     assert repr("target_branch_protection") in caplog.text
+    assert repr(report) in caplog.text
+
+
+def test_fail_branch_missing(github_repository_name: str, caplog: pytest.LogCaptureFixture):
+    """
+    arrange: given a branch that is missing.
+    act: when target_branch_protection is called with the name of the branch.
+    assert: then a fail report is returned.
+    """
+    branch_name = f"missing-branch-{uuid4()}"
+    # The github_client is injected
+    report = target_branch_protection(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name,
+        branch_name=branch_name,
+        source_repository_name="other repository",
+    )
+
+    assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
+    assert "A particular GitHub resource could not be found" in report.reason
+    assert "Branch not found" in report.reason
+    assert repr(report) in caplog.text
+
+
+@pytest.mark.parametrize(
+    "github_branch, protected_github_branch",
+    [
+        (
+            f"test-branch/target-branch/not-protected/{uuid4()}",
+            BranchWithProtection(branch_protection_enabled=False),
+        )
+    ],
+    indirect=["github_branch", "protected_github_branch"],
+)
+@pytest.mark.usefixtures("protected_github_branch", "ruleset_protected_github_branch")
+def test_fail_branch_protection_using_rulesets(
+    github_branch: Branch, github_repository_name: str, caplog: pytest.LogCaptureFixture
+):
+    """
+    arrange: given a branch that is protected via ruleset and not the branch protection API.
+    act: when target_branch_protection is called with the name of the branch.
+    assert: then a fail report is returned.
+    """
+    # The github_client is injected
+    report = target_branch_protection(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name,
+        branch_name=github_branch.name,
+        source_repository_name="other repository",
+    )
+
+    assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
+    assert "not enabled" in report.reason
+    assert github_branch.name in report.reason
     assert repr(report) in caplog.text
 
 

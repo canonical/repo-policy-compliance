@@ -12,13 +12,16 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       - name: Install tox
         run: python3 -m pip install tox
       - name: Run tests (unit + integration)
         id: run-tests
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+          AUTH_GITHUB_TOKEN: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
+          AUTH_GITHUB_APP_ID : ${{ secrets.TEST_GITHUB_APP_ID }}
+          AUTH_GITHUB_APP_INSTALLATION_ID : ${{ secrets.TEST_GITHUB_APP_INSTALLATION_ID }}
+          AUTH_GITHUB_APP_PRIVATE_KEY : ${{ secrets.TEST_GITHUB_APP_PRIVATE_KEY }}
         run: |
           # Ensure that stdout appears as normal and redirect to file and exit depends on exit code of first command
           STDOUT_LOG=$(mktemp --suffix=stdout.log)
