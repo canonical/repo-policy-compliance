@@ -8,7 +8,7 @@ charset-normalizer==3.4.0 ; python_full_version >= "3.10.0" and python_full_vers
 click==8.1.7 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0"
 colorama==0.4.6 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0" and platform_system == "Windows"
 cryptography==43.0.3 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0"
-deprecated==1.2.14 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0"
+deprecated==1.2.15 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0"
 flask-httpauth==4.8.0 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0"
 flask-pydantic==0.12.0 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0"
 flask==3.1.0 ; python_full_version >= "3.10.0" and python_full_version < "4.0.0"
