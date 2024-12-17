@@ -19,6 +19,11 @@ Official [repo-policy-compliance Documentation](https://charmhub.io/repo-policy-
 Refer to the [Get started section](https://charmhub.io/repo-policy-compliance#get-started-a-nameget-starteda)
 in the Charmhub documentation for step-by-step instructions.
 
+See the [Actions](https://charmhub.io/repo-policy-compliance/actions),
+[Integrations](https://charmhub.io/repo-policy-compliance/integrations)
+and [Configurations](https://charmhub.io/repo-policy-compliance/configurations)
+tabs to learn more about the actions, integrations and configurations supported by this charm.
+
 ### Basic operations
 
 The module exposes several functions to check for compliance with the following
