@@ -1,6 +1,6 @@
 # repo-policy-compliance
-A Juju charm of a Flask application to to check if a GitHub repository aligns
-with the policies for workflow runs.
+A Juju charm of a Flask application to check if a GitHub repository aligns
+with the policies for self-hosted workflow runs.
 
 Like any Juju charm, this charm supports one-line deployment, configuration,
 integration, scaling, and more. For `repo-policy-compliance`, this includes:
