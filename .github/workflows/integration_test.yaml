@@ -15,6 +15,7 @@ jobs:
     with:
       juju-channel: 3.5/stable
       channel: 1.28-strict/stable
+      builder-runner-label: 24.04
       self-hosted-runner: false # we need a noble runner for python 3.12 but there is currently no edge runner with noble base available
       self-hosted-runner-label: "edge"
       rockcraft-channel: latest/edge
