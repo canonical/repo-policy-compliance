@@ -336,7 +336,8 @@ def _check_authorization_comment(
     Returns:
         A report whether the check has succeeded or failed.
     """
-    push_logins = {
+    # there seems to be an issue with comprehensions with coverage.py and python 3.12
+    push_logins = {  # pragma: no branch
         collaborator["login"]
         for collaborator in get_collaborators(
             repository=repository, permission="push", affiliation="all"
