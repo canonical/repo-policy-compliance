@@ -16,7 +16,7 @@ jobs:
       juju-channel: 3.5/stable
       channel: 1.28-strict/stable
       runs-on: ubuntu-24.04
-      self-hosted-runner: true # we need a noble runner for python 3.12 but there is currently no edge runner with noble base available
+      self-hosted-runner: false # we need a noble runner for python 3.12 but there is currently no edge runner with noble base available, so we choose gh hosted ones
       self-hosted-runner-image: 'noble'
       self-hosted-runner-label: "large"
       rockcraft-channel: latest/edge
