@@ -14,8 +14,10 @@ import pytest
 from flask import Flask
 from flask.testing import FlaskClient
 from github.Branch import Branch
+from github.Commit import Commit
 from github.Repository import Repository
 
+import repo_policy_compliance
 from repo_policy_compliance import blueprint, github_client, policy
 from tests import assert_
 
@@ -400,6 +402,56 @@ def test_pull_request_check_run_pass(
             "target_branch_name": github_repository.default_branch,
             "source_branch_name": github_repository.default_branch,
             "commit_sha": main_branch.commit.sha,
+        },
+        headers={"Authorization": f"Bearer {runner_token}"},
+    )
+
+    assert response.status_code == http.HTTPStatus.NO_CONTENT, response.data
+
+
+@pytest.mark.parametrize("disallow_env", ["true", "false"])
+@pytest.mark.parametrize(
+    "forked_github_branch",
+    [f"test-branch/execute-job/no-comment-on-pr/{uuid4()}"],
+    indirect=True,
+)
+@pytest.mark.usefixtures("pr_from_forked_github_branch", "make_fork_from_non_collaborator")
+def test_pull_request_forked_pr(
+    client: FlaskClient,
+    runner_token: str,
+    github_repository: Repository,
+    forked_github_repository: Repository,
+    monkeypatch: pytest.MonkeyPatch,
+    forked_github_branch: Branch,
+    disallow_env: str,
+):
+    """
+    arrange: given flask application with the blueprint registered and the charm token environment
+        variable set
+    act: when pull request check run is requested with a runner token and a valid run
+    assert: then 204 is returned.
+    """
+    monkeypatch.setenv("PULL_REQUEST_DISALLOW_FORK", disallow_env)
+
+    json_data = {
+        "repository_name": github_repository.full_name,
+        "source_repository_name": forked_github_repository.full_name,
+        "target_branch_name": github_repository.default_branch,
+        "source_branch_name": forked_github_branch.name,
+        "commit_sha": forked_github_branch.commit.sha,
+    }
+    import logging
+
+    logging.info("disallow_env %s", disallow_env)
+    logging.info("json data %s", json_data)
+    response = client.post(
+        blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
+        json={
+            "repository_name": github_repository.full_name,
+            "source_repository_name": forked_github_repository.full_name,
+            "target_branch_name": github_repository.default_branch,
+            "source_branch_name": forked_github_branch.name,
+            "commit_sha": forked_github_branch.commit.sha,
         },
         headers={"Authorization": f"Bearer {runner_token}"},
     )
