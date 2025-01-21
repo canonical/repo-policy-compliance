@@ -21,9 +21,8 @@ class UsedPolicy(Enum):
         PULL_REQUEST_DISALLOW_FORK: Use policy that only blocks disallowed forks.
     """
 
-    ALL = 1
-    PULL_REQUEST_ALLOW_FORK = 2
-    PULL_REQUEST_DISALLOW_FORK = 3
+    PULL_REQUEST_ALLOW_FORK = 1
+    PULL_REQUEST_DISALLOW_FORK = 2
 
 
 class PullRequestInput(BaseModel):
@@ -153,7 +152,8 @@ WorkflowDispatchInput = BranchInput
 
 @log.call
 def workflow_dispatch(
-    input_: WorkflowDispatchInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
+    input_: WorkflowDispatchInput,
+    policy_document: dict | UsedPolicy = UsedPolicy.PULL_REQUEST_DISALLOW_FORK,
 ) -> check.Report:
     """Run all the checks for workflow dispatch jobs.
 
@@ -191,7 +191,9 @@ PushInput = BranchInput
 
 
 @log.call
-def push(input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> check.Report:
+def push(
+    input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.PULL_REQUEST_DISALLOW_FORK
+) -> check.Report:
     """Run all the checks for on push jobs.
 
     Args:
@@ -229,7 +231,8 @@ ScheduleInput = BranchInput
 
 @log.call
 def schedule(
-    input_: ScheduleInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
+    input_: ScheduleInput,
+    policy_document: dict | UsedPolicy = UsedPolicy.PULL_REQUEST_DISALLOW_FORK,
 ) -> check.Report:
     """Run all the checks for on schedule jobs.
 
@@ -277,8 +280,6 @@ def _retrieve_policy_document(
     Returns:
         Mapped policy document.
     """
-    if policy_document == UsedPolicy.ALL:
-        return policy.ALL
     if policy_document == UsedPolicy.PULL_REQUEST_ALLOW_FORK:
         return policy.ALLOW_FORK
     if policy_document == UsedPolicy.PULL_REQUEST_DISALLOW_FORK:
