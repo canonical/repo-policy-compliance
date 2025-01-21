@@ -415,7 +415,8 @@ def test_pull_request_check_run_pass(
     [f"test-branch/execute-job/no-comment-on-pr/{uuid4()}"],
     indirect=True,
 )
-@pytest.mark.usefixtures("pr_from_forked_github_branch", "make_fork_from_non_collaborator")
+# @pytest.mark.usefixtures("pr_from_forked_github_branch", "make_fork_from_non_collaborator")
+@pytest.mark.usefixtures("pr_from_forked_github_branch")
 def test_pull_request_forked_pr(
     client: FlaskClient,
     runner_token: str,
