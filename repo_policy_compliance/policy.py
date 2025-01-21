@@ -74,6 +74,17 @@ ALL = MappingProxyType(
         **_BASE_POLICY_MAP,
     }
 )
+DISALLOW_FORK = MappingProxyType(
+    {
+        JobType.PULL_REQUEST: {
+            prop: (ENABLED_RULE if prop == PullRequestProperty.DISALLOW_FORK else DISABLED_RULE)
+            for prop in PullRequestProperty
+        },
+        JobType.WORKFLOW_DISPATCH: {prop: DISABLED_RULE for prop in WorkflowDispatchProperty},
+        JobType.PUSH: {prop: DISABLED_RULE for prop in PushProperty},
+        JobType.SCHEDULE: {prop: DISABLED_RULE for prop in ScheduleProperty},
+    }
+)
 ALLOW_FORK = MappingProxyType(
     {
         JobType.PULL_REQUEST: {

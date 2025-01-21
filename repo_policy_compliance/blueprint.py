@@ -177,7 +177,7 @@ def _get_policy_document() -> dict | UsedPolicy:
     ).lower() == "true"
     if not pull_request_disallow_fork:
         return UsedPolicy.PULL_REQUEST_ALLOW_FORK
-    return UsedPolicy.ALL
+    return UsedPolicy.PULL_REQUEST_DISALLOW_FORK
 
 
 # Keeping /check-run pointing to this for backwards compatibility

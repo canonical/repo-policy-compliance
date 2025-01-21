@@ -18,10 +18,12 @@ class UsedPolicy(Enum):
     Attributes:
         ALL: Use all policies.
         PULL_REQUEST_ALLOW_FORK: Use policy that lets forked repositories run jobs (default).
+        PULL_REQUEST_DISALLOW_FORK: Use policy that only blocks disallowed forks.
     """
 
     ALL = 1
     PULL_REQUEST_ALLOW_FORK = 2
+    PULL_REQUEST_DISALLOW_FORK = 3
 
 
 class PullRequestInput(BaseModel):
@@ -279,6 +281,8 @@ def _retrieve_policy_document(
         return policy.ALL
     if policy_document == UsedPolicy.PULL_REQUEST_ALLOW_FORK:
         return policy.ALLOW_FORK
+    if policy_document == UsedPolicy.PULL_REQUEST_DISALLOW_FORK:
+        return policy.DISALLOW_FORK
     # Guaranteed to be a dict due to initial if statements
     policy_document = cast(dict, policy_document)
     if not (policy_report := policy.check(document=policy_document)).result:
