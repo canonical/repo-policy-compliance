@@ -409,55 +409,42 @@ def test_pull_request_check_run_pass(
     assert response.status_code == http.HTTPStatus.NO_CONTENT, response.data
 
 
-@pytest.mark.parametrize("disallow_env", ["true", "false"])
 @pytest.mark.parametrize(
     "forked_github_branch",
     [f"test-branch/execute-job/no-comment-on-pr/{uuid4()}"],
-    indirect=True,
+    indirect=["forked_github_branch"],
 )
-# @pytest.mark.usefixtures("pr_from_forked_github_branch", "make_fork_from_non_collaborator")
-@pytest.mark.usefixtures("pr_from_forked_github_branch")
-def test_pull_request_forked_pr(
+@pytest.mark.usefixtures("pr_from_forked_github_branch", "make_fork_from_non_collaborator")
+def test_pull_request_disallow_fork_on_forked_pr_fail(
     client: FlaskClient,
     runner_token: str,
     github_repository: Repository,
     forked_github_repository: Repository,
     monkeypatch: pytest.MonkeyPatch,
     forked_github_branch: Branch,
-    disallow_env: str,
 ):
     """
-    arrange: given flask application with the blueprint registered and the charm token environment
-        variable set
+    arrange: given flask application with the blueprint registered and the environment
+        variable set for disallowing forks set to true
     act: when pull request check run is requested with a runner token and a valid run
-    assert: then 204 is returned.
+    assert: then 403 is returned.
     """
-    monkeypatch.setenv("PULL_REQUEST_DISALLOW_FORK", disallow_env)
+    monkeypatch.setenv("PULL_REQUEST_DISALLOW_FORK", "true")
 
-    json_data = {
+    response = client.post(
+        blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
+        json={
         "repository_name": github_repository.full_name,
         "source_repository_name": forked_github_repository.full_name,
         "target_branch_name": github_repository.default_branch,
         "source_branch_name": forked_github_branch.name,
         "commit_sha": forked_github_branch.commit.sha,
-    }
-    import logging
-
-    logging.info("disallow_env %s", disallow_env)
-    logging.info("json data %s", json_data)
-    response = client.post(
-        blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
-        json={
-            "repository_name": github_repository.full_name,
-            "source_repository_name": forked_github_repository.full_name,
-            "target_branch_name": github_repository.default_branch,
-            "source_branch_name": forked_github_branch.name,
-            "commit_sha": forked_github_branch.commit.sha,
         },
         headers={"Authorization": f"Bearer {runner_token}"},
     )
 
-    assert response.status_code == http.HTTPStatus.NO_CONTENT, response.data
+    assert response.status_code == http.HTTPStatus.FORBIDDEN, response.data
+    assert_.substrings_in_string(("outside collaborators",), response.data.decode("utf-8"))
 
 
 @pytest.mark.parametrize(
