@@ -16,7 +16,6 @@ class UsedPolicy(Enum):
     """Sentinel to indicate which policy to use.
 
     Attributes:
-        ALL: Use all policies.
         PULL_REQUEST_ALLOW_FORK: Use policy that lets forked repositories run jobs (default).
         PULL_REQUEST_DISALLOW_FORK: Use policy that only blocks disallowed forks.
     """
