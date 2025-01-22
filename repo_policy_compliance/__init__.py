@@ -280,9 +280,9 @@ def _retrieve_policy_document(
         Mapped policy document.
     """
     if policy_document == UsedPolicy.PULL_REQUEST_ALLOW_FORK:
-        return policy.ALLOW_FORK
+        return policy.ENABLE_EXCEPT_FORK
     if policy_document == UsedPolicy.PULL_REQUEST_DISALLOW_FORK:
-        return policy.DISALLOW_FORK
+        return policy.DISABLE_EXCEPT_FORK
     # Guaranteed to be a dict due to initial if statements
     policy_document = cast(dict, policy_document)
     if not (policy_report := policy.check(document=policy_document)).result:
