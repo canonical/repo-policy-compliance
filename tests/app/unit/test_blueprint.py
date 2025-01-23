@@ -31,9 +31,17 @@ from repo_policy_compliance import UsedPolicy
             {"test": "content"},
             id="policy document & flask env",
         ),
-        pytest.param("", {"PULL_REQUEST_DISALLOW_FORK": "true"}, UsedPolicy.ALL, id="env"),
         pytest.param(
-            "", {"FLASK_PULL_REQUEST_DISALLOW_FORK": "true"}, UsedPolicy.ALL, id="flask env"
+            "",
+            {"PULL_REQUEST_DISALLOW_FORK": "true"},
+            UsedPolicy.PULL_REQUEST_DISALLOW_FORK,
+            id="env",
+        ),
+        pytest.param(
+            "",
+            {"FLASK_PULL_REQUEST_DISALLOW_FORK": "true"},
+            UsedPolicy.PULL_REQUEST_DISALLOW_FORK,
+            id="flask env",
         ),
         pytest.param(
             "",

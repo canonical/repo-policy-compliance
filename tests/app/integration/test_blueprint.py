@@ -236,22 +236,40 @@ def test_check_run_missing_data(
     "github_branch, collaborators_with_permission",
     [
         (
-            f"test-branch/blueprint/pull-request/fail/{uuid4()}",
+            f"test-branch/blueprint/pull-request/{uuid4()}",
             RequestedCollaborator("admin", "admin"),
         )
     ],
     indirect=["github_branch", "collaborators_with_permission"],
 )
+@pytest.mark.parametrize(
+    "disallow_fork, expected_http_status, expected_message",
+    [
+        pytest.param("true", http.HTTPStatus.NO_CONTENT, ""),
+        pytest.param("false", http.HTTPStatus.FORBIDDEN, "outside collaborators"),
+    ],
+)
 @pytest.mark.usefixtures("collaborators_with_permission")
-def test_pull_request_check_run_fail(
-    client: FlaskClient, runner_token: str, github_repository: Repository, github_branch: Branch
+def test_pull_request_check_run(
+    client: FlaskClient,
+    runner_token: str,
+    github_repository: Repository,
+    github_branch: Branch,
+    monkeypatch: pytest.MonkeyPatch,
+    disallow_fork: str,
+    expected_http_status: int,
+    expected_message: str,
 ):
     """
     arrange: given flask application with the blueprint registered and the charm token environment
-        variable set
-    act: when pull request check run is requested with a runner token and an invalid run
-    assert: then 403 is returned.
+        variable set and whether disallowed forks is enabled or not
+    act: when pull request check run is requested with a runner token and a run with outside
+         collaborators
+    assert: check 204 is returned if disallowed forks (as only forks are checked) or 403 if the env
+            var for disallow forks is not true.
     """
+    monkeypatch.setenv("PULL_REQUEST_DISALLOW_FORK", disallow_fork)
+
     response = client.post(
         blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
         json={
@@ -264,8 +282,8 @@ def test_pull_request_check_run_fail(
         headers={"Authorization": f"Bearer {runner_token}"},
     )
 
-    assert response.status_code == http.HTTPStatus.FORBIDDEN, response.data
-    assert_.substrings_in_string(("outside collaborators",), response.data.decode("utf-8"))
+    assert response.status_code == expected_http_status, response.data
+    assert_.substrings_in_string((expected_message,), response.data.decode("utf-8"))
 
 
 @pytest.mark.parametrize(
@@ -892,3 +910,41 @@ def test_internal_server_error(
         "Something went wrong while configuring repository compliance policy check. "
         "Please contact the operator" in str(response.data, encoding="utf-8")
     )
+
+
+@pytest.mark.parametrize(
+    "forked_github_branch",
+    [f"test-branch/execute-job/no-comment-on-pr/{uuid4()}"],
+    indirect=["forked_github_branch"],
+)
+@pytest.mark.usefixtures("pr_from_forked_github_branch", "make_fork_from_non_collaborator")
+def test_pull_request_disallow_fork_on_forked_pr_fail(
+    client: FlaskClient,
+    runner_token: str,
+    github_repository: Repository,
+    forked_github_repository: Repository,
+    monkeypatch: pytest.MonkeyPatch,
+    forked_github_branch: Branch,
+):
+    """
+    arrange: given flask application with the blueprint registered and the environment
+        variable set to disallow forks set to true
+    act: when pull request check run is requested with a runner token and a valid run
+    assert: then 403 is returned.
+    """
+    monkeypatch.setenv("PULL_REQUEST_DISALLOW_FORK", "true")
+
+    response = client.post(
+        blueprint.PULL_REQUEST_CHECK_RUN_ENDPOINT,
+        json={
+            "repository_name": github_repository.full_name,
+            "source_repository_name": forked_github_repository.full_name,
+            "target_branch_name": github_repository.default_branch,
+            "source_branch_name": forked_github_branch.name,
+            "commit_sha": forked_github_branch.commit.sha,
+        },
+        headers={"Authorization": f"Bearer {runner_token}"},
+    )
+
+    assert response.status_code == http.HTTPStatus.FORBIDDEN, response.data
+    assert_.substrings_in_string(("fork repository",), response.data.decode("utf-8"))
