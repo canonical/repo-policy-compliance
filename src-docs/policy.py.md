@@ -10,12 +10,12 @@ Module for the policy document.
 - **ENABLED_KEY**
 - **ENABLED_RULE**
 - **DISABLED_RULE**
-- **ALL**
 - **ALLOW_FORK**
+- **DISALLOW_FORK**
 
 ---
 
-<a href="../repo_policy_compliance/policy.py#L100"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/policy.py#L105"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `check`
 
@@ -39,7 +39,7 @@ Check that a policy document is valid.
 
 ---
 
-<a href="../repo_policy_compliance/policy.py#L120"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../repo_policy_compliance/policy.py#L125"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ## <kbd>function</kbd> `enabled`
 
