@@ -1,2 +1,6 @@
 # pebble, false positive https://github.com/canonical/pebble/issues/498
 CVE-2024-34156
+# Vulnerability in golang.org/x/crypto introduced by statsd-exporter. We have to wait until it is fixed upstream: https://github.com/prometheus/statsd_exporter/blob/master/go.mod
+CVE-2024-45337
+# Vulnerability in golang.org/x/net introduced by statsd-exporter. We have to wait until it is fixed upstream: https://github.com/prometheus/statsd_exporter/blob/master/go.mod
+CVE-2024-45338
