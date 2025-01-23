@@ -1,5 +1,33 @@
 # repo-policy-compliance
-Tool to check a GitHub repository for compliance with policy
+A Juju charm of a Flask application to check if a GitHub repository aligns
+with the policies for self-hosted workflow runs. The charm is intended to be
+used in conjunction with the
+[Github runner charm](https://charmhub.io/github-runner) to prevent malicious
+workflow execution in internal infrastructure.
+
+Like any Juju charm, this charm supports one-line deployment, configuration,
+integration, scaling, and more. For `repo-policy-compliance`, this includes:
+
+* Customising enabled policies
+* Running in debug mode
+* Choosing different GitHub authentication methods
+* Modifying Flask-specific features like a secret key for security-related
+  needs, the run environment (e.g., production) or where the application is mounted
+
+For information about how to deploy, integrate, and manage this charm, see the
+Official [repo-policy-compliance Documentation](https://charmhub.io/repo-policy-compliance).
+
+## Get started
+
+Refer to the [Get started section](https://charmhub.io/repo-policy-compliance#get-started-a-nameget-starteda)
+in the Charmhub documentation for step-by-step instructions.
+
+See the [Actions](https://charmhub.io/repo-policy-compliance/actions),
+[Integrations](https://charmhub.io/repo-policy-compliance/integrations)
+and [Configurations](https://charmhub.io/repo-policy-compliance/configurations)
+tabs to learn more about the actions, integrations and configurations supported by this charm.
+
+### Basic operations
 
 The module exposes several functions to check for compliance with the following
 policies:
@@ -22,7 +50,7 @@ policies:
 
 These policies are designed for workflow runs in the context of a pull request.
 
-## Customizing Enabled Policies
+### Customizing enabled policies
 
 Each of `pull_request`, `workflow_dispatch`, `schedule` and `push` accept a
 `policy_document` argument which can be used to change which policies are
@@ -32,7 +60,7 @@ enabled. If supplied, it should be a dictionary that complies with the
 If nothing is supplied for a particular policy (e.g.,
 `pull_request.target_branch_protection`) it is treated as enabled.
 
-## Flask Blueprint
+### Flask blueprint
 
 The functions are made available via a
 [flask blueprint](repo_policy_compliance/blueprint.py). This is designed to run
@@ -41,11 +69,11 @@ in a single thread for simplicity.
 The blueprint exposes an endpoint `/always-fail/check-run` that simulates a
 failing check to be used for testing purposes.
 
-## Running the Tests
+### Running the tests
 
 There are two types of test: the application test and the charm test.
 
-### Application tests
+#### Application tests
 To run the application tests, the `AUTH_GITHUB_TOKEN` environment variable must be set. This
 should be a token of a user with full repo permissions for the test repository. 
 You can also pass in `AUTH_APP_ID`, `AUTH_INSTALLATION_ID`, and `AUTH_PRIVATE_KEY` 
@@ -75,7 +103,7 @@ token that is short-lived, e.g. 7 days. When it expires, a new token must be set
 For the GitHub App Auth, the `TEST_GITHUB_APP_ID`, `TEST_GIHUB_APP_INSTALLATION_ID`, and
 `TEST_GITHUB_APP_PRIVATE_KEY` should be set as secrets.
 
-### Charm tests
+#### Charm tests
 
 To run the charm tests, a valid GitHub token (permissions do not matter) must be passed
 to the `tox` command using the `--github-token` flag. You will also need to pass the charm file
@@ -86,3 +114,14 @@ For example
 ```bash
 tox -e charm-integration-test -- --model testing --keep-models --charm-file=./repo-policy-compliance_ubuntu-22.04-amd64.charm --repo-policy-compliance-image=ghcr.io/canonical/repo-policy-compliance:5ed6216396522d813c06d5b0e709b72bbec6d6e0-_1.8.4_amd64 --github-token=<token>.
 ```
+
+## Learn more
+* [Read more](https://charmhub.io/repo-policy-compliance) 
+* [Troubleshooting](https://matrix.to/#/#charmhub-charmdev:ubuntu.com) 
+
+## Project and community
+* [Issues](https://github.com/canonical/repo-policy-compliance/issues) 
+* [Contributing](https://github.com/canonical/repo-policy-compliance/blob/main/CONTRIBUTING.md)
+* [Matrix](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
+
+

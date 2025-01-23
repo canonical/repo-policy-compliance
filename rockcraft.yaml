@@ -3,7 +3,7 @@
 
 name: repo-policy-compliance
 base: ubuntu@24.04
-version: '1.10.3'
+version: '1.11.0'
 summary: Check the repository setup for policy compliance
 description: |
     Used to check whether a GitHub repository complies with expected policies.
