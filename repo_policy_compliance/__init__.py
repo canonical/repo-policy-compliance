@@ -16,12 +16,12 @@ class UsedPolicy(Enum):
     """Sentinel to indicate which policy to use.
 
     Attributes:
-        ALL: Use all policies.
         PULL_REQUEST_ALLOW_FORK: Use policy that lets forked repositories run jobs (default).
+        PULL_REQUEST_DISALLOW_FORK: Use policy that only blocks disallowed forks.
     """
 
-    ALL = 1
-    PULL_REQUEST_ALLOW_FORK = 2
+    PULL_REQUEST_ALLOW_FORK = 1
+    PULL_REQUEST_DISALLOW_FORK = 2
 
 
 class PullRequestInput(BaseModel):
@@ -151,7 +151,8 @@ WorkflowDispatchInput = BranchInput
 
 @log.call
 def workflow_dispatch(
-    input_: WorkflowDispatchInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
+    input_: WorkflowDispatchInput,
+    policy_document: dict | UsedPolicy = UsedPolicy.PULL_REQUEST_DISALLOW_FORK,
 ) -> check.Report:
     """Run all the checks for workflow dispatch jobs.
 
@@ -189,7 +190,9 @@ PushInput = BranchInput
 
 
 @log.call
-def push(input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL) -> check.Report:
+def push(
+    input_: PushInput, policy_document: dict | UsedPolicy = UsedPolicy.PULL_REQUEST_DISALLOW_FORK
+) -> check.Report:
     """Run all the checks for on push jobs.
 
     Args:
@@ -227,7 +230,8 @@ ScheduleInput = BranchInput
 
 @log.call
 def schedule(
-    input_: ScheduleInput, policy_document: dict | UsedPolicy = UsedPolicy.ALL
+    input_: ScheduleInput,
+    policy_document: dict | UsedPolicy = UsedPolicy.PULL_REQUEST_DISALLOW_FORK,
 ) -> check.Report:
     """Run all the checks for on schedule jobs.
 
@@ -275,10 +279,10 @@ def _retrieve_policy_document(
     Returns:
         Mapped policy document.
     """
-    if policy_document == UsedPolicy.ALL:
-        return policy.ALL
     if policy_document == UsedPolicy.PULL_REQUEST_ALLOW_FORK:
-        return policy.ALLOW_FORK
+        return policy.ENABLE_EXCEPT_FORK
+    if policy_document == UsedPolicy.PULL_REQUEST_DISALLOW_FORK:
+        return policy.DISABLE_EXCEPT_FORK
     # Guaranteed to be a dict due to initial if statements
     policy_document = cast(dict, policy_document)
     if not (policy_report := policy.check(document=policy_document)).result:
