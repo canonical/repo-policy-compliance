@@ -292,7 +292,7 @@ def test_execute_job(  # pylint: disable=too-many-arguments
         pytest.param(
             f"test-branch/pull_request/pass/{uuid4()}",
             BranchWithProtection(),
-            {"policy_document": UsedPolicy.ALL},
+            {"policy_document": UsedPolicy.PULL_REQUEST_DISALLOW_FORK},
             id="all policy",
         ),
     ],
