@@ -6,13 +6,14 @@ used in conjunction with the
 workflow execution in internal infrastructure.
 
 Like any Juju charm, this charm supports one-line deployment, configuration,
-integration, scaling, and more. For `repo-policy-compliance`, this includes:
+integration, scaling, and more. For the `repo-policy-compliance` charm, this
+includes the ability to:
 
-* Customising enabled policies
-* Running in debug mode
-* Choosing different GitHub authentication methods
-* Modifying Flask-specific features like a secret key for security-related
-  needs, the run environment (e.g., production) or where the application is mounted
+* Customize enabled policies.
+* Run in debug mode.
+* Choose different GitHub authentication methods.
+* Modify Flask-specific features like a secret key for security-related needs, the run environment
+  (e.g., production) or where the application is mounted.
 
 For information about how to deploy, integrate, and manage this charm, see the
 Official [repo-policy-compliance Documentation](https://charmhub.io/repo-policy-compliance).
