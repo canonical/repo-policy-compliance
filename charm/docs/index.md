@@ -1,7 +1,5 @@
 A [Kubernetes charm](https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/charm/charm-taxonomy/#kubernetes)
-that checks if a GitHub repository aligns with a
-[set of policies](https://github.com/canonical/repo-policy-compliance/blob/main/README.md#basic-operations)
-for workflow runs.
+that checks if a GitHub repository aligns with a chosen set of policies for workflow runs.
 
 When using the `github-runner` charm to deploy and manage your self-hosted runners in OpenStack mode,
 the self-hosted runners can execute arbitrary code. This may hurt compliance. Deploying the
@@ -22,18 +20,42 @@ See the [Actions](https://charmhub.io/repo-policy-compliance/actions) and
 actions and configurations supported by this charm.
 
 **Contents**
-1. [Get started](#get-started)
+1. [Policies](#policies)
+2. [Get started](#get-started)
     1. [Requirements](#requirements) 
     2. [Set up](#set-up)
     3. [Deploy](#deploy)
     4. [Generate an authentication token and test](#token)
-2. [Integrations](#integrations)
-3. [See also](#see-also)
-4. [Project and community](#project-and-community)
-5. [License](#license)
+3. [Integrations](#integrations)
+4. [Learn more](#learn-more)
+5. [Project and community](#project-and-community)
+6. [License](#license)
 
 
 ------------------------------------------------------------------------------------------------
+
+## Policies 
+
+The charm exposes several functions to check for compliance with the following
+policies:
+
+* `target_branch_protection`: That the branch targeted by a pull request has
+  protection enabled and that rules cannot be bypassed. The requirement for
+  reviews is relaxed for non-default branches where both the source and target
+  branch are on the repository.
+* `collaborators`: Check that all outside collaborators of the project have at
+  most `read` permissions.
+* `execute_job`: That a user with write permission or above has left the comment
+  `/canonical/self-hosted-runners/run-workflows <commit SHA>` approving a
+  workflow run for a specific commit SHA. Only applicable to forked source
+  branches.
+* `pull_request`: Runs `target_branch_protection`, `collaborators` and
+  `execute_job`.
+* `workflow_dispatch`: Runs `collaborators`.
+* `push`: Runs `collaborators`.
+* `schedule`: Runs `collaborators`.
+
+These policies are designed for workflow runs in the context of a pull request.
 
 ## Get started 
 This section provides a brief overview on deploying, configuring and integrating the
