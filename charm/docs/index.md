@@ -43,19 +43,19 @@ policies:
   protection enabled and that rules cannot be bypassed. The requirement for
   reviews is relaxed for non-default branches where both the source and target
   branch are on the repository.
-* `collaborators`: Check that all outside collaborators of the project have at
+* `collaborators`: That all outside collaborators of the project have at
   most `read` permissions.
 * `execute_job`: That a user with write permission or above has left the comment
   `/canonical/self-hosted-runners/run-workflows <commit SHA>` approving a
   workflow run for a specific commit SHA. Only applicable to forked source
   branches.
+* `disallow_fork`: That pull requests do not run any compliance checks on external
+  forks. Can be enabled by [a configuration option](https://github.com/canonical/repo-policy-compliance/blob/main/charm/charmcraft.yaml#L52).
 * `pull_request`: Runs `target_branch_protection`, `collaborators` and
   `execute_job`.
 * `workflow_dispatch`: Runs `collaborators`.
 * `push`: Runs `collaborators`.
 * `schedule`: Runs `collaborators`.
-
-These policies are designed for workflow runs in the context of a pull request.
 
 ## Get started 
 This section provides a brief overview on deploying, configuring and integrating the
