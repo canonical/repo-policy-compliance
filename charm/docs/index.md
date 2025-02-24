@@ -3,9 +3,9 @@ that checks if a GitHub repository aligns with a chosen set of policies for work
 
 When using the `github-runner` charm to deploy and manage your self-hosted runners in OpenStack mode,
 the self-hosted runners can execute arbitrary code. This may hurt compliance. Deploying the
-`repo-policy-compliance`charm, configuring it for OpenStack mode and integrating it with the
-`github-runner` charm ensures that only authorized code is executed, and so your GitHub repository
-remains compliant. For more information, read the [GitHub runner charm documentation](https://charmhub.io/github-runner). 
+`repo-policy-compliance`charm and exposing it to the `github-runner` charm ensures that only authorized
+code is executed, and so your GitHub repository remains compliant.
+For more information, read the [GitHub runner charm documentation](https://charmhub.io/github-runner). 
 
 Like any Juju charm, this charm supports one-line deployment, configuration, integration, scaling, and
 more. For the `repo-policy-compliance` charm, this includes the ability to:
