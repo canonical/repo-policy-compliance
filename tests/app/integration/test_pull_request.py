@@ -8,6 +8,7 @@ import pytest
 from github.Branch import Branch
 from github.Repository import Repository
 
+import repo_policy_compliance
 from repo_policy_compliance import PullRequestInput, UsedPolicy, policy, pull_request
 from repo_policy_compliance.check import Result
 
@@ -59,6 +60,7 @@ def test_invalid_policy():
 )
 @pytest.mark.usefixtures("protected_github_branch")  # All the arguments are required for the test
 def test_pull_request_disallow_fork(  # pylint: disable=too-many-arguments
+    monkeypatch: pytest.MonkeyPatch,
     github_branch: Branch,
     github_repository_name: str,
     forked_github_repository: Repository,
@@ -71,6 +73,12 @@ def test_pull_request_disallow_fork(  # pylint: disable=too-many-arguments
     act: when pull_request is called
     assert: then a expected result is returned.
     """
+    # organisation member checks are done in test_check unit tests and is not required here.
+    monkeypatch.setattr(
+        repo_policy_compliance.check,
+        "check_user_organisation_member",
+        lambda *_args, **_kwargs: False,
+    )
     # this test requires the github auth method to have access to the personal fork
     # which would require a separate installation id for the app auth to be passed to the test,
     # which is currently not supported (few tests which requires it so the overhead

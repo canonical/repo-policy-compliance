@@ -326,7 +326,9 @@ def get_collaborator_permission(
     return cast(Literal["admin", "write", "read", "none"], user_permission)
 
 
-def check_user_organisation_member(
+# This function is not covered by tests because it consists only of GitHub API
+# calls.
+def check_user_organisation_member(  # pragma: no cover
     github_client: Github, organisation: str, username: str
 ) -> bool:
     """Check if a user is a member of an organisation.
