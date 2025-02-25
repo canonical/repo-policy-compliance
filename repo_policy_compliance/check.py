@@ -21,6 +21,7 @@ from repo_policy_compliance.exceptions import (
     RetryableGithubClientError,
 )
 from repo_policy_compliance.github_client import (
+    check_user_organisation_member,
     get_branch,
     get_collaborator_permission,
     get_collaborators,
@@ -303,7 +304,10 @@ def execute_job(github_client: Github, job_metadata: JobMetadata) -> Report:
     )
 
 
-def _check_fork_collaborator(repository: Repository, fork_repository_name: str) -> bool:
+@inject_github_client
+def _check_fork_collaborator(
+    github_client: Github, repository: Repository, fork_repository_name: str
+) -> bool:
     """Check whether the fork's owner is authorized as a collaborator.
 
     A user is authorized if he is a collaborator with write permissions and above.
@@ -319,7 +323,11 @@ def _check_fork_collaborator(repository: Repository, fork_repository_name: str) 
 
     # Check if owner of the fork already has push or higher permission (not an external user)
     fork_user_permission = get_collaborator_permission(repository, fork_username)
-    return fork_user_permission in ("admin", "write")
+    if fork_user_permission in ("admin", "write"):
+        return True
+    return check_user_organisation_member(
+        github_client=github_client, organisation=repository.organization, username=fork_username
+    )
 
 
 def _check_authorization_comment(

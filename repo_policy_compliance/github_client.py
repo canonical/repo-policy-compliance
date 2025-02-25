@@ -324,3 +324,19 @@ def get_collaborator_permission(
             'expected one of "admin", "write", "read", "none"'
         )
     return cast(Literal["admin", "write", "read", "none"], user_permission)
+
+
+def check_user_organisation_member(
+    github_client: Github, organisation: str, username: str
+) -> bool:
+    """Check if a user is a member of an organisation.
+
+    Args:
+        organisation: The organisation to check for membership.
+        username: The github login to check for membership.
+
+    Returns:
+        True if the user is a member of the organisation, False otherwise.
+    """
+    org = github_client.get_organization(organisation)
+    return org.has_in_members(username)

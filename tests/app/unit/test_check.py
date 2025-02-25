@@ -3,6 +3,7 @@
 
 """Tests for the check module."""
 import secrets
+from dataclasses import dataclass
 from unittest.mock import MagicMock
 
 import pytest
@@ -39,45 +40,74 @@ def test_github_exceptions_to_fail_report():
     assert "Something went wrong" in str(report.reason)
 
 
+@dataclass
+class _CheckForkCollaboratorTestParams:
+    """Dataclass to hold test parameters for _check_fork_collaborator tests."""
+
+    repository_name: str
+    source_repository_name: str
+    is_user_org_member: bool
+    expected_user_permission: str
+    expected_result: bool
+
+
 @pytest.mark.parametrize(
-    "repository_name, source_repository_name, expected_user_permission, expected_result",
+    "test_params",
     [
         pytest.param(
-            "repo-1/name-1",
-            "user-1/name-1",
-            "none",
-            False,
+            _CheckForkCollaboratorTestParams(
+                repository_name="repo-1/name-1",
+                source_repository_name="user-1/name-1",
+                is_user_org_member=False,
+                expected_user_permission="none",
+                expected_resul=False,
+            ),
             id="repo names don't match, owner none permission",
         ),
         pytest.param(
-            "repo-1/name-1",
-            "user-1/name-1",
-            "read",
-            False,
+            _CheckForkCollaboratorTestParams(
+                repository_name="repo-1/name-1",
+                source_repository_name="user-1/name-1",
+                is_user_org_member=False,
+                expected_user_permission="read",
+                expected_resul=False,
+            ),
             id="repo names don't match, owner read permission",
         ),
         pytest.param(
-            "repo-1/name-1",
-            "user-1/name-1",
-            "write",
-            True,
+            _CheckForkCollaboratorTestParams(
+                repository_name="repo-1/name-1",
+                source_repository_name="user-1/name-1",
+                is_user_org_member=False,
+                expected_user_permission="write",
+                expected_resul=True,
+            ),
             id="repo names don't match, owner write permissions",
         ),
         pytest.param(
-            "repo-1/name-1",
-            "user-1/name-1",
-            "admin",
-            True,
+            _CheckForkCollaboratorTestParams(
+                repository_name="repo-1/name-1",
+                source_repository_name="user-1/name-1",
+                is_user_org_member=False,
+                expected_user_permission="admin",
+                expected_resul=True,
+            ),
             id="repo names don't match, owner admin permissions",
+        ),
+        pytest.param(
+            _CheckForkCollaboratorTestParams(
+                repository_name="repo-1/name-1",
+                source_repository_name="user-1/name-1",
+                is_user_org_member=True,
+                expected_user_permission="none",
+                expected_resul=True,
+            ),
+            id="repo names don't match, user org member",
         ),
     ],
 )
 def test__check_fork_collaborator(
-    monkeypatch: pytest.MonkeyPatch,
-    repository_name: str,
-    source_repository_name: str,
-    expected_user_permission: str,
-    expected_result: bool,
+    monkeypatch: pytest.MonkeyPatch, test_params: _CheckForkCollaboratorTestParams
 ):
     """
     arrange: given repository name, source repository name and push logins
@@ -86,18 +116,23 @@ def test__check_fork_collaborator(
     assert: then the expected result is returned.
     """
     mocked_repository = MagicMock(spec=Repository)
-    mocked_repository.full_name = repository_name
+    mocked_repository.full_name = test_params.repository_name
     monkeypatch.setattr(
         repo_policy_compliance.check,
         "get_collaborator_permission",
-        lambda *_args, **_kwargs: expected_user_permission,
+        lambda *_args, **_kwargs: test_params.expected_user_permission,
+    )
+    monkeypatch.setattr(
+        repo_policy_compliance.check,
+        "check_user_organisation_member",
+        lambda *_args, **_kwargs: test_params.is_user_org_member,
     )
 
     returned_result = repo_policy_compliance.check._check_fork_collaborator(
-        repository=mocked_repository, fork_repository_name=source_repository_name
+        repository=mocked_repository, fork_repository_name=test_params.source_repository_name
     )
 
-    assert returned_result == expected_result
+    assert returned_result == test_params.expected_result
 
 
 def test_target_branch_protection_get_protections_raises_non_404_error(
