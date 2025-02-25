@@ -339,4 +339,5 @@ def check_user_organisation_member(
         True if the user is a member of the organisation, False otherwise.
     """
     org = github_client.get_organization(organisation)
-    return org.has_in_members(username)
+    user = github_client.get_user(username)
+    return org.has_in_members(user)
