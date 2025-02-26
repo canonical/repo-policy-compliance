@@ -49,8 +49,8 @@ policies:
   `/canonical/self-hosted-runners/run-workflows <commit SHA>` approving a
   workflow run for a specific commit SHA. Only applicable to forked source
   branches.
-* `disallow_fork`: That the fork is external. If set to `false` and the fork is
-  external, the check will fail. Can be enabled by
+* `disallow_fork`: That the fork is external. If set to `false`, the check will fail if
+  the fork is external. Can be enabled by
   [a configuration option](https://github.com/canonical/repo-policy-compliance/blob/main/charm/charmcraft.yaml#L52).
 
 
