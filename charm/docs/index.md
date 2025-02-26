@@ -49,10 +49,15 @@ policies:
   `/canonical/self-hosted-runners/run-workflows <commit SHA>` approving a
   workflow run for a specific commit SHA. Only applicable to forked source
   branches.
-* `disallow_fork`: That pull requests do not run any compliance checks on external
-  forks. Can be enabled by [a configuration option](https://github.com/canonical/repo-policy-compliance/blob/main/charm/charmcraft.yaml#L52).
-* `pull_request`: Runs `target_branch_protection`, `collaborators` and
-  `execute_job`.
+* `disallow_fork`: That the fork is external. If set to `false`, the check will fail.
+  Can be enabled by [a configuration option](https://github.com/canonical/repo-policy-compliance/blob/main/charm/charmcraft.yaml#L52).
+
+
+Furthermore, Repo Policy Compliance provides the following endpoints to check the above policies 
+for GitHub events:
+
+* `pull_request`: If enabled, runs `disallow_fork`. Otherwise runs
+  `target_branch_protection`, `collaborators` and `execute_job`. 
 * `workflow_dispatch`: Runs `collaborators`.
 * `push`: Runs `collaborators`.
 * `schedule`: Runs `collaborators`.
