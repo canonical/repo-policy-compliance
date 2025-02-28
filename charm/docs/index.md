@@ -3,7 +3,7 @@ that checks if a GitHub repository aligns with a chosen set of policies for work
 
 When using the `github-runner` charm to deploy and manage your self-hosted runners in OpenStack mode,
 the self-hosted runners can execute arbitrary code. This may hurt compliance. Deploying the
-`repo-policy-compliance`charm and exposing it to the `github-runner` charm ensures that only authorized
+`repo-policy-compliance` charm and exposing it to the `github-runner` charm ensures that only authorized
 code is executed, and so your GitHub repository remains compliant.
 For more information, read the [GitHub runner charm documentation](https://charmhub.io/github-runner). 
 
@@ -49,16 +49,15 @@ policies:
   `/canonical/self-hosted-runners/run-workflows <commit SHA>` approving a
   workflow run for a specific commit SHA. Only applicable to forked source
   branches.
-* `disallow_fork`: That the fork is external. If set to `false`, the check will fail if
-  the fork is external. Can be enabled by
-  [a configuration option](https://github.com/canonical/repo-policy-compliance/blob/main/charm/charmcraft.yaml#L52).
-
+* `disallow_fork`: That the source branch of a pull request is not coming from a
+  fork. Still permits forks coming from collaborators having write permission or above.
 
 Furthermore, Repo Policy Compliance provides the following endpoints to check the above policies 
 for GitHub events:
 
-* `pull_request`: If enabled, runs `disallow_fork`. Otherwise runs
-  `target_branch_protection`, `collaborators` and `execute_job`. 
+* `pull_request`: If the [configuration option](https://github.com/canonical/repo-policy-compliance/blob/main/charm/charmcraft.yaml#L52)
+  is enabled, runs `disallow_fork`. Otherwise runs `target_branch_protection`, `collaborators`
+  and `execute_job`. 
 * `workflow_dispatch`: Runs `collaborators`.
 * `push`: Runs `collaborators`.
 * `schedule`: Runs `collaborators`.
