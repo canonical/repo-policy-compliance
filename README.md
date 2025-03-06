@@ -6,13 +6,14 @@ used in conjunction with the
 workflow execution in internal infrastructure.
 
 Like any Juju charm, this charm supports one-line deployment, configuration,
-integration, scaling, and more. For `repo-policy-compliance`, this includes:
+integration, scaling, and more. For the `repo-policy-compliance` charm, this
+includes the ability to:
 
-* Customising enabled policies
-* Running in debug mode
-* Choosing different GitHub authentication methods
-* Modifying Flask-specific features like a secret key for security-related
-  needs, the run environment (e.g., production) or where the application is mounted
+* Customize enabled policies.
+* Run in debug mode.
+* Choose different GitHub authentication methods.
+* Modify Flask-specific features like a secret key for security-related needs, the run environment
+  (e.g., production) or where the application is mounted.
 
 For information about how to deploy, integrate, and manage this charm, see the
 Official [repo-policy-compliance Documentation](https://charmhub.io/repo-policy-compliance).
@@ -29,26 +30,9 @@ tabs to learn more about the actions, integrations and configurations supported 
 
 ### Basic operations
 
-The module exposes several functions to check for compliance with the following
-policies:
-
-* `target_branch_protection`: That the branch targeted by a pull request has
-  protection enabled and that rules cannot be bypassed. The requirement for
-  reviews is relaxed for non-default branches where both the source and target
-  branch are on the repository.
-* `collaborators`: Check that all outside collaborators of the project have at
-  most `read` permissions.
-* `execute_job`: That a user with write permission or above has left the comment
-  `/canonical/self-hosted-runners/run-workflows <commit SHA>` approving a
-  workflow run for a specific commit SHA. Only applicable to forked source
-  branches.
-* `pull_request`: Runs `target_branch_protection`, `collaborators` and
-  `execute_job`.
-* `workflow_dispatch`: Runs `collaborators`.
-* `push`: Runs `collaborators`.
-* `schedule`: Runs `collaborators`.
-
-These policies are designed for workflow runs in the context of a pull request.
+The module exposes several functions to check for compliance with
+policies designed for workflow runs in the context of a pull request.
+See the list of policies in [the Charmhub documentation](https://charmhub.io/repo-policy-compliance#p-33773-policies-a-namepoliciesa).
 
 ### Customizing enabled policies
 
