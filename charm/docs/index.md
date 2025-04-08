@@ -184,9 +184,7 @@ Copyright 2025 Canonical Ltd.
 
 This work is licensed under the Creative Commons Attribution-Share Alike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to Creative Commons, 171 Second Street, Suite 300, San Francisco, California, 94105, USA.
 
-# Navigation
+# Contents
 
-| Level | Path | Navlink |
-| -- | -- | -- |
-| 1 | reference | [Reference]() |
-| 2 | reference-github-auth | [GitHub Authentication](/t/repo-policy-compliance-docs-github-authentication/15556) |
+1. [Reference](reference)
+  1. [GitHub Authentication](reference/github-auth.md)
