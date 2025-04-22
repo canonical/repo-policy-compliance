@@ -45,7 +45,7 @@ def test_execute_job_not_fork():
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"test-branch/execute-job/no-pr/{uuid4()}"],
+    [f"test-branch/execute-job/no-pr/"],
     indirect=True,
 )
 @pytest.mark.usefixtures("make_fork_from_non_collaborator")
@@ -74,7 +74,7 @@ def test_fail_forked_no_pr(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"test-branch/execute-job/no-comment-on-pr/{uuid4()}"],
+    [f"test-branch/execute-job/no-comment-on-pr/"],
     indirect=True,
 )
 @pytest.mark.usefixtures("pr_from_forked_github_branch", "make_fork_from_non_collaborator")
@@ -103,7 +103,7 @@ def test_fail_forked_no_comment_on_pr(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"test-branch/execute-job/wrong-comment-on-pr/{uuid4()}"],
+    [f"test-branch/execute-job/wrong-comment-on-pr/"],
     indirect=True,
 )
 @pytest.mark.usefixtures("make_fork_from_non_collaborator")
@@ -140,7 +140,7 @@ def test_fail_forked_wrong_comment_on_pr(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"test-branch/execute-job/wrong-commit-sha-on-pr/{uuid4()}"],
+    [f"test-branch/execute-job/wrong-commit-sha-on-pr/"],
     indirect=True,
 )
 @pytest.mark.usefixtures("make_fork_from_non_collaborator")
@@ -178,7 +178,7 @@ def test_fail_forked_wrong_commit_sha_on_pr(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"test-branch/execute-job/quoted-authorization/{uuid4()}"],
+    [f"test-branch/execute-job/quoted-authorization/"],
     indirect=True,
 )
 @pytest.mark.usefixtures("make_fork_from_non_collaborator")
@@ -215,7 +215,7 @@ def test_fail_forked_quoted_authorizationr(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"test-branch/execute-job/comment-from-wrong-user-on-pr/{uuid4()}"],
+    [f"test-branch/execute-job/comment-from-wrong-user-on-pr/"],
     indirect=True,
 )
 @pytest.mark.usefixtures("make_fork_from_non_collaborator")
@@ -269,7 +269,7 @@ def test_fail_forked_comment_from_wrong_user_on_pr(
 
 @pytest.mark.parametrize(
     "github_branch",
-    [f"test-branch/execute-job/repo-branch/{uuid4()}"],
+    [f"test-branch/execute-job/repo-branch/"],
     indirect=True,
 )
 def test_pass_main_repo(
@@ -303,7 +303,7 @@ def test_pass_main_repo(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"test-branch/execute-job/fork-branch/{uuid4()}"],
+    [f"test-branch/execute-job/fork-branch/"],
     indirect=True,
 )
 @pytest.mark.usefixtures("make_fork_from_non_collaborator")
@@ -353,7 +353,7 @@ def test_pass_fork(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"test-branch/execute-job/push-fork-branch/{uuid4()}"],
+    [f"test-branch/execute-job/push-fork-branch/"],
     indirect=True,
 )
 def test_pass_fork_collaborator_no_comment(
