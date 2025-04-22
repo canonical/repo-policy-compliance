@@ -21,13 +21,13 @@ from .types_ import BranchWithProtection
     "github_branch, protected_github_branch, reason_string_array",
     [
         pytest.param(
-            f"test-branch/target-branch/not-protected/{uuid4()}",
+            f"test-branch/target-branch/not-protected/",
             BranchWithProtection(branch_protection_enabled=False),
             ("not enabled"),
             id="branch_protection disabled",
         ),
         pytest.param(
-            f"test-branch/target-branch/pull-request-allowance-not-empty/{uuid4()}",
+            f"test-branch/target-branch/pull-request-allowance-not-empty/",
             BranchWithProtection(bypass_pull_request_allowance_disabled=False),
             ("pull request", "reviews", "can be bypassed"),
             id="pull-request-allowance not empty",
@@ -60,7 +60,7 @@ def test_fail(github_branch: Branch, reason_string_array: tuple[str], github_rep
     "github_branch",
     [
         pytest.param(
-            f"test-branch/target-branch/review-not-required/{uuid4()}",
+            f"test-branch/target-branch/review-not-required/",
             id="branch_protection disabled",
         )
     ],
@@ -93,7 +93,7 @@ def test_fail_pull_request_review_not_required(
 
 @pytest.mark.parametrize(
     "github_branch, protected_github_branch",
-    [(f"test-branch/target-branch/protected/{uuid4()}", BranchWithProtection())],
+    [(f"test-branch/target-branch/protected/", BranchWithProtection())],
     indirect=["github_branch", "protected_github_branch"],
 )
 @pytest.mark.usefixtures("protected_github_branch")
@@ -180,7 +180,7 @@ def test_fail_branch_missing(github_repository_name: str, caplog: pytest.LogCapt
     "github_branch, protected_github_branch",
     [
         (
-            f"test-branch/target-branch/not-protected/{uuid4()}",
+            f"test-branch/target-branch/not-protected/",
             BranchWithProtection(branch_protection_enabled=False),
         )
     ],
@@ -234,7 +234,7 @@ def test_pass_default_branch(
     "github_branch, protected_github_branch",
     [
         (
-            f"test-branch/target-branch/protected-on-repo/{uuid4()}",
+            f"test-branch/target-branch/protected-on-repo/",
             BranchWithProtection(
                 branch_protection_enabled=True, bypass_pull_request_allowance_disabled=False
             ),
