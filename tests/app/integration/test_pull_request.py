@@ -41,14 +41,14 @@ def test_invalid_policy():
     "github_branch, protected_github_branch, policy_enabled, expected_result",
     [
         pytest.param(
-            f"test-branch/pull_request/pass/{uuid4()}",
+            f"test-branch/pull_request/pass/",
             BranchWithProtection(),
             True,
             Result.FAIL,
             id="disallow fork",
         ),
         pytest.param(
-            f"test-branch/pull_request/pass/{uuid4()}",
+            f"test-branch/pull_request/pass/",
             BranchWithProtection(),
             False,
             Result.PASS,
@@ -105,13 +105,13 @@ def test_pull_request_disallow_fork(  # pylint: disable=too-many-arguments
     "github_branch, policy_enabled, expected_result",
     [
         pytest.param(
-            f"test-branch/pull_request/target-branch-fail-enabled/{uuid4()}",
+            f"test-branch/pull_request/target-branch-fail-enabled/",
             True,
             Result.FAIL,
             id="policy enabled",
         ),
         pytest.param(
-            f"test-branch/pull_request/target-branch-fail-disabled/{uuid4()}",
+            f"test-branch/pull_request/target-branch-fail-disabled/",
             False,
             Result.PASS,
             id="policy disabled",
@@ -159,7 +159,7 @@ def test_target_branch(
     "expected_result",
     [
         pytest.param(
-            f"test-branch/pull_request/collaborators-fail-enabled/{uuid4()}",
+            f"test-branch/pull_request/collaborators-fail-enabled/",
             BranchWithProtection(),
             RequestedCollaborator("admin", "admin"),
             True,
@@ -167,7 +167,7 @@ def test_target_branch(
             id="policy enabled",
         ),
         pytest.param(
-            f"test-branch/pull_request/collaborators-fail-disabled/{uuid4()}",
+            f"test-branch/pull_request/collaborators-fail-disabled/",
             BranchWithProtection(),
             RequestedCollaborator("admin", "admin"),
             False,
@@ -215,17 +215,17 @@ def test_collaborators(
     "expected_result",
     [
         pytest.param(
-            f"test-branch/pull_request/execute-job-fail/target/{uuid4()}",
+            f"test-branch/pull_request/execute-job-fail/target/",
             BranchWithProtection(),
-            f"test-branch/pull_request/execute-job-fail/source/{uuid4()}",
+            f"test-branch/pull_request/execute-job-fail/source/",
             True,
             Result.FAIL,
             id="policy enabled",
         ),
         pytest.param(
-            f"test-branch/pull_request/execute-job-fail/target/{uuid4()}",
+            f"test-branch/pull_request/execute-job-fail/target/",
             BranchWithProtection(),
-            f"test-branch/pull_request/execute-job-fail/source/{uuid4()}",
+            f"test-branch/pull_request/execute-job-fail/source/",
             False,
             Result.PASS,
             id="policy disabled",
@@ -284,13 +284,13 @@ def test_execute_job(  # pylint: disable=too-many-arguments
     "github_branch, protected_github_branch, pull_request_kwargs",
     [
         pytest.param(
-            f"test-branch/pull_request/pass/{uuid4()}",
+            f"test-branch/pull_request/pass/",
             BranchWithProtection(),
             {},
             id="default policy",
         ),
         pytest.param(
-            f"test-branch/pull_request/pass/{uuid4()}",
+            f"test-branch/pull_request/pass/",
             BranchWithProtection(),
             {"policy_document": UsedPolicy.PULL_REQUEST_DISALLOW_FORK},
             id="all policy",
