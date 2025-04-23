@@ -25,4 +25,4 @@ For this charm, no additional event handling is defined. The default event handl
 The `src/charm.py` is the default entry point for a charm and has the FlaskCharm Python class which inherits from paas_app_charmer.flask.Charm, the base class 
 from which all Flask app charms are formed, defined by [the Flask framework extension for Charmcraft](https://documentation.ubuntu.com/rockcraft/en/stable/reference/extensions/flask-framework/).
 
-> See more in the Charmcraft docs: [Flask framework extension](https://canonical-charmcraft.readthedocs-hosted.com/en/stable/reference/extensions/flask-framework-extension//)
+> See more in the Charmcraft docs: [Flask framework extension](https://canonical-charmcraft.readthedocs-hosted.com/en/stable/reference/extensions/flask-framework-extension/)
