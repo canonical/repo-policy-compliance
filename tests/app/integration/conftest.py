@@ -5,9 +5,11 @@
 import enum
 import logging
 import os
+import secrets
 from collections import namedtuple
 from enum import Enum
 from typing import Iterator, cast
+from uuid import uuid4
 
 import pytest
 import requests
@@ -190,6 +192,7 @@ def fixture_github_branch(
 ) -> Iterator[Branch]:
     """Create a new branch for testing."""
     branch_name: str = request.param
+    branch_name += str(uuid4()) # add uniqueness to avoid conflict on deletion
 
     main_branch = github_repository.get_branch(github_repository.default_branch)
     branch_ref = github_repository.create_git_ref(
@@ -208,6 +211,7 @@ def fixture_another_github_branch(
 ) -> Iterator[Branch]:
     """Create a new branch for testing."""
     branch_name: str = request.param
+    branch_name += str(uuid4())  # add uniqueness to avoid conflict on deletion
 
     main_branch = github_repository.get_branch(github_repository.default_branch)
     branch_ref = github_repository.create_git_ref(
@@ -226,6 +230,7 @@ def fixture_forked_github_branch(
 ) -> Iterator[Branch]:
     """Create a new forked branch for testing."""
     branch_name: str = request.param
+    branch_name += str(uuid4())  # add uniqueness to avoid conflict on deletion
 
     main_branch = forked_github_repository.get_branch(forked_github_repository.default_branch)
     branch_ref = forked_github_repository.create_git_ref(

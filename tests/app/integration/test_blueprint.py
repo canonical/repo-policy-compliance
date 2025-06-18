@@ -236,7 +236,7 @@ def test_check_run_missing_data(
     "github_branch, collaborators_with_permission",
     [
         (
-            f"test-branch/blueprint/pull-request/{uuid4()}",
+            f"test-branch/blueprint/pull-request/",
             RequestedCollaborator("admin", "admin"),
         )
     ],
@@ -290,25 +290,25 @@ def test_pull_request_check_run(
     "github_branch, collaborators_with_permission, endpoint",
     [
         pytest.param(
-            f"test-branch/blueprint/workflow-dispatch/fail/{uuid4()}",
+            f"test-branch/blueprint/workflow-dispatch/fail/",
             RequestedCollaborator("admin", "admin"),
             blueprint.WORKFLOW_DISPATCH_CHECK_RUN_ENDPOINT,
             id="workflow dispatch",
         ),
         pytest.param(
-            f"test-branch/blueprint/workflow-dispatch/fail/{uuid4()}",
+            f"test-branch/blueprint/workflow-dispatch/fail/",
             RequestedCollaborator("admin", "admin"),
             blueprint.PUSH_CHECK_RUN_ENDPOINT,
             id="push",
         ),
         pytest.param(
-            f"test-branch/blueprint/workflow-dispatch/fail/{uuid4()}",
+            f"test-branch/blueprint/workflow-dispatch/fail/",
             RequestedCollaborator("admin", "admin"),
             blueprint.SCHEDULE_CHECK_RUN_ENDPOINT,
             id="schedule",
         ),
         pytest.param(
-            f"test-branch/blueprint/workflow-dispatch/fail/{uuid4()}",
+            f"test-branch/blueprint/workflow-dispatch/fail/",
             RequestedCollaborator("admin", "admin"),
             blueprint.DEFAULT_CHECK_RUN_ENDPOINT,
             id="default",
@@ -527,7 +527,7 @@ def test_policy_invalid(client: FlaskClient, charm_token: str):
     "github_branch, collaborators_with_permission",
     [
         (
-            f"test-branch/blueprint/pull-request/fail-policy/{uuid4()}",
+            f"test-branch/blueprint/pull-request/fail-policy/",
             RequestedCollaborator("admin", "admin"),
         )
     ],
@@ -596,7 +596,7 @@ def test_pull_request_check_run_fail_policy_disabled(
     "github_branch, collaborators_with_permission",
     [
         (
-            f"test-branch/blueprint/workflow-dispatch/fail-policy/{uuid4()}",
+            f"test-branch/blueprint/workflow-dispatch/fail-policy/",
             RequestedCollaborator("admin", "admin"),
         )
     ],
@@ -661,7 +661,7 @@ def test_workflow_dispatch_check_run_fail_policy_disabled(
     "github_branch, collaborators_with_permission",
     [
         (
-            f"test-branch/blueprint/push/fail-policy/{uuid4()}",
+            f"test-branch/blueprint/push/fail-policy/",
             RequestedCollaborator("admin", "admin"),
         )
     ],
@@ -726,7 +726,7 @@ def test_push_check_run_policy_disabled(
     "github_branch, collaborators_with_permission",
     [
         (
-            f"test-branch/blueprint/schedule/fail-policy/{uuid4()}",
+            f"test-branch/blueprint/schedule/fail-policy/",
             RequestedCollaborator("admin", "admin"),
         )
     ],
@@ -914,7 +914,7 @@ def test_internal_server_error(
 
 @pytest.mark.parametrize(
     "forked_github_branch",
-    [f"test-branch/execute-job/no-comment-on-pr/{uuid4()}"],
+    [f"test-branch/execute-job/no-comment-on-pr/"],
     indirect=["forked_github_branch"],
 )
 @pytest.mark.usefixtures("pr_from_forked_github_branch", "make_fork_from_non_collaborator")
