@@ -5,7 +5,7 @@
 # <kbd>module</kbd> `check.py`
 Individual checks used to compose job checks. 
 
-**Global Variables**
+**Global variables**
 ---------------
 - **BYPASS_ALLOWANCES_KEY**
 - **FAILURE_MESSAGE**

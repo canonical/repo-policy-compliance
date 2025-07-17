@@ -5,7 +5,7 @@
 # <kbd>module</kbd> `database.py`
 Provides persistence for runner tokens. 
 
-**Global Variables**
+**Global variables**
 ---------------
 - **db_connect_str**
 

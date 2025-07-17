@@ -8,7 +8,7 @@ Applicable spec: <link>
 
 <!-- The reason the change is needed -->
 
-### Module Changes
+### Module changes
 
 <!-- Any high level changes to modules and why (Service, Observer, helper) -->
 

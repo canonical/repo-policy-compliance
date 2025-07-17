@@ -83,7 +83,7 @@ bot to test things like comments from a user with no write permissions or above.
 
 GitHub actions should have access to the GitHub token via a secret
 called `PERSONAL_GITHUB_TOKEN`. It is recommended to use either a fine-grained PAT or a 
-token that is short-lived, e.g. 7 days. When it expires, a new token must be set.
+token that is short-lived, e.g. seven days. When it expires, a new token must be set.
 For the GitHub App Auth, the `TEST_GITHUB_APP_ID`, `TEST_GIHUB_APP_INSTALLATION_ID`, and
 `TEST_GITHUB_APP_PRIVATE_KEY` should be set as secrets.
 

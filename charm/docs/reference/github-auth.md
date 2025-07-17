@@ -1,4 +1,4 @@
-# GitHub Authentication
+# GitHub authentication
 
 This section describes the GitHub authentication options available for the charm.
 

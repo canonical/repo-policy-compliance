@@ -5,7 +5,7 @@
 # <kbd>module</kbd> `policy.py`
 Module for the policy document. 
 
-**Global Variables**
+**Global variables**
 ---------------
 - **ENABLED_KEY**
 - **ENABLED_RULE**

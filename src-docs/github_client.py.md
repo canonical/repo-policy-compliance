@@ -5,7 +5,7 @@
 # <kbd>module</kbd> `github_client.py`
 Module for GitHub client. 
 
-**Global Variables**
+**Global variables**
 ---------------
 - **GITHUB_TOKEN_ENV_NAME**
 - **GITHUB_APP_ID_ENV_NAME**
@@ -143,7 +143,7 @@ Get user permission for a given repository.
 **Args:**
  
  - <b>`repository`</b>:  The repository to get collaborators for. 
- - <b>`username`</b>:  The github login to check for permission. 
+ - <b>`username`</b>:  The Github login to check for permission.
 
 
 
