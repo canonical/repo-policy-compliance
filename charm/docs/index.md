@@ -70,7 +70,7 @@ This section provides a brief overview on deploying, configuring and integrating
 * [A Kubernetes cloud](https://canonical-juju.readthedocs-hosted.com/en/3.6/user/reference/cloud/#machine-clouds-vs-kubernetes-clouds).
 * Juju 3 installed and a controller created. You can accomplish this process by using a Multipass VM as outlined in this guide: [Juju | Manage your deployment environment](https://canonical-juju.readthedocs-hosted.com/en/latest/user/howto/manage-your-deployment/manage-your-deployment-environment/#set-things-up).
 * A GitHub repository (formatted as `OWNER/REPO`) for which you want to check compliance.
-* A GitHub Personal Access Token with repo scope.
+* A GitHub Personal Access Token with repository scope.
 
 ### Set up 
 Create a Juju model:
