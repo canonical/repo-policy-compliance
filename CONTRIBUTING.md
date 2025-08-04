@@ -89,7 +89,7 @@ we use the [Canonical contributor license agreement](https://assets.ubuntu.com/v
 
 #### Canonical contributor agreement
 
-Canonical welcomes contributions to the Discourse charm. Please check out our
+Canonical welcomes contributions to the repo-policy-compliance charm. Please check out our
 [contributor agreement](https://ubuntu.com/legal/contributors) if you're interested in contributing to the solution.
 
 The CLA sign-off is simple line at the
