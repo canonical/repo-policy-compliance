@@ -1,6 +1,6 @@
 # Contributing
 
-This document explains the processes and practices recommended for contributing enhancements to the repo-policy-compliance charm.
+This document explains the processes and practices recommended for contributing enhancements to the `repo-policy-compliance` charm.
 
 ## Overview
 
@@ -89,7 +89,7 @@ we use the [Canonical contributor license agreement](https://assets.ubuntu.com/v
 
 #### Canonical contributor agreement
 
-Canonical welcomes contributions to the repo-policy-compliance charm. Please check out our
+Canonical welcomes contributions to the `repo-policy-compliance` charm. Please check out our
 [contributor agreement](https://ubuntu.com/legal/contributors) if you're interested in contributing to the solution.
 
 The CLA sign-off is simple line at the
@@ -149,14 +149,15 @@ The following commands pack the OCI image and push it into
 the MicroK8s registry:
 
 ```bash
-cd <project_dir>
+cd repo-policy-compliance
 rockcraft pack
-skopeo --insecure-policy copy --dest-tls-verify=false oci-archive:<rock-name>.rock docker://localhost:32000/<app-name>:latest
+skopeo --insecure-policy copy --dest-tls-verify=false oci-archive:repo-policy-compliance_1.11.0_amd64.rock docker://localhost:32000/repo-policy-compliance:latest
 ```
 
 Build the charm in this git repository using:
 
 ```shell
+cd charm
 charmcraft pack
 ```
 
@@ -168,6 +169,6 @@ juju add-model charm-dev
 # Enable DEBUG logging
 juju model-config logging-config="<root>=INFO;unit=DEBUG"
 # Deploy the charm
-juju deploy ./<charm-name>.charm 
+juju deploy ./repo-policy-compliance_ubuntu-22.04-amd64.charm
 ```
 
