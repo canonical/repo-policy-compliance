@@ -136,7 +136,7 @@ that can be used for linting and formatting code when you're preparing contribut
 ### Build the rock and charm
 
 Use [Rockcraft](https://documentation.ubuntu.com/rockcraft/en/latest/) to create an
-OCI image for the <charm-name> app, and then upload the image to a MicroK8s registry,
+OCI image for the `repo-policy-compliance` app, and then upload the image to a MicroK8s registry,
 which stores OCI archives so they can be downloaded and deployed.
 
 Enable the MicroK8s registry:
