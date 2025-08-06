@@ -8,3 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 Place any unreleased changes here, that are subject to release in coming versions :).
+
+## 2025-08-05
+
+- Added changelog for tracking user-relevant changes.
