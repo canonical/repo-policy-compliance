@@ -1,4 +1,6 @@
-# GitHub Authentication
+<!-- vale Canonical.007-Headings-sentence-case = NO -->
+# GitHub authentication
+<!-- vale Canonical.007-Headings-sentence-case = YES -->
 
 This section describes the GitHub authentication options available for the charm.
 
