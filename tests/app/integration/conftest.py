@@ -195,9 +195,11 @@ def fixture_github_branch(
     branch_name += str(uuid4()) # add uniqueness to avoid conflict on deletion
 
     main_branch = github_repository.get_branch(github_repository.default_branch)
+    logger.info("Creating branch %s", branch_name)
     branch_ref = github_repository.create_git_ref(
         ref=f"refs/heads/{branch_name}", sha=main_branch.commit.sha
     )
+    logger.info("Created branch %s", branch_name)
     branch = github_repository.get_branch(branch_name)
 
     yield branch
