@@ -5,11 +5,12 @@
 import enum
 import logging
 import os
-import secrets
 from collections import namedtuple
 from enum import Enum
 from typing import Iterator, cast
 from uuid import uuid4
+from dataclasses import dataclass
+import time
 
 import pytest
 import requests
@@ -19,6 +20,8 @@ from github.Branch import Branch
 from github.Commit import Commit
 from github.PullRequest import PullRequest
 from github.Repository import Repository
+from github.GitRef import GitRef
+from github.GithubException import UnknownObjectException
 
 import repo_policy_compliance
 from repo_policy_compliance.github_client import (
@@ -185,6 +188,41 @@ def fixture_forked_github_repository(
 
     yield forked_repository
 
+@dataclass
+class _NewBranchInfo:
+    """Information about the newly created branch.
+    
+    Attributes:
+        branch: The newly created branch.
+        ref: The ref of the newly created branch.
+    """
+    branch: Branch
+    ref: GitRef
+
+def _create_branch_from_default(repo: Repository, name: str) -> _NewBranchInfo:
+    """Create a new branch for testing.
+    
+    Args:
+        repo: Repository to create the branch from default (main) branch.
+        name: Name of the branch to create.
+
+    Returns:
+        The newly created branch.
+    """
+    main_branch = repo.get_branch(repo.default_branch)
+    logger.info("Creating branch %s", name)
+    new_ref = repo.create_git_ref(ref=f"refs/heads/{name}", sha=main_branch.commit.sha)
+    logger.info("Created branch %s", name)
+
+    for attempt in range(3):
+        try:
+            new_branch = repo.get_branch(name)
+            return _NewBranchInfo(branch=new_branch, ref=new_ref)
+        except UnknownObjectException:
+            logger.warning("Failed to fetch created branch (attempt %s): %s", attempt, name, exc_info=True)
+            time.sleep(5)
+
+    raise TimeoutError("Failed to create new branch after 3 attempts")
 
 @pytest.fixture(name="github_branch")
 def fixture_github_branch(
@@ -194,17 +232,11 @@ def fixture_github_branch(
     branch_name: str = request.param
     branch_name += str(uuid4()) # add uniqueness to avoid conflict on deletion
 
-    main_branch = github_repository.get_branch(github_repository.default_branch)
-    logger.info("Creating branch %s", branch_name)
-    branch_ref = github_repository.create_git_ref(
-        ref=f"refs/heads/{branch_name}", sha=main_branch.commit.sha
-    )
-    logger.info("Created branch %s", branch_name)
-    branch = github_repository.get_branch(branch_name)
+    branch_info = _create_branch_from_default(repo=github_repository, name=branch_name)
 
-    yield branch
+    yield branch_info.branch
 
-    branch_ref.delete()
+    branch_info.ref.delete()
 
 
 @pytest.fixture(name="another_github_branch")
@@ -215,15 +247,11 @@ def fixture_another_github_branch(
     branch_name: str = request.param
     branch_name += str(uuid4())  # add uniqueness to avoid conflict on deletion
 
-    main_branch = github_repository.get_branch(github_repository.default_branch)
-    branch_ref = github_repository.create_git_ref(
-        ref=f"refs/heads/{branch_name}", sha=main_branch.commit.sha
-    )
-    branch = github_repository.get_branch(branch_name)
+    branch_info = _create_branch_from_default(repo=github_repository, name=branch_name)
 
-    yield branch
+    yield branch_info.branch
 
-    branch_ref.delete()
+    branch_info.ref.delete()
 
 
 @pytest.fixture(name="forked_github_branch")
@@ -234,15 +262,11 @@ def fixture_forked_github_branch(
     branch_name: str = request.param
     branch_name += str(uuid4())  # add uniqueness to avoid conflict on deletion
 
-    main_branch = forked_github_repository.get_branch(forked_github_repository.default_branch)
-    branch_ref = forked_github_repository.create_git_ref(
-        ref=f"refs/heads/{branch_name}", sha=main_branch.commit.sha
-    )
-    branch = forked_github_repository.get_branch(branch_name)
+    branch_info = _create_branch_from_default(repo=forked_github_repository, name=branch_name)
 
-    yield branch
+    yield branch_info.branch
 
-    branch_ref.delete()
+    branch_info.ref.delete()
 
 
 @pytest.fixture(name="commit_on_forked_github_branch")
