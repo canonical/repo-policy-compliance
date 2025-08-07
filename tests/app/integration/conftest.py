@@ -5,12 +5,12 @@
 import enum
 import logging
 import os
+import time
 from collections import namedtuple
+from dataclasses import dataclass
 from enum import Enum
 from typing import Iterator, cast
 from uuid import uuid4
-from dataclasses import dataclass
-import time
 
 import pytest
 import requests
@@ -18,10 +18,10 @@ from github import Github
 from github.Auth import Token
 from github.Branch import Branch
 from github.Commit import Commit
+from github.GithubException import UnknownObjectException
+from github.GitRef import GitRef
 from github.PullRequest import PullRequest
 from github.Repository import Repository
-from github.GitRef import GitRef
-from github.GithubException import UnknownObjectException
 
 import repo_policy_compliance
 from repo_policy_compliance.github_client import (
@@ -188,20 +188,23 @@ def fixture_forked_github_repository(
 
     yield forked_repository
 
+
 @dataclass
 class _NewBranchInfo:
     """Information about the newly created branch.
-    
+
     Attributes:
         branch: The newly created branch.
         ref: The ref of the newly created branch.
     """
+
     branch: Branch
     ref: GitRef
 
+
 def _create_branch_from_default(repo: Repository, name: str) -> _NewBranchInfo:
     """Create a new branch for testing.
-    
+
     Args:
         repo: Repository to create the branch from default (main) branch.
         name: Name of the branch to create.
@@ -214,15 +217,21 @@ def _create_branch_from_default(repo: Repository, name: str) -> _NewBranchInfo:
     new_ref = repo.create_git_ref(ref=f"refs/heads/{name}", sha=main_branch.commit.sha)
     logger.info("Created branch %s", name)
 
+    # 2025-08-07: There is an issue with the GitHub API that sometimes fails to fetch the created
+    # ref within a small timeframe. The following loop retries fetching the created ref up to three
+    # times.
     for attempt in range(3):
         try:
             new_branch = repo.get_branch(name)
             return _NewBranchInfo(branch=new_branch, ref=new_ref)
         except UnknownObjectException:
-            logger.warning("Failed to fetch created branch (attempt %s): %s", attempt, name, exc_info=True)
+            logger.warning(
+                "Failed to fetch created branch (attempt %s): %s", attempt, name, exc_info=True
+            )
             time.sleep(5)
 
     raise TimeoutError("Failed to create new branch after 3 attempts")
+
 
 @pytest.fixture(name="github_branch")
 def fixture_github_branch(
@@ -230,7 +239,7 @@ def fixture_github_branch(
 ) -> Iterator[Branch]:
     """Create a new branch for testing."""
     branch_name: str = request.param
-    branch_name += str(uuid4()) # add uniqueness to avoid conflict on deletion
+    branch_name += str(uuid4())  # add uniqueness to avoid conflict on deletion
 
     branch_info = _create_branch_from_default(repo=github_repository, name=branch_name)
 
