@@ -18,7 +18,7 @@ from github import Github
 from github.Auth import Token
 from github.Branch import Branch
 from github.Commit import Commit
-from github.GithubException import UnknownObjectException
+from github.GithubException import UnknownObjectException, GithubException
 from github.GitRef import GitRef
 from github.PullRequest import PullRequest
 from github.Repository import Repository
@@ -232,6 +232,24 @@ def _create_branch_from_default(repo: Repository, name: str) -> _NewBranchInfo:
 
     raise TimeoutError("Failed to create new branch after 3 attempts")
 
+def _patiently_delete_ref(ref: GitRef):
+    """Patiently delete a ref.
+    
+    Args:
+        ref: The ref to delete.
+    """
+    # 2025-08-07: There is an issue with the GitHub API that sometimes fails to delete the created
+    # ref within a small timeframe. The following loop retries deleting the created ref up to three
+    # times.
+    for attempt in range(3):
+        try:
+            ref.delete()
+            return
+        except GithubException:
+            logger.warning("Failed to delete ref (attempt: %s): %s", attempt, ref.ref, exc_info=True)
+            time.sleep(5)
+    logger.error("Failed to delete ref after 3 attempts: %s", ref.ref)
+
 
 @pytest.fixture(name="github_branch")
 def fixture_github_branch(
@@ -245,7 +263,7 @@ def fixture_github_branch(
 
     yield branch_info.branch
 
-    branch_info.ref.delete()
+    _patiently_delete_ref(ref=branch_info.ref)
 
 
 @pytest.fixture(name="another_github_branch")
@@ -260,7 +278,7 @@ def fixture_another_github_branch(
 
     yield branch_info.branch
 
-    branch_info.ref.delete()
+    _patiently_delete_ref(ref=branch_info.ref)
 
 
 @pytest.fixture(name="forked_github_branch")
@@ -275,7 +293,7 @@ def fixture_forked_github_branch(
 
     yield branch_info.branch
 
-    branch_info.ref.delete()
+    _patiently_delete_ref(ref=branch_info.ref)
 
 
 @pytest.fixture(name="commit_on_forked_github_branch")
@@ -322,7 +340,7 @@ def pr_from_forked_github_branch(
     yield pull
 
     pull.edit(state="closed")
-    base_branch_info.ref.delete()
+    _patiently_delete_ref(ref=base_branch_info.ref)
 
 
 @pytest.fixture(name="protected_github_branch")
