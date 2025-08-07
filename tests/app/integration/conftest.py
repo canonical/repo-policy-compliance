@@ -303,22 +303,18 @@ def pr_from_forked_github_branch(
 ) -> Iterator[PullRequest]:
     """Create a new forked branch for testing."""
     # Create target for PR to avoid triggering recursive GitHub action runs
-    main_branch = github_repository.get_branch(github_repository.default_branch)
     base_branch_name = f"test-branch/target-for-{forked_github_branch.name}"
-    base_branch_ref = github_repository.create_git_ref(
-        ref=f"refs/heads/{base_branch_name}",
-        sha=main_branch.commit.sha,
-    )
-    base_branch = github_repository.get_branch(base_branch_name)
+    base_branch_info = _create_branch_from_default(repo=github_repository, name=base_branch_name)
+    
     github_repository.create_file(
-        "another-test.txt", "testing", "some content", branch=base_branch.name
+        "another-test.txt", "testing", "some content", branch=base_branch_info.branch.name
     )
 
     # Create PR
     pull = github_repository.create_pull(
         title=forked_github_branch.name,
         body=f"PR for testing {commit_on_forked_github_branch.sha}",
-        base=base_branch.name,
+        base=base_branch_info.branch.name,
         head=f"{forked_github_repository.owner.login}:{forked_github_branch.name}",
         draft=True,
     )
@@ -326,7 +322,7 @@ def pr_from_forked_github_branch(
     yield pull
 
     pull.edit(state="closed")
-    base_branch_ref.delete()
+    base_branch_info.ref.delete()
 
 
 @pytest.fixture(name="protected_github_branch")
