@@ -20,7 +20,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.10.0"
-pygithub = "^2.0.0"
+pygithub = "2.6.1"
 flask = "^3.0.0"
 flask-httpauth = "^4.8"
 jsonschema = "^4.17"
