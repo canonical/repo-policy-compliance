@@ -9,3 +9,5 @@ CVE-2024-45338
 CVE-2025-22874
 # Vulnerability in golang.org/x/oauth2 introduced by statsd-exporter. We have to wait until it is fixed upstream: https://github.com/prometheus/statsd_exporter/blob/master/go.mod
 CVE-2025-22868
+# Vulnerability in stdlib introduced by statsd-exporter. We have to wait until it is fixed upstream: https://github.com/prometheus/statsd_exporter/blob/master/go.mod
+CVE-2025-47907
