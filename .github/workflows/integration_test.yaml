@@ -23,5 +23,3 @@ jobs:
       charmcraft-channel: latest/edge
       test-tox-env: charm-integration-test
       trivy-image-config: "trivy.yaml"
-      tmate-debug: true
-      tmate-timeout: 120
