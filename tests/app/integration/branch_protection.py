@@ -34,6 +34,9 @@ def edit(branch: Branch, branch_with_protection: BranchWithProtection) -> None:
                 "gregory-schiano",
                 "jdkanderson",
             ],
-            teams_bypass_pull_request_allowances=["is-charms"],  # type: ignore
+            teams_bypass_pull_request_allowances=[  # type: ignore
+                "is-charms",
+                "platform-engineering"
+            ],
             apps_bypass_pull_request_allowances=["test"],  # type: ignore
         )
