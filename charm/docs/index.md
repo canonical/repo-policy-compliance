@@ -1,4 +1,4 @@
-# Table of Contents
+# Table of contents
 1. [repo-policy-compliance](#introduction) 
 2. [Get started](#get-started)
     1. [What you'll need](#what-youll-need) 
@@ -13,7 +13,7 @@
 
 ------------------------------------------------------------------------------------------------
 
-# repo-policy-compliance <a name="introduction"></a>
+# Repo policy compliance <a name="introduction"></a>
 
 A Juju charm of a Flask application to check if a GitHub repository aligns with the policies for workflow runs. This charm consists of a Python package containing functions to check for compliance of various policies.
 
