@@ -1,64 +1,120 @@
+<<<<<<< HEAD
 # Table of contents
 1. [repo-policy-compliance](#introduction) 
+=======
+A [Kubernetes charm](https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/charm/charm-taxonomy/#kubernetes)
+that checks if a GitHub repository aligns with a chosen set of policies for workflow runs.
+
+When using the `github-runner` charm to deploy and manage your self-hosted runners in OpenStack mode,
+the self-hosted runners can execute arbitrary code. This may hurt compliance. Deploying the
+`repo-policy-compliance` charm and exposing it to the `github-runner` charm ensures that only authorized
+code is executed, and so your GitHub repository remains compliant.
+For more information, read the [GitHub runner charm documentation](https://charmhub.io/github-runner). 
+
+Like any Juju charm, this charm supports one-line deployment, configuration, integration, scaling, and
+more. For the `repo-policy-compliance` charm, this includes the ability to:
+* Customize enabled policies.
+* Run in debug mode.
+* Choose different GitHub authentication methods.
+* Modify Flask-specific features like a secret key for security-related needs, the run environment
+  (e.g., production) or where the application is mounted.
+
+See the [Actions](https://charmhub.io/repo-policy-compliance/actions) and
+[Configurations](https://charmhub.io/repo-policy-compliance/configurations) tabs to learn more about the
+actions and configurations supported by this charm.
+
+**Contents**
+1. [Policies](#policies)
+>>>>>>> 219e3dda51e8904dfcabf5d013d7d2c0eb55ccf7
 2. [Get started](#get-started)
-    1. [What you'll need](#what-youll-need) 
+    1. [Requirements](#requirements) 
     2. [Set up](#set-up)
     3. [Deploy](#deploy)
     4. [Generate an authentication token and test](#token)
 3. [Integrations](#integrations)
-4. [Next steps](#next-steps)
-    1. [Learn more](#learn-more)
-    2. [Join the community](#join-the-community)
-5. [License](#license)
+4. [Learn more](#learn-more)
+5. [Project and community](#project-and-community)
+6. [License](#license)
+
 
 ------------------------------------------------------------------------------------------------
 
+<<<<<<< HEAD
 # Repo policy compliance <a name="introduction"></a>
+=======
+## Policies 
+>>>>>>> 219e3dda51e8904dfcabf5d013d7d2c0eb55ccf7
 
-A Juju charm of a Flask application to check if a GitHub repository aligns with the policies for workflow runs. This charm consists of a Python package containing functions to check for compliance of various policies.
+The charm exposes several functions to check for compliance with the following
+policies:
 
-This charm works in the context of the `github-runner` charm and should be deployed and configured for the self-hosted runners' use in OpenStack mode. The self-hosted runners execute runs in an internal environmental and can execute arbitrary code; the `repo-policy-compliance` charm verifies that the GitHub repository is set up for compliance and that only authorised code is executed. For more information, read the [GitHub runner charm documentation](https://charmhub.io/github-runner). 
+* `target_branch_protection`: That the branch targeted by a pull request has
+  protection enabled and that rules cannot be bypassed. The requirement for
+  reviews is relaxed for non-default branches where both the source and target
+  branch are on the repository.
+* `collaborators`: That all outside collaborators of the project have at
+  most `read` permissions.
+* `execute_job`: That a user with write permission or above has left the comment
+  `/canonical/self-hosted-runners/run-workflows <commit SHA>` approving a
+  workflow run for a specific commit SHA. Only applicable to forked source
+  branches.
+* `disallow_fork`: That the source branch of a pull request is not coming from a
+  fork. Still permits forks coming from collaborators having write permission or above.
 
-Like any Juju charm, this charm supports one-line deployment, configuration, integration, scaling, and more. For `repo-policy-compliance`, this includes:
-* Customising enabled policies 
-* Running in debug mode
-* Choosing different GitHub authentication methods
-* Modifying Flask-specific features like a secret key for security-related needs, the run environment (e.g., production) or where the application is mounted
+Furthermore, Repo Policy Compliance provides the following endpoints to check the above policies 
+for GitHub events:
 
-See the [Actions](https://charmhub.io/repo-policy-compliance/actions) and [Configurations](https://charmhub.io/repo-policy-compliance/configurations) tabs to learn more about the actions and configurations supported by this charm.
+* `pull_request`: If the [configuration option](https://github.com/canonical/repo-policy-compliance/blob/main/charm/charmcraft.yaml#L52)
+  is enabled, runs `disallow_fork`. Otherwise runs `target_branch_protection`, `collaborators`
+  and `execute_job`. 
+* `workflow_dispatch`: Runs `collaborators`.
+* `push`: Runs `collaborators`.
+* `schedule`: Runs `collaborators`.
 
-## Get started <a name="get-started"></a>
-### What you'll need <a name="what-youll-need"></a>
-* A Kubernetes cloud.
-* Juju 3 installed and a controller created.
+## Get started 
+This section provides a brief overview on deploying, configuring and integrating the
+`repo-policy-compliance` charm for basic usage.
 
-### Set up <a name="set-up"></a>
+### Requirements 
+* [A Kubernetes cloud](https://canonical-juju.readthedocs-hosted.com/en/3.6/user/reference/cloud/#machine-clouds-vs-kubernetes-clouds).
+* Juju 3 installed and a controller created. You can accomplish this process by using a Multipass VM as outlined in this guide: [Juju | Manage your deployment environment](https://canonical-juju.readthedocs-hosted.com/en/latest/user/howto/manage-your-deployment/manage-your-deployment-environment/#set-things-up).
+* A GitHub repository (formatted as `OWNER/REPO`) for which you want to check compliance.
+* A GitHub Personal Access Token with repository scope.
+
+### Set up 
 Create a Juju model:
 ```
 juju add-model prod-repo-policy-compliance
 ```
 
-### Deploy <a name="deploy"></a>
-Deploy the charms:
-
+### Deploy
+Deploy the `repo-policy-compliance` charm as the `repo-policy` application, configuring at the same time its charm token and GitHub token:
 ```
-juju deploy postgresql-k8s --trust --channel 14/edge
-juju deploy repo-policy-compliance repo-policy --config charm_token=abc --config github_token="github_pat_foobar" --channel latest/edge
+juju deploy repo-policy-compliance repo-policy --config charm_token=abc --config github_token="github_pat_foobar" --channel latest/stable
 ```
-	
 
-> NOTE: For `repo-policy-compliance` to work, the `charm_token` and `github_token` configurations must be set. The `charm_token` is
+PostgreSQL is required in order to use Repo Policy Compliance. Deploy the `postgresql-k8s` charm:
+```
+juju deploy postgresql-k8s --trust 
+```
+
+> NOTE: For `repo-policy-compliance` to work, you must set the `charm_token` and `github_token` configurations. The `charm_token` is
 > chosen by you and must be shared with the authenticating client to generate one-time token authentication. 
 > The `github_token` is either a GitHub Personal Access Token (with repo scope) or a fine-grained token with read permission for Administration. 
-> Read more about allowed GitHub authentication methods in the [Reference document](https://github.com/canonical/repo-policy-compliance/blob/main/charm/docs/reference/github-auth.md).
+> Read more about allowed GitHub authentication methods in the [Reference document](https://charmhub.io/repo-policy-compliance/docs/reference-github-auth).
 
-Integrate PostgreSQL and `repo-policy-compliance`:
+Integrate PostgreSQL and Repo Policy Compliance:
 
 ```
 juju integrate postgresql-k8s repo-policy
 ```
 
-Wait for both charms to reach an active idle state by monitoring `juju status`. The output should look similar to the following:
+Monitor the status:
+```
+juju status --watch 1s
+```
+
+Wait for both applications to reach an active idle state. The output should look similar to the following:
 
 ```
 Model        Controller  Cloud/Region        Version  SLA          Timestamp
@@ -73,9 +129,13 @@ postgresql-k8s/0*  active    idle   10.1.72.161         Primary
 repo-policy/0*     active    idle   10.1.72.167           
 ```
 
-### Generate an authentication token and test <a name="token"></a>
+Note the IP address of the `repo-policy/0` unit; in the example output above, 10.1.72.167 is the necessary IP address. 
 
-Generate a one-time authentication token for `repo-policy-compliance` using `curl` and save it as the `ONE_TIME_TOKEN` environment variable. You will need the IP address of the Unit for the `repo-policy-compliance` charm; in the example output above, 10.1.72.167 is the necessary IP address. You will also need the token used for `charm_token` configuration (in this example, "abc"). 
+Use <kbd>Ctrl</kbd> + <kbd>C</kbd> to exit.
+
+### Generate an authentication token and test 
+
+Now generate a one-time authentication token for Repo Policy Compliance using `curl` and save it as the `ONE_TIME_TOKEN` environment variable. You will need the IP address of the `repo-policy/0` unit (in this example, 10.1.72.167). You will also need the token used for `charm_token` configuration (in this example, "abc"). 
 
 ```
 ONE_TIME_TOKEN=$(curl http://10.1.72.167:8000/one-time-token -H"Authorization: Bearer abc" )
@@ -86,7 +146,7 @@ The variable should look similar to the following:
 d156dda1f03df9d42fd788d93799c57b4275ca5facccce92ef9b91cf4fc13f6a%
 ```
 
-Finally, use the `repo-policy-compliance` Unit IP address and the one-time token to check for compliance on a GitHub repository formatted as `OWNER/REPO`. 
+Finally, use the `repo-policy-compliance` unit IP address and the one-time token to check for compliance on a GitHub repository formatted as `OWNER/REPO`. 
 
 ```
 curl -i http://10.1.72.167:8000/push/check-run -H"Authorization: Bearer $ONE_TIME_TOKEN" --data '{"repository_name": "OWNER/REPO"}' -H"Content-Type: application/json"
@@ -104,20 +164,21 @@ Content-Type: text/html; charset=utf-8
 
 The `204` status code indicates that the repository is compliant.
 
-## Integrations <a name="integrations"></a>
+## Integrations
 
-The `repo-policy-compliance` charm requires a PostgreSQL integration over the [postgresql_client](https://charmhub.io/integrations/postgresql_client) interface. While it is optional, an integration with ingress (for instance, [`nginx-ingress-integrator`](https://charmhub.io/nginx-ingress-integrator)) makes the `repo-policy-compliance` charm accessible from outside the Kubernetes cluster.
+The `repo-policy-compliance` charm requires a PostgreSQL integration over the [postgresql_client](https://charmhub.io/integrations/postgresql_client) interface. 
 
-The integration between `repo-policy-compliance` and `github-runner` is not handled through Juju. In the GitHub runner charm, you create the integration to `repo-policy-compliance` by setting the configuration options [`repo-policy-compliance-url`](https://charmhub.io/github-runner/configurations#repo-policy-compliance-url) and [`repo-policy-compliance-token`](https://charmhub.io/github-runner/configurations#repo-policy-compliance-token) for the URL and token respectively.
+To make this charm accessible from outside the Kubernetes cluster, integrate with an ingress charm (for instance, [`nginx-ingress-integrator`](https://charmhub.io/nginx-ingress-integrator)).
 
-All other integrations are standard [COS](https://charmhub.io/topics/canonical-observability-stack) integrations and optional. See the [Integrations tab](https://charmhub.io/repo-policy-compliance/integrations) for more details.
+To integrate this charm with the `github-runner` charm, the integration is not handled by Juju. In the GitHub runner charm, you create the integration to `repo-policy-compliance` by setting the configuration options [`repo-policy-compliance-url`](https://charmhub.io/github-runner/configurations#repo-policy-compliance-url) and [`repo-policy-compliance-token`](https://charmhub.io/github-runner/configurations#repo-policy-compliance-token) for the URL and token respectively. See the [GitHub runner charm documentation](https://charmhub.io/github-runner) for more details. 
 
-## Next steps <a name="next-steps"></a>
-### Learn more <a name="learn-more"></a>
+All other supported integrations are with the [Canonical Observability Stack](https://charmhub.io/topics/canonical-observability-stack). See the [Integrations tab](https://charmhub.io/repo-policy-compliance/integrations) for more details.
+
+## See also
 * GitHub repository: [repo-policy-compliance](https://github.com/canonical/repo-policy-compliance)
 * [GitHub runner charm documentation](https://charmhub.io/github-runner)
 
-### Join the community <a name="join-the-community"></a>
+### Project and community
 The `repo-policy-compliance` charm is a member of the Ubuntu family. It’s an open-source project that warmly welcomes community projects, contributions, suggestions, fixes, and constructive feedback.
 
 * [Code of conduct](https://ubuntu.com/community/code-of-conduct)
@@ -126,8 +187,11 @@ The `repo-policy-compliance` charm is a member of the Ubuntu family. It’s an o
 * [Contribute](https://github.com/canonical/repo-policy-compliance/blob/main/CONTRIBUTING.md)
 
 
-## License <a name="license"></a>
-The `repo-policy-compliance` charm is free software, distributed under the Apache Software License, version 2.0.
+## License
+Repo Policy Compliance Documentation
+Copyright 2025 Canonical Ltd.
+
+This work is licensed under the Creative Commons Attribution-Share Alike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to Creative Commons, 171 Second Street, Suite 300, San Francisco, California, 94105, USA.
 
 # Contents
 
