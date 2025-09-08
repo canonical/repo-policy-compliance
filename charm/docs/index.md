@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-# Table of contents
-1. [repo-policy-compliance](#introduction) 
-=======
 A [Kubernetes charm](https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/charm/charm-taxonomy/#kubernetes)
 that checks if a GitHub repository aligns with a chosen set of policies for workflow runs.
 
@@ -25,7 +21,6 @@ actions and configurations supported by this charm.
 
 **Contents**
 1. [Policies](#policies)
->>>>>>> 219e3dda51e8904dfcabf5d013d7d2c0eb55ccf7
 2. [Get started](#get-started)
     1. [Requirements](#requirements) 
     2. [Set up](#set-up)
@@ -39,11 +34,7 @@ actions and configurations supported by this charm.
 
 ------------------------------------------------------------------------------------------------
 
-<<<<<<< HEAD
-# Repo policy compliance <a name="introduction"></a>
-=======
 ## Policies 
->>>>>>> 219e3dda51e8904dfcabf5d013d7d2c0eb55ccf7
 
 The charm exposes several functions to check for compliance with the following
 policies:
