@@ -32,7 +32,7 @@ SQLAlchemy = "^2.0.29"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.0.0"
-pytest-operator = "^0.42.0"
+pytest-operator = "^0.43.0"
 
 [build-system]
 requires = ["poetry-core"]
