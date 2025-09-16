@@ -1,1 +1,1 @@
-paas-app-charmer==1.4.0
+paas-charm==1.8.7
