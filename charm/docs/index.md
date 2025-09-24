@@ -188,3 +188,5 @@ This work is licensed under the Creative Commons Attribution-Share Alike 3.0 Unp
 
 1. [Reference](reference)
   1. [GitHub Authentication](reference/github-auth.md)
+1. [Explanation](explanation)
+  1. [Architecture](explanation/charm-architecture.md)
