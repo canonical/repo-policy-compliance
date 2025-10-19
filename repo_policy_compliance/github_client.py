@@ -324,3 +324,51 @@ def get_collaborator_permission(
             'expected one of "admin", "write", "read", "none"'
         )
     return cast(Literal["admin", "write", "read", "none"], user_permission)
+
+
+def get_rulesets_for_branch(repository: Repository, branch_name: str) -> list[dict]:
+    """Get rulesets that apply to a specific branch.
+
+    Args:
+        repository: The repository to get rulesets for.
+        branch_name: The name of the branch to check for rulesets.
+
+    Returns:
+        A list of rulesets that apply to the branch.
+    """
+    # PyGithub does not support the rulesets API yet, so we use the requester directly
+    # https://github.com/PyGithub/PyGithub/issues/2718
+    ref_name = f"refs/heads/{branch_name}"
+    
+    # Get all rulesets for the repository
+    # pylint: disable=protected-access
+    (_, rulesets_data) = repository._requester.requestJsonAndCheck(  # type: ignore
+        "GET",
+        f"{repository.url}/rulesets",
+        headers={"Accept": "application/vnd.github+json"},
+    )
+    # pylint: enable=protected-access
+    
+    # Filter rulesets that apply to this branch
+    applicable_rulesets = []
+    for ruleset in rulesets_data:
+        # Check if ruleset is active and applies to branches
+        if ruleset.get("enforcement") != "active" or ruleset.get("target") != "branch":
+            continue
+            
+        conditions = ruleset.get("conditions", {})
+        ref_name_conditions = conditions.get("ref_name", {})
+        
+        # Check if the branch matches the include patterns
+        includes = ref_name_conditions.get("include", [])
+        excludes = ref_name_conditions.get("exclude", [])
+        
+        # Simple pattern matching - check if ref_name is in includes and not in excludes
+        is_included = any(ref_name == pattern or pattern == "~DEFAULT_BRANCH" 
+                         for pattern in includes)
+        is_excluded = any(ref_name == pattern for pattern in excludes)
+        
+        if is_included and not is_excluded:
+            applicable_rulesets.append(ruleset)
+    
+    return applicable_rulesets
