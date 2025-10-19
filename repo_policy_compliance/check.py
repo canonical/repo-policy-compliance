@@ -24,6 +24,7 @@ from repo_policy_compliance.github_client import (
     get_branch,
     get_collaborator_permission,
     get_collaborators,
+    get_rulesets_for_branch,
 )
 from repo_policy_compliance.github_client import inject as inject_github_client
 
@@ -150,6 +151,62 @@ def branch_protected(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
+def _check_rulesets_for_pull_request_reviews(repository: Repository, branch_name: str) -> Report:
+    """Check if rulesets require pull request reviews and have no bypass allowances.
+
+    Args:
+        repository: The repository to check.
+        branch_name: The name of the branch to check.
+
+    Returns:
+        A report indicating whether rulesets have appropriate PR review requirements.
+    """
+    rulesets = get_rulesets_for_branch(repository, branch_name)
+
+    if not rulesets:
+        return Report(
+            result=Result.FAIL,
+            reason=(
+                f"{FAILURE_MESSAGE}branch protection not enabled via rulesets, "
+                f"{branch_name=!r}"
+            ),
+        )
+
+    # Check if any ruleset has pull request review requirements
+    has_pr_review_requirement = False
+    for ruleset in rulesets:
+        rules = ruleset.get("rules", [])
+        for rule in rules:
+            if rule.get("type") == "pull_request":
+                has_pr_review_requirement = True
+                # Check for bypass allowances
+                parameters = rule.get("parameters", {})
+                bypass_actors = parameters.get("bypass_pull_request_allowances", {})
+                if any(
+                    bypass_actors.get(key, [])
+                    for key in ("repository_roles", "teams", "users", "deploy_keys")
+                ):
+                    return Report(
+                        result=Result.FAIL,
+                        reason=(
+                            f"{FAILURE_MESSAGE}pull request reviews can be bypassed "
+                            f"in ruleset, {branch_name=!r}"
+                        ),
+                    )
+                break
+
+    if not has_pr_review_requirement:
+        return Report(
+            result=Result.FAIL,
+            reason=(
+                f"{FAILURE_MESSAGE}pull request reviews are not required in rulesets, "
+                f"{branch_name=!r}"
+            ),
+        )
+
+    return Report(result=Result.PASS, reason=None)
+
+
 @log.call
 @github_exceptions_to_fail_report
 @inject_github_client
@@ -188,14 +245,8 @@ def target_branch_protection(
             protection = branch.get_protection()
         except GithubException as exc:
             if exc.status == 404:
-                return Report(
-                    result=Result.FAIL,
-                    reason=(
-                        f"{FAILURE_MESSAGE}branch protection not enabled "
-                        "(maybe rulesets have been defined instead of branch protection),"
-                        f" {branch_name=!r}"
-                    ),
-                )
+                # Branch protection is not enabled via the classic API, check if rulesets are used
+                return _check_rulesets_for_pull_request_reviews(repository, branch_name)
             raise
         pull_request_reviews = protection.required_pull_request_reviews
         if pull_request_reviews is None:

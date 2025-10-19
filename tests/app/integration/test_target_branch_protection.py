@@ -14,7 +14,7 @@ from repo_policy_compliance.check import Result, target_branch_protection
 from tests import assert_
 
 from .conftest import AuthenticationMethod
-from .types_ import BranchWithProtection
+from .types_ import BranchWithProtection, RulesetWithProtection
 
 
 @pytest.mark.parametrize(
@@ -187,11 +187,11 @@ def test_fail_branch_missing(github_repository_name: str, caplog: pytest.LogCapt
     indirect=["github_branch", "protected_github_branch"],
 )
 @pytest.mark.usefixtures("protected_github_branch", "ruleset_protected_github_branch")
-def test_fail_branch_protection_using_rulesets(
+def test_fail_branch_protection_using_rulesets_without_pr_requirement(
     github_branch: Branch, github_repository_name: str, caplog: pytest.LogCaptureFixture
 ):
     """
-    arrange: given a branch that is protected via ruleset and not the branch protection API.
+    arrange: given a branch that is protected via ruleset but without PR review requirement.
     act: when target_branch_protection is called with the name of the branch.
     assert: then a fail report is returned.
     """
@@ -204,7 +204,77 @@ def test_fail_branch_protection_using_rulesets(
 
     assert report.result == Result.FAIL
     assert report.reason, "expected a reason along with the fail result"
-    assert "not enabled" in report.reason
+    assert "pull request reviews are not required" in report.reason
+    assert github_branch.name in report.reason
+    assert repr(report) in caplog.text
+
+
+@pytest.mark.parametrize(
+    "github_branch, protected_github_branch, ruleset_protected_github_branch",
+    [
+        (
+            f"test-branch/target-branch/ruleset-protected/",
+            BranchWithProtection(branch_protection_enabled=False),
+            RulesetWithProtection(pull_request_required=True),
+        )
+    ],
+    indirect=["github_branch", "protected_github_branch", "ruleset_protected_github_branch"],
+)
+@pytest.mark.usefixtures("protected_github_branch", "ruleset_protected_github_branch")
+def test_pass_branch_protection_using_rulesets_with_pr_requirement(
+    github_branch: Branch, github_repository_name: str, caplog: pytest.LogCaptureFixture
+):
+    """
+    arrange: given a branch that is protected via ruleset with PR review requirement.
+    act: when target_branch_protection is called with the name of the branch.
+    assert: then a pass report is returned.
+    """
+    # The github_client is injected
+    report = target_branch_protection(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name,
+        branch_name=github_branch.name,
+        source_repository_name="other repository",
+    )
+
+    assert report.reason is None
+    assert report.result == Result.PASS
+    assert repr("target_branch_protection") in caplog.text
+    assert repr(report) in caplog.text
+
+
+@pytest.mark.parametrize(
+    "github_branch, protected_github_branch, ruleset_protected_github_branch",
+    [
+        (
+            f"test-branch/target-branch/ruleset-with-bypass/",
+            BranchWithProtection(branch_protection_enabled=False),
+            RulesetWithProtection(
+                pull_request_required=True, bypass_pull_request_allowance_disabled=False
+            ),
+        )
+    ],
+    indirect=["github_branch", "protected_github_branch", "ruleset_protected_github_branch"],
+)
+@pytest.mark.usefixtures("protected_github_branch", "ruleset_protected_github_branch")
+def test_fail_branch_protection_using_rulesets_with_bypass(
+    github_branch: Branch, github_repository_name: str, caplog: pytest.LogCaptureFixture
+):
+    """
+    arrange: given a branch that is protected via ruleset with PR review requirement but with \
+        bypass allowances.
+    act: when target_branch_protection is called with the name of the branch.
+    assert: then a fail report is returned.
+    """
+    # The github_client is injected
+    report = target_branch_protection(  # pylint: disable=no-value-for-parameter
+        repository_name=github_repository_name,
+        branch_name=github_branch.name,
+        source_repository_name="other repository",
+    )
+
+    assert report.result == Result.FAIL
+    assert report.reason, "expected a reason along with the fail result"
+    assert "pull request reviews can be bypassed" in report.reason
     assert github_branch.name in report.reason
     assert repr(report) in caplog.text
 
