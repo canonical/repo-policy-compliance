@@ -151,9 +151,7 @@ def branch_protected(branch: Branch) -> Report:
     return Report(result=Result.PASS, reason=None)
 
 
-def _check_rulesets_for_pull_request_reviews(
-    repository: Repository, branch_name: str
-) -> Report:
+def _check_rulesets_for_pull_request_reviews(repository: Repository, branch_name: str) -> Report:
     """Check if rulesets require pull request reviews and have no bypass allowances.
 
     Args:
@@ -164,7 +162,7 @@ def _check_rulesets_for_pull_request_reviews(
         A report indicating whether rulesets have appropriate PR review requirements.
     """
     rulesets = get_rulesets_for_branch(repository, branch_name)
-    
+
     if not rulesets:
         return Report(
             result=Result.FAIL,
@@ -173,7 +171,7 @@ def _check_rulesets_for_pull_request_reviews(
                 f"{branch_name=!r}"
             ),
         )
-    
+
     # Check if any ruleset has pull request review requirements
     has_pr_review_requirement = False
     for ruleset in rulesets:
@@ -196,7 +194,7 @@ def _check_rulesets_for_pull_request_reviews(
                         ),
                     )
                 break
-    
+
     if not has_pr_review_requirement:
         return Report(
             result=Result.FAIL,
@@ -205,7 +203,7 @@ def _check_rulesets_for_pull_request_reviews(
                 f"{branch_name=!r}"
             ),
         )
-    
+
     return Report(result=Result.PASS, reason=None)
 
 

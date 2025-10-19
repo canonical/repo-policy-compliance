@@ -169,7 +169,7 @@ def test_get_rulesets_for_branch():
     """
     mock_repository = MagicMock(spec=Repository)
     mock_repository.url = "https://api.github.com/repos/test/repo"
-    
+
     # Mock the requester to return rulesets
     mock_requester = MagicMock()
     rulesets_data = [
@@ -215,11 +215,9 @@ def test_get_rulesets_for_branch():
     ]
     mock_requester.requestJsonAndCheck.return_value = (None, rulesets_data)
     mock_repository._requester = mock_requester  # pylint: disable=protected-access
-    
-    result = repo_policy_compliance.github_client.get_rulesets_for_branch(
-        mock_repository, "main"
-    )
-    
+
+    result = repo_policy_compliance.github_client.get_rulesets_for_branch(mock_repository, "main")
+
     assert len(result) == 1
     assert result[0]["id"] == 1
     assert result[0]["name"] == "test-ruleset"
