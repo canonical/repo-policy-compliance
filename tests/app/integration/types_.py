@@ -21,6 +21,20 @@ class BranchWithProtection:
     bypass_pull_request_allowance_disabled: bool = True
 
 
+@dataclass
+class RulesetWithProtection:
+    """Class providing parameters for ruleset protection.
+
+    Attributes:
+        pull_request_required: True if pull request reviews are required.
+        bypass_pull_request_allowance_disabled: True if users/teams/apps are not allowed to bypass
+            pull requests.
+    """
+
+    pull_request_required: bool = True
+    bypass_pull_request_allowance_disabled: bool = True
+
+
 class RequestedCollaborator(NamedTuple):
     """Information about the requested collaborators to be added.
 

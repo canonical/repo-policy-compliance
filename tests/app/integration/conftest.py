@@ -31,7 +31,7 @@ from repo_policy_compliance.github_client import (
 
 from ...conftest import REPOSITORY_ARGUMENT_NAME
 from . import branch_protection
-from .types_ import BranchWithProtection, RequestedCollaborator
+from .types_ import BranchWithProtection, RequestedCollaborator, RulesetWithProtection
 
 logger = logging.getLogger(__name__)
 
@@ -192,7 +192,7 @@ def fixture_github_branch(
 ) -> Iterator[Branch]:
     """Create a new branch for testing."""
     branch_name: str = request.param
-    branch_name += str(uuid4()) # add uniqueness to avoid conflict on deletion
+    branch_name += str(uuid4())  # add uniqueness to avoid conflict on deletion
 
     main_branch = github_repository.get_branch(github_repository.default_branch)
     branch_ref = github_repository.create_git_ref(
@@ -312,9 +312,17 @@ def fixture_protected_github_branch(
 
 @pytest.fixture(name="ruleset_protected_github_branch")
 def fixture_ruleset_protected_github_branch(
-    github_token: str, github_branch: Branch, github_repository: Repository
+    github_token: str,
+    github_branch: Branch,
+    github_repository: Repository,
+    request: pytest.FixtureRequest,
 ) -> Iterator[Branch]:
     """Add ruleset protection for a branch."""
+    # Get ruleset configuration from test parameters, default to no PR requirement
+    ruleset_with_protection: RulesetWithProtection = getattr(
+        request, "param", RulesetWithProtection(pull_request_required=False)
+    )
+
     # pygithub does not support the rulesets API yet:
     # https://github.com/PyGithub/PyGithub/issues/2718
     # We use the GitHub API with the requests module to create the ruleset
@@ -324,6 +332,20 @@ def fixture_ruleset_protected_github_branch(
         "Authorization": f"Bearer {github_token}",
         "X-GitHub-Api-Version": "2022-11-28",
     }
+
+    # Build rules list based on configuration
+    rules = [{"type": "deletion"}, {"type": "non_fast_forward"}]
+    if ruleset_with_protection.pull_request_required:
+        pr_rule = {"type": "pull_request"}
+        if not ruleset_with_protection.bypass_pull_request_allowance_disabled:
+            # Add bypass allowances if they should be enabled
+            pr_rule["parameters"] = {
+                "bypass_pull_request_allowances": {
+                    "users": [{"user_id": 1}],  # Some user ID
+                }
+            }
+        rules.append(pr_rule)
+
     data = {
         "name": f"{github_branch.name}-ruleset",
         "target": "branch",
@@ -334,7 +356,7 @@ def fixture_ruleset_protected_github_branch(
                 "exclude": [],
             }
         },
-        "rules": [{"type": "deletion"}, {"type": "non_fast_forward"}],
+        "rules": rules,
     }
 
     response = requests.post(url, headers=headers, json=data, timeout=10)
