@@ -23,3 +23,8 @@ jobs:
       charmcraft-channel: latest/edge
       test-tox-env: charm-integration-test
       trivy-image-config: "trivy.yaml"
+  allure-report:
+    if: always() && !cancelled()
+    needs:
+      - charm-integration-test
+    uses: canonical/operator-workflows/.github/workflows/allure_report.yaml@main
