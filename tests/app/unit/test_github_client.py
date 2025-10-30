@@ -159,3 +159,65 @@ def test_get_client_github_app_auth(monkeypatch: pytest.MonkeyPatch):
     github_class_mock.assert_called_once()
     auth = github_class_mock.call_args[1]["auth"]
     assert isinstance(auth, AppInstallationAuth)
+
+
+def test_get_rulesets_for_branch():
+    """
+    arrange: Given a mocked repository with rulesets.
+    act: Call get_rulesets_for_branch.
+    assert: The applicable rulesets are returned.
+    """
+    mock_repository = MagicMock(spec=Repository)
+    mock_repository.url = "https://api.github.com/repos/test/repo"
+
+    # Mock the requester to return rulesets
+    mock_requester = MagicMock()
+    rulesets_data = [
+        {
+            "id": 1,
+            "name": "test-ruleset",
+            "target": "branch",
+            "enforcement": "active",
+            "conditions": {
+                "ref_name": {
+                    "include": ["refs/heads/main"],
+                    "exclude": [],
+                }
+            },
+            "rules": [{"type": "pull_request"}],
+        },
+        {
+            "id": 2,
+            "name": "inactive-ruleset",
+            "target": "branch",
+            "enforcement": "disabled",
+            "conditions": {
+                "ref_name": {
+                    "include": ["refs/heads/main"],
+                    "exclude": [],
+                }
+            },
+            "rules": [{"type": "pull_request"}],
+        },
+        {
+            "id": 3,
+            "name": "other-branch-ruleset",
+            "target": "branch",
+            "enforcement": "active",
+            "conditions": {
+                "ref_name": {
+                    "include": ["refs/heads/other"],
+                    "exclude": [],
+                }
+            },
+            "rules": [{"type": "pull_request"}],
+        },
+    ]
+    mock_requester.requestJsonAndCheck.return_value = (None, rulesets_data)
+    mock_repository._requester = mock_requester  # pylint: disable=protected-access
+
+    result = repo_policy_compliance.github_client.get_rulesets_for_branch(mock_repository, "main")
+
+    assert len(result) == 1
+    assert result[0]["id"] == 1
+    assert result[0]["name"] == "test-ruleset"

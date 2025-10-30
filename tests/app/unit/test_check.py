@@ -136,3 +136,89 @@ def test_target_branch_protection_get_protections_raises_non_404_error(
 
     assert report.result == Result.ERROR
     assert "Something went wrong" in str(report.reason)
+
+
+@pytest.mark.parametrize(
+    "rulesets, expected_result, expected_reason_substring",
+    [
+        pytest.param(
+            [],
+            Result.FAIL,
+            "branch protection not enabled via rulesets",
+            id="no rulesets",
+        ),
+        pytest.param(
+            [
+                {
+                    "id": 1,
+                    "rules": [{"type": "deletion"}],
+                }
+            ],
+            Result.FAIL,
+            "pull request reviews are not required in rulesets",
+            id="no pull_request rule",
+        ),
+        pytest.param(
+            [
+                {
+                    "id": 1,
+                    "rules": [
+                        {
+                            "type": "pull_request",
+                            "parameters": {
+                                "bypass_pull_request_allowances": {
+                                    "users": [{"user_id": 1}],
+                                }
+                            },
+                        }
+                    ],
+                }
+            ],
+            Result.FAIL,
+            "pull request reviews can be bypassed",
+            id="pull_request rule with bypass allowances",
+        ),
+        pytest.param(
+            [
+                {
+                    "id": 1,
+                    "rules": [
+                        {
+                            "type": "pull_request",
+                        }
+                    ],
+                }
+            ],
+            Result.PASS,
+            None,
+            id="pull_request rule without bypass allowances",
+        ),
+    ],
+)
+def test__check_rulesets_for_pull_request_reviews(
+    monkeypatch: pytest.MonkeyPatch,
+    rulesets: list,
+    expected_result: Result,
+    expected_reason_substring: str | None,
+):
+    """
+    arrange: given a repository with rulesets.
+    act: when _check_rulesets_for_pull_request_reviews is called.
+    assert: the expected result is returned.
+    """
+    mock_repository = MagicMock(spec=Repository)
+    monkeypatch.setattr(
+        repo_policy_compliance.check,
+        "get_rulesets_for_branch",
+        lambda *_args, **_kwargs: rulesets,
+    )
+
+    report = repo_policy_compliance.check._check_rulesets_for_pull_request_reviews(
+        mock_repository, "main"
+    )
+
+    assert report.result == expected_result
+    if expected_reason_substring:
+        assert expected_reason_substring in str(report.reason)
+    else:
+        assert report.reason is None
