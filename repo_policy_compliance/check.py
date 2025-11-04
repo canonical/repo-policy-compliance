@@ -231,12 +231,18 @@ def target_branch_protection(
         github_client=github_client, repository_name=repository_name, branch_name=branch_name
     )
 
+    repository = github_client.get_repo(repository_name)
+
+    # Check if branch is protected via classic branch protection
     if (protected_report := branch_protected(branch=branch)).result == Result.FAIL:
+        # Branch is not protected via classic API - check if rulesets are protecting it
+        # Only check rulesets for PRs from a fork or where the target branch is the default branch
+        if branch_name == repository.default_branch or repository_name != source_repository_name:
+            return _check_rulesets_for_pull_request_reviews(repository, branch_name)
         return protected_report
 
     # Only check for whether reviews are required for PRs from a fork or where the target branch is
     # the default branch
-    repository = github_client.get_repo(repository_name)
     if branch_name == repository.default_branch or repository_name != source_repository_name:
         try:
             # There can be the case that the branch is protected via rulesets and not
