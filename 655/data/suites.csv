@@ -1,0 +1,6 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"
+    arrange: given a running charm
+    act: when a token is generated and a check request is made
+    assert: then the requests succeeds.
+    ","750","test_app","tests.charm.integration","2025-11-07","passed","2025-11-07","","test_app","",""
