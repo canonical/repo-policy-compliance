@@ -27,7 +27,7 @@ jobs:
       test-tox-env: charm-integration-test
       trivy-image-config: "trivy.yaml"
   allure-report:
-    if: ${{ (success() || failure()) && github.event_name == 'schedule' }}
+    if: ${{ !cancelled() && github.event_name == 'schedule' }}
     needs:
     - charm-integration-test
     uses: canonical/operator-workflows/.github/workflows/allure_report.yaml@main
