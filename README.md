@@ -72,7 +72,14 @@ Note that the tests are currently designed to work for specific Canonical reposi
 and may need to be adapted for other repositories 
 (e.g. `tests.app.integration.test_target_branch_protection.test_fail` 
 assumes that certain collaborators are in the `users_bypass_pull_request_allowances` list). 
-The test repository must also have a branch protection defined for the main branch.
+The test repository must have the following prerequisites met:
+
+- have a branch protection defined for the main branch
+- no branch protection defined for other branches
+- no signed commit requirement for branches except the main branch
+- collaborators mentioned in `tests.app.integration.branch_protection.edit` are added as collaborators to the repo
+
+
 Also note that the forks are created in the personal space of the user whose token is being used, 
 and that the forks are not deleted after the run. 
 The reason for this is that it is only possible to create one fork of a repository, 
