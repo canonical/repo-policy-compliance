@@ -77,7 +77,7 @@ The test repository must have the following prerequisites met:
 - have a branch protection defined for the main branch
 - no branch protection defined for other branches
 - no signed commit requirement for branches except the main branch
-- collaborators mentioned in `tests.app.integration.branch_protection.edit` are added as collaborators to the repo
+- collaborators mentioned in `tests.app.integration.branch_protection.edit` are added as collaborators to the repository
 
 
 Also note that the forks are created in the personal space of the user whose token is being used, 
