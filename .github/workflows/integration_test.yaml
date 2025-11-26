@@ -16,7 +16,7 @@ jobs:
       canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
     with:
-      juju-channel: 3.5/stable
+      juju-channel: 3.6/stable
       channel: 1.28-strict/stable
       runs-on: ubuntu-24.04
       self-hosted-runner: false # we need a noble runner for python 3.12 but there is currently no edge runner with noble base available, so we choose gh hosted ones
