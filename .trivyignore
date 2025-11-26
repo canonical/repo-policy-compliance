@@ -3,3 +3,7 @@ CVE-2024-45337
 CVE-2025-22869
 # Vulnerability in golang.org/x/net introduced by statsd-exporter. We have to wait until it is fixed upstream: https://github.com/prometheus/statsd_exporter/blob/master/go.mod
 CVE-2025-22868
+CVE-2025-58183
+CVE-2025-58186
+CVE-2025-58187
+CVE-2025-58188

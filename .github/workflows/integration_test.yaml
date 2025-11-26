@@ -3,17 +3,20 @@ name: Charm Integration tests
 on:
   pull_request:
     branches-ignore:
-      - 'test-branch/**'
+    - 'test-branch/**'
 
+  schedule:
+  - cron: "0 15 * * SAT"
 jobs:
   # Usage of operator workflows requires INTEGRATION_TEST_ARGS to be set with
   # --github-token PAT, where PAT is a GitHub Personal Access Token with sufficient perms for the
   # charm integration test.
   charm-integration-test:
-    uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
+    uses: 
+      canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
     with:
-      juju-channel: 3.5/stable
+      juju-channel: 3.6/stable
       channel: 1.28-strict/stable
       runs-on: ubuntu-24.04
       self-hosted-runner: false # we need a noble runner for python 3.12 but there is currently no edge runner with noble base available, so we choose gh hosted ones
@@ -24,7 +27,7 @@ jobs:
       test-tox-env: charm-integration-test
       trivy-image-config: "trivy.yaml"
   allure-report:
-    if: always() && !cancelled()
+    if: ${{ !cancelled() && github.event_name == 'schedule' }}
     needs:
-      - charm-integration-test
+    - charm-integration-test
     uses: canonical/operator-workflows/.github/workflows/allure_report.yaml@main
