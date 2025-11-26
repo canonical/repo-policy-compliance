@@ -74,10 +74,10 @@ and may need to be adapted for other repositories
 assumes that certain collaborators are in the `users_bypass_pull_request_allowances` list). 
 The test repository must have the following prerequisites met:
 
-- have a branch protection defined for the main branch
-- no branch protection defined for other branches
-- no signed commit requirement for branches except the main branch
-- collaborators mentioned in `tests.app.integration.branch_protection.edit` are added as collaborators to the repository
+- Have branch protection defined for the main branch.
+- No branch protection defined for other branches.
+- No signed commit requirement for branches except the main branch.
+- Collaborators mentioned in `tests.app.integration.branch_protection.edit` are added as collaborators to the repository.
 
 
 Also note that the forks are created in the personal space of the user whose token is being used, 
