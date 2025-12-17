@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Place any unreleased changes here, that are subject to release in coming versions :).
 
+## 2025-12-17
+
+- Moved charm-architecture.md from Explanation to Reference category.
+
 ## 2025-08-05
 
 - Added changelog for tracking user-relevant changes.
