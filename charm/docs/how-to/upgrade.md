@@ -3,8 +3,6 @@
 To upgrade the repo-policy-compliance charm, use the [`juju refresh`](https://documentation.ubuntu.com/juju/3.6/reference/juju-cli/list-of-juju-cli-commands/refresh/) command.
 Since repo-policy-compliance does not manage any persistent data or databases, there are no backup or migration steps required before upgrading.
 
-## Before you begin
-
 Before performing an upgrade, ensure that your Juju model is in a healthy state:
 
 ```bash
