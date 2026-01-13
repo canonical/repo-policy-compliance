@@ -186,6 +186,8 @@ This work is licensed under the Creative Commons Attribution-Share Alike 3.0 Unp
 
 # Contents
 
+1. [How-to](how-to)
+  1. [Upgrade](how-to/upgrade.md)
 1. [Reference](reference)
   1. [GitHub Authentication](reference/github-auth.md)
   1. [Architecture](reference/charm-architecture.md)
