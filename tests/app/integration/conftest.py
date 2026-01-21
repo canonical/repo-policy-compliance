@@ -5,8 +5,9 @@
 import enum
 import logging
 import os
-import secrets
+import time
 from collections import namedtuple
+from dataclasses import dataclass
 from enum import Enum
 from typing import Iterator, cast
 from uuid import uuid4
@@ -17,6 +18,8 @@ from github import Github
 from github.Auth import Token
 from github.Branch import Branch
 from github.Commit import Commit
+from github.GithubException import UnknownObjectException, GithubException
+from github.GitRef import GitRef
 from github.PullRequest import PullRequest
 from github.Repository import Repository
 
@@ -186,23 +189,81 @@ def fixture_forked_github_repository(
     yield forked_repository
 
 
+@dataclass
+class _NewBranchInfo:
+    """Information about the newly created branch.
+
+    Attributes:
+        branch: The newly created branch.
+        ref: The ref of the newly created branch.
+    """
+
+    branch: Branch
+    ref: GitRef
+
+
+def _create_branch_from_default(repo: Repository, name: str) -> _NewBranchInfo:
+    """Create a new branch for testing.
+
+    Args:
+        repo: Repository to create the branch from default (main) branch.
+        name: Name of the branch to create.
+
+    Returns:
+        The newly created branch.
+    """
+    main_branch = repo.get_branch(repo.default_branch)
+    logger.info("Creating branch %s", name)
+    new_ref = repo.create_git_ref(ref=f"refs/heads/{name}", sha=main_branch.commit.sha)
+    logger.info("Created branch %s", name)
+
+    # 2025-08-07: There is an issue with the GitHub API that sometimes fails to fetch the created
+    # ref within a small timeframe. The following loop retries fetching the created ref up to three
+    # times.
+    for attempt in range(3):
+        try:
+            new_branch = repo.get_branch(name)
+            return _NewBranchInfo(branch=new_branch, ref=new_ref)
+        except UnknownObjectException:
+            logger.warning(
+                "Failed to fetch created branch (attempt %s): %s", attempt, name, exc_info=True
+            )
+            time.sleep(5)
+
+    raise TimeoutError("Failed to create new branch after 3 attempts")
+
+def _patiently_delete_ref(ref: GitRef):
+    """Patiently delete a ref.
+    
+    Args:
+        ref: The ref to delete.
+    """
+    # 2025-08-07: There is an issue with the GitHub API that sometimes fails to delete the created
+    # ref within a small timeframe. The following loop retries deleting the created ref up to three
+    # times.
+    for attempt in range(3):
+        try:
+            ref.delete()
+            return
+        except GithubException:
+            logger.warning("Failed to delete ref (attempt: %s): %s", attempt, ref.ref, exc_info=True)
+            time.sleep(5)
+    logger.error("Failed to delete ref after 3 attempts: %s", ref.ref)
+
+
 @pytest.fixture(name="github_branch")
 def fixture_github_branch(
     github_repository: Repository, request: pytest.FixtureRequest
 ) -> Iterator[Branch]:
     """Create a new branch for testing."""
     branch_name: str = request.param
-    branch_name += str(uuid4()) # add uniqueness to avoid conflict on deletion
+    branch_name += str(uuid4())  # add uniqueness to avoid conflict on deletion
 
-    main_branch = github_repository.get_branch(github_repository.default_branch)
-    branch_ref = github_repository.create_git_ref(
-        ref=f"refs/heads/{branch_name}", sha=main_branch.commit.sha
-    )
-    branch = github_repository.get_branch(branch_name)
+    branch_info = _create_branch_from_default(repo=github_repository, name=branch_name)
 
-    yield branch
+    yield branch_info.branch
 
-    branch_ref.delete()
+    _patiently_delete_ref(ref=branch_info.ref)
 
 
 @pytest.fixture(name="another_github_branch")
@@ -213,15 +274,11 @@ def fixture_another_github_branch(
     branch_name: str = request.param
     branch_name += str(uuid4())  # add uniqueness to avoid conflict on deletion
 
-    main_branch = github_repository.get_branch(github_repository.default_branch)
-    branch_ref = github_repository.create_git_ref(
-        ref=f"refs/heads/{branch_name}", sha=main_branch.commit.sha
-    )
-    branch = github_repository.get_branch(branch_name)
+    branch_info = _create_branch_from_default(repo=github_repository, name=branch_name)
 
-    yield branch
+    yield branch_info.branch
 
-    branch_ref.delete()
+    _patiently_delete_ref(ref=branch_info.ref)
 
 
 @pytest.fixture(name="forked_github_branch")
@@ -232,15 +289,11 @@ def fixture_forked_github_branch(
     branch_name: str = request.param
     branch_name += str(uuid4())  # add uniqueness to avoid conflict on deletion
 
-    main_branch = forked_github_repository.get_branch(forked_github_repository.default_branch)
-    branch_ref = forked_github_repository.create_git_ref(
-        ref=f"refs/heads/{branch_name}", sha=main_branch.commit.sha
-    )
-    branch = forked_github_repository.get_branch(branch_name)
+    branch_info = _create_branch_from_default(repo=forked_github_repository, name=branch_name)
 
-    yield branch
+    yield branch_info.branch
 
-    branch_ref.delete()
+    _patiently_delete_ref(ref=branch_info.ref)
 
 
 @pytest.fixture(name="commit_on_forked_github_branch")
@@ -268,22 +321,18 @@ def pr_from_forked_github_branch(
 ) -> Iterator[PullRequest]:
     """Create a new forked branch for testing."""
     # Create target for PR to avoid triggering recursive GitHub action runs
-    main_branch = github_repository.get_branch(github_repository.default_branch)
     base_branch_name = f"test-branch/target-for-{forked_github_branch.name}"
-    base_branch_ref = github_repository.create_git_ref(
-        ref=f"refs/heads/{base_branch_name}",
-        sha=main_branch.commit.sha,
-    )
-    base_branch = github_repository.get_branch(base_branch_name)
+    base_branch_info = _create_branch_from_default(repo=github_repository, name=base_branch_name)
+    
     github_repository.create_file(
-        "another-test.txt", "testing", "some content", branch=base_branch.name
+        "another-test.txt", "testing", "some content", branch=base_branch_info.branch.name
     )
 
     # Create PR
     pull = github_repository.create_pull(
         title=forked_github_branch.name,
         body=f"PR for testing {commit_on_forked_github_branch.sha}",
-        base=base_branch.name,
+        base=base_branch_info.branch.name,
         head=f"{forked_github_repository.owner.login}:{forked_github_branch.name}",
         draft=True,
     )
@@ -291,7 +340,7 @@ def pr_from_forked_github_branch(
     yield pull
 
     pull.edit(state="closed")
-    base_branch_ref.delete()
+    _patiently_delete_ref(ref=base_branch_info.ref)
 
 
 @pytest.fixture(name="protected_github_branch")
